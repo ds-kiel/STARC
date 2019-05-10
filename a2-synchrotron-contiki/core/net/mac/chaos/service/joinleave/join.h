@@ -53,6 +53,7 @@ int join_get_joined_nodes_not_committed_num( void );
 int join_is_in_round( void );
 uint16_t join_get_commit_slot( void );
 void join_print_nodes( void );
+int join_get_index_for_node_id(int node_id);
 uint16_t join_get_off_slot( void );
 
 #if TESTBED == indriya

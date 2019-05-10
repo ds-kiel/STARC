@@ -708,3 +708,7 @@ static int binary_search( uint16_t array[][2], int size, uint16_t search_id ){
   }
   return -1;
 }
+
+int join_get_index_for_node_id(int node_id) {
+  return binary_search(joined_nodes_map, chaos_node_count, node_id);
+}
