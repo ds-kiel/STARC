@@ -48,7 +48,7 @@
 void init_node_index();
 
 #ifndef MAX_NODE_COUNT
-#define MAX_NODE_COUNT 254
+#define MAX_NODE_COUNT 32
 #endif
 
 #if NETSTACK_CONF_WITH_CHAOS_NODE_DYNAMIC
