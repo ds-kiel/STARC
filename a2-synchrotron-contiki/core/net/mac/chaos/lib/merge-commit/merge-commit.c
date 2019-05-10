@@ -97,7 +97,7 @@ extern int merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx
 
 
 // Enable me if maximum is wanted
-#if 1
+#if 0
 int merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
   int ret = memcmp(&rx_mc->value, &tx_mc->value, sizeof(merge_commit_value_t));
 
