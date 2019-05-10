@@ -58,7 +58,19 @@
 #define PHASE_MERGE 4
 #define PHASE_COMMIT 8
 
-int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, uint32_t* merge_commit_value, uint8_t* phase, uint8_t** final_flags);
+#ifndef EXCLUDE_MERGE_COMMIT_VALUE_STRUCT
+typedef struct __attribute__((packed)) {
+    uint32_t x;
+} merge_commit_value_t;
+#endif
+
+typedef struct __attribute__((packed)) {
+    merge_commit_value_t value;
+    uint8_t phase;
+    uint8_t flags[];
+} merge_commit_t;
+
+int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, merge_commit_value_t* merge_commit_value, uint8_t* phase, uint8_t** final_flags);
 
 int merge_commit_is_pending(const uint16_t round_count);
 

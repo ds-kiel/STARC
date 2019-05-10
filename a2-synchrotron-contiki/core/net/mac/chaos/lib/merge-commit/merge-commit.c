@@ -85,16 +85,6 @@
 #define ARR_INDEX ((chaos_node_index)/8)
 #define ARR_OFFSET ((chaos_node_index)%8)
 
-#ifndef MERGE_VALUE_TYPE
-#define MERGE_VALUE_TYPE uint32_t
-#endif
-
-
-typedef struct __attribute__((packed)) {
-  MERGE_VALUE_TYPE value;
-  uint8_t phase;
-  uint8_t flags[];
-} merge_commit_t;
 
 typedef struct __attribute__((packed)) {
   merge_commit_t mc;
@@ -103,16 +93,19 @@ typedef struct __attribute__((packed)) {
 
 
 
-#ifndef MERGE_VALUE_CALLBACK
-#define MERGE_VALUE_CALLBACK(R,T) merge_value_max_callback((R),(T))
-static int merge_value_max_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
-  int ret = memcmp(&rx_mc->value, &tx_mc->value, sizeof(MERGE_VALUE_TYPE));
+extern int merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc);
+
+
+// Enable me if maximum is wanted
+#if 1
+int merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
+  int ret = memcmp(&rx_mc->value, &tx_mc->value, sizeof(merge_commit_value_t));
 
   if (ret < 0) {
-    memcpy (&rx_mc->value, &tx_mc->value, sizeof(MERGE_VALUE_TYPE) );
+    memcpy(&rx_mc->value, &tx_mc->value, sizeof(merge_commit_value_t));
     return 1;
   } else if (ret > 0) {
-    memcpy (&tx_mc->value, &rx_mc->value, sizeof(MERGE_VALUE_TYPE) );
+    memcpy(&tx_mc->value, &rx_mc->value, sizeof(merge_commit_value_t));
     return 1;
   } else {
     return 0; // already equal
@@ -182,7 +175,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
         if (tx_mc->phase == PHASE_MERGE) {
 
-          tx = MERGE_VALUE_CALLBACK(rx_mc, tx_mc);
+          tx = merge_commit_merge_callback(rx_mc, tx_mc);
 
           // Check if we should do the next phase!
           if (IS_INITIATOR() && flag_sum == FLAG_SUM) {
@@ -248,7 +241,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
   int end = (slot_count >= MERGE_COMMIT_ROUND_MAX_SLOTS - 1) || (next_state == CHAOS_OFF);
   if(end){
-    mc_local.mc.value = tx_mc->value;
+    memcpy(&mc_local.mc.value, &tx_mc->value, sizeof(merge_commit_value_t));
     mc_local.mc.phase = tx_mc->phase;
     tx_flags_final = tx_mc->flags;
 
@@ -282,7 +275,7 @@ uint16_t merge_commit_get_off_slot(){
   return off_slot;
 }
 
-int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, MERGE_VALUE_TYPE* merge_commit_value, uint8_t* phase, uint8_t** final_flags)
+int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, merge_commit_value_t* merge_commit_value, uint8_t* phase, uint8_t** final_flags)
 {
   tx = 0;
   did_tx = 0;
@@ -299,7 +292,7 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   restart_threshold = chaos_random_generator_fast() % (CHAOS_RESTART_MAX - CHAOS_RESTART_MIN) + CHAOS_RESTART_MIN;
 
   memset(&mc_local, 0, sizeof(mc_local));
-  mc_local.mc.value = *merge_commit_value;
+  memcpy(&mc_local.mc.value, merge_commit_value, sizeof(merge_commit_value_t));
   mc_local.mc.phase = PHASE_MERGE;
   /* set my flag */
   uint8_t* flags = merge_commit_get_flags(&mc_local.mc);
@@ -307,7 +300,7 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
 
   chaos_round(round_number, app_id, (const uint8_t const*)&mc_local, sizeof(mc_local.mc) + merge_commit_get_flags_length(), MERGE_COMMIT_SLOT_LEN_DCO, MERGE_COMMIT_ROUND_MAX_SLOTS, merge_commit_get_flags_length(), process);
   memcpy(mc_local.mc.flags, tx_flags_final, merge_commit_get_flags_length());
-  *merge_commit_value = mc_local.mc.value;
+  memcpy(merge_commit_value, &mc_local.mc.value, sizeof(merge_commit_value_t));
   *final_flags = mc_local.flags;
   *phase = mc_local.mc.phase;
   return completion_slot;
