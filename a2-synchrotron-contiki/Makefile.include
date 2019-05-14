@@ -101,9 +101,10 @@ ifeq ($(CONTIKI_WITH_CHAOS),1)
   MODULES += core/net/mac/chaos/lib/vote
   MODULES += core/net/mac/chaos/lib/2pc    
   MODULES += core/net/mac/chaos/lib/3pc    
-  MODULES += core/net/mac/chaos/lib/collect    
-  MODULES += core/net/mac/chaos/lib/collect-slotted    
+  MODULES += core/net/mac/chaos/lib/collect
+  MODULES += core/net/mac/chaos/lib/collect-slotted
   MODULES += core/net/mac/chaos/service/unit-test/on-demand-test
+  MODULES += core/net/mac/chaos/lib/merge-commit
 endif
 
 # Make IPv6 the default stack
