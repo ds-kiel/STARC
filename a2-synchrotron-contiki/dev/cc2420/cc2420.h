@@ -318,7 +318,6 @@ static ALWAYS_INLINE int
 cc2420_fast_rx(vht_clock_t* sfd_vht, int round_synced, uint8_t app_id, uint8_t association, uint8_t * const rx_packet, rtimer_clock_t slot_length)
 {
 
-  COOJA_DEBUG_STR("0");
   volatile uint8_t rx = 0;
   chaos_header_t* const rx_header = (chaos_header_t*)((uint32_t *)rx_packet);
   volatile rtimer_clock_t t_cap_l = 0;
@@ -331,7 +330,6 @@ cc2420_fast_rx(vht_clock_t* sfd_vht, int round_synced, uint8_t app_id, uint8_t a
   } while( RTIMER_NOW() == t_cap_l );
   t_cap_l = RTIMER_NOW();
 
-  COOJA_DEBUG_STR("2");
   if( round_synced ){
     BUSYWAIT_UNTIL((rx = CC2420_SFD_IS_1), (DCO_TO_RTIMER(SFD_DETECTION_TIME_MIN) + (RX_GUARD_TIME)));
   } else if( !round_synced && !association ){
@@ -345,7 +343,6 @@ cc2420_fast_rx(vht_clock_t* sfd_vht, int round_synced, uint8_t app_id, uint8_t a
   rtimer_clock_t sfd_dco = NETSTACK_RADIO_read_sfd_timer() + RX_SFD_OFFSET;
 #endif
 
-  COOJA_DEBUG_STR("3");
   SET_PIN_ADC1;
 
   // round up for the smallest fraction of CLOCK_PHI
@@ -470,7 +467,6 @@ cc2420_fast_rx(vht_clock_t* sfd_vht, int round_synced, uint8_t app_id, uint8_t a
 #endif /* CHAOS_HW_SECURITY */
 
   } else {
-    COOJA_DEBUG_STR("no sfd");
   }
   NETSTACK_RADIO_flushrx();
   //COOJA_DEBUG_PRINTF("sfd %u - %u = %u", *sfd_dco, t_cap_h, *sfd_dco - t_cap_h);
