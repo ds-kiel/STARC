@@ -52,7 +52,11 @@
 #define CHAOS_RESTART_MIN 4
 #define CHAOS_RESTART_MAX 10
 
-#define MAX_ROUND_MAX_SLOTS   (254)
+#define MERGE_COMMIT_ROUND_MAX_SLOTS (200)
+#define MERGE_COMMIT_SLOT_LEN_MSEC 10
+
+#undef  CHAOS_INTERVAL
+#define CHAOS_INTERVAL (20*(RTIMER_SECOND/10))
 
 #if COOJA
 //join parameters
@@ -92,8 +96,7 @@
 #define CHAOS_USE_SRC_RANK _param_rank
 
 /* Chaos timing */
-#undef CHAOS_INTERVAL
-#define CHAOS_INTERVAL   (10*(RTIMER_SECOND/10))
+
 //(40*(RTIMER_SECOND/10))
 
 #undef CHAOS_RF_CHANNEL
@@ -199,6 +202,8 @@
 
 #undef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON 0
+
+#define MERGE_COMMIT_VALUE_STRUCT_CONTENT uint8_t tile_reservations[36];
 
 
 #endif /* PROJECT_CONF_H_ */

@@ -93,12 +93,12 @@ typedef struct __attribute__((packed)) {
 
 
 
-extern int merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc);
+extern void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc);
 
 
 // Enable me if maximum is wanted
 #if 0
-int merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
+void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
   int ret = memcmp(&rx_mc->value, &tx_mc->value, sizeof(merge_commit_value_t));
 
   if (ret < 0) {
@@ -133,6 +133,7 @@ static inline uint8_t* merge_commit_get_flags(merge_commit_t* mc) {
 static chaos_state_t
 process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, int chaos_txrx_success, size_t payload_length, uint8_t* rx_payload, uint8_t* tx_payload, uint8_t** app_flags)
 {
+
   merge_commit_t* tx_mc = (merge_commit_t*)tx_payload;
   merge_commit_t* rx_mc = (merge_commit_t*)rx_payload;
 
@@ -161,12 +162,14 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
         uint16_t flag_sum = 0;
         uint16_t rx_flag_sum = 0;
+        uint16_t tx_flag_sum = 0;
         int i;
         uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
         uint8_t* rx_flags = merge_commit_get_flags(rx_mc);
 
         //merge and tx if flags differ
         for( i = 0; i < FLAGS_LEN; i++){
+          tx_flag_sum += tx_flags[i];
           tx |= (rx_flags[i] != tx_flags[i]);
           tx_flags[i] |= rx_flags[i];
           flag_sum += tx_flags[i];
@@ -175,8 +178,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
         if (tx_mc->phase == PHASE_MERGE) {
 
-
-          tx |= merge_commit_merge_callback(rx_mc, tx_mc);
+          merge_commit_merge_callback(rx_mc, tx_mc);
 
           // Check if we should do the next phase!
           if (IS_INITIATOR() && flag_sum == FLAG_SUM) {
@@ -188,10 +190,12 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             tx_mc->phase = PHASE_COMMIT;
             //TODO: we could also abort here
 
+            printf("Commiting...");
+            print_tiles(&tx_mc->value);
+
             tx = 1;
             leds_on(LEDS_GREEN);
           }
-
         } else if (tx_mc->phase == PHASE_COMMIT) {
           if (flag_sum == FLAG_SUM) {
             tx = 1;
@@ -207,6 +211,9 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         // received phase is more advanced than local one -> switch to received state (and set own flags)
         memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_length());
         uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
+
+        printf("Received commit...");
+        print_tiles(&tx_mc->value);
         tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
         tx = 1;
         leds_on(LEDS_BLUE);
@@ -240,7 +247,10 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
     leds_off(LEDS_GREEN);
   }
 
+  *app_flags = tx_mc->flags;
+
   int end = (slot_count >= MERGE_COMMIT_ROUND_MAX_SLOTS - 1) || (next_state == CHAOS_OFF);
+
   if(end){
     memcpy(&mc_local.mc.value, &tx_mc->value, sizeof(merge_commit_value_t));
     mc_local.mc.phase = tx_mc->phase;
@@ -253,13 +263,13 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
     did_tx = 1;
   }
 
-  if( request_sync ){
+  /*if( request_sync ){
     if( next_state == CHAOS_TX ){
       next_state = CHAOS_TX_SYNC;
     } else if( next_state == CHAOS_RX ){
       next_state = CHAOS_RX_SYNC;
     }
-  }
+  }*/
 
   return next_state;
 }
@@ -300,8 +310,14 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
 
   chaos_round(round_number, app_id, (const uint8_t const*)&mc_local, sizeof(mc_local.mc) + merge_commit_get_flags_length(), MERGE_COMMIT_SLOT_LEN_DCO, MERGE_COMMIT_ROUND_MAX_SLOTS, merge_commit_get_flags_length(), process);
-  memcpy(mc_local.mc.flags, tx_flags_final, merge_commit_get_flags_length());
+  memcpy(&mc_local.mc.flags, tx_flags_final, merge_commit_get_flags_length());
+
+  printf("Final value...");
+  print_tiles(&mc_local.mc.value);
+
   memcpy(merge_commit_value, &mc_local.mc.value, sizeof(merge_commit_value_t));
+  printf("Copied value...");
+  print_tiles(merge_commit_value);
   *final_flags = mc_local.flags;
   *phase = mc_local.mc.phase;
   return completion_slot;

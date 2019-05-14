@@ -51,10 +51,10 @@
 #include "node.h"
 
 
-#define EXCLUDE_MERGE_COMMIT_VALUE_STRUCT 1
-typedef struct __attribute__((packed)) {
-    uint8_t tile_reservations[4];
-} merge_commit_value_t;
+#define TILES_WIDTH 6
+#define TILES_HEIGHT 6
+#define NUM_TILES (TILES_WIDTH * TILES_HEIGHT)
+
 
 
 #include "merge-commit.h"
@@ -62,12 +62,72 @@ typedef struct __attribute__((packed)) {
 
 #define REPEAT 1
 #define MOVE_INTERVAL CLOCK_SECOND
-#define MOVE_BREAK 10*CLOCK_SECOND
 
 
-#define TILES_WIDTH 2
-#define TILES_HEIGHT 2
-#define NUM_TILES (TILES_WIDTH * TILES_HEIGHT)
+typedef struct __attribute__((packed)) {
+    uint8_t size;
+    uint8_t tiles[NUM_TILES];
+} path_t;
+
+
+static int pos_to_id(int x, int y) {
+  return y*TILES_WIDTH+x;
+}
+
+static void id_to_pos(int *x, int *y, int id) {
+  *x = id%TILES_WIDTH;
+  *y = id/TILES_WIDTH;
+}
+
+static void extract_path(path_t* dest, merge_commit_value_t *src, int node_id) {
+  int i = 0;
+  dest->size = 0;
+
+  for(i = 0; i < NUM_TILES; ++i) {
+    if (src->tile_reservations[i] == node_id) {
+      // add to array
+      dest->tiles[dest->size] = i;
+      dest->size++;
+    }
+  }
+}
+
+
+static void reserve_path(merge_commit_value_t *val, path_t* path, int node_id) {
+  int i;
+  for(i = 0; i < path->size; ++i) {
+    val->tile_reservations[path->tiles[i]] = node_id;
+  }
+}
+
+static int path_is_reserved(merge_commit_value_t* plan, path_t *path, int node_id) {
+
+  if (path->size == 0) {
+    return 0;
+  }
+
+  int i = 0;
+
+  for(i = 0; i < path->size; ++i) {
+    int x = plan->tile_reservations[path->tiles[i]];
+    if (x != node_id) {
+      return 0; // Mismatch
+    }
+  }
+
+  return 1;
+}
+
+static int path_available(merge_commit_value_t *plan, path_t* path, int node_id) {
+  int i;
+  for(i = 0; i < path->size; ++i) {
+    int x = plan->tile_reservations[path->tiles[i]];
+    if (x != 0 && x != node_id) {
+      return 0;
+    }
+  }
+  return 1;
+}
 
 
 static int px = 0;
@@ -80,91 +140,57 @@ static int opy = 0;
 
 static int accepted = 0;
 
-static int tile_reservation_code;
+
+static path_t own_reservation;
+
+
+void print_tiles(merge_commit_value_t *val) {
+  int x = 0;
+  int y = 0;
+
+  for(y = 0; y < TILES_HEIGHT; y++) {
+    for(x = 0; x < TILES_WIDTH; x++) {
+      printf("%d", val->tile_reservations[y*TILES_WIDTH+x]);
+    }
+    printf(", ");
+  }
+}
 
 unsigned short rseed = 0; /* Will be set to a value by cooja! */
 static void init_pos_and_dir() {
 
-  tile_reservation_code = 0;
 
-  switch (node_id%4) {
-    case 1:
-      px = -1; py = 1;
+  int offset = (node_id-1)%3;
+
+  switch((node_id-1)/3) {
+    case 0:
+      px = -1; py = 3+offset;
       dx = 1; dy = 0;
-      //tile_reservation_code = "0 1 1 1";
-      tile_reservation_code = (1 << 2) | (1 << 1) | 1;
+      break;
+    case 1:
+      px = 3+offset; py = 6;
+      dx = 0; dy = -1;
       break;
     case 2:
-      px = 0; py = -1;
-      dx = 0; dy = 1;
-      //tile_reservation_code = "0 0 0 1";
-      tile_reservation_code = 1;
+      px = 6; py = 2-offset;
+      dx = -1; dy = 0;
       break;
     case 3:
-      px = 2; py = 0;
-      dx = -1; dy = 0;
-      //tile_reservation_code = "1 0 0 0";
-      tile_reservation_code = (1 << 3);
-      break;
-    case 0:
-      px = 1; py = 2;
-      dx = 0; dy = -1;
-      //tile_reservation_code = "1 1 1 0";
-      tile_reservation_code = (1 << 3) | (1 << 2) | (1 << 1);
+      px = 2-offset; py = -1;
+      dx = 0; dy = 1;
       break;
   }
 }
 
-static int has_reservations(merge_commit_value_t* mc_val) {
-  int i = 0;
-  for (i = 0; i < NUM_TILES; ++i) {
-    if (mc_val->tile_reservations[i] != 0) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
-static int reservations_exists(merge_commit_value_t* mc_source, merge_commit_value_t* mc_val) {
-  int i = 0;
-  for (i = 0; i < NUM_TILES; ++i) {
-    if (mc_val->tile_reservations[i] != 0 && mc_val->tile_reservations[i] != mc_source->tile_reservations[i]) {
-      return 0; // Mismatch
-    }
-  }
-  return 1;
-}
-
-static int check_reservation(merge_commit_value_t* mc_val, int node_id, int reservation) {
-  int i1 = (reservation >> 2) & 3;
-  int i2 = reservation & 3;
-
-  if (mc_val->tile_reservations[i1] == 0 || mc_val->tile_reservations[i1] == node_id) {
-    if (mc_val->tile_reservations[i2] == 0 || mc_val->tile_reservations[i2] == node_id) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
-static void free_reservations(merge_commit_value_t* mc_val, int node_id) {
-  int i = 0;
-  for (i = 0; i < NUM_TILES; ++i) {
-    if (mc_val->tile_reservations[i] == node_id) {
-      mc_val->tile_reservations[i] = 0;
-    }
+static void init_reservation() {
+  own_reservation.size = 0;
+  int i;
+  // we initialize reservations here
+  for(i = 0; i < TILES_WIDTH; ++i) {
+    own_reservation.tiles[own_reservation.size] = pos_to_id(px + dx * (i+1), py + dy * (i+1));
+    own_reservation.size++;
   }
 }
-
-static void plan_reservation(merge_commit_value_t* mc_val, int node_id, int reservation) {
-  free_reservations(mc_val, node_id);
-
-  int i1 = (reservation >> 2) & 3;
-  int i2 = reservation & 3;
-  mc_val->tile_reservations[i1] = node_id;
-  mc_val->tile_reservations[i2] = node_id;
-}
-
 
 static void mc_round_begin(const uint16_t round_count, const uint8_t id);
 
@@ -181,6 +207,7 @@ CHAOS_APPS(&chaos_merge_commit_app);
 /* Commit variables */
 static merge_commit_value_t mc_value;
 static merge_commit_value_t mc_commited_value;
+static merge_commit_value_t mc_last_commited_value;
 static uint8_t* mc_flags;
 static uint8_t  mc_complete = 0, mc_phase = 0;
 static uint16_t mc_off_slot;
@@ -199,15 +226,27 @@ PROCESS_BEGIN();
   while(1) {
     PROCESS_YIELD();
 
-    printf("Commit yield\n");
     if(chaos_has_node_index){
       if (mc_phase == PHASE_COMMIT) {
         printf("Commit completed\n");
-        //COMMIT
-        if (has_reservations(&mc_value) && reservations_exists(&mc_commited_value, &mc_value)) {
+        printf("OFFSLOT: %d\n", mc_off_slot);
+
+        // Set latest known commit value
+        memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
+
+        if (path_is_reserved(&mc_commited_value, &own_reservation, node_id)) {
+          print_tiles(&mc_commited_value);
           printf("Node id %d was accepted\n", node_id);
           accepted = 1;
+        } else if (own_reservation.size > 0 && !path_is_reserved(&mc_value, &own_reservation, node_id)){
+          // TODO: At this point, we really just want to find ANY way ;)
+          // Add this with a parameter
+          if (path_available(&mc_last_commited_value, &own_reservation, node_id)) {
+            reserve_path(&mc_value, &own_reservation, node_id);
+          }
         }
+      } else {
+        printf("Commit NOT completed\n");
       }
     } else {
       printf("{rd %u res} 2pc: waiting to join, n: %u\n", mc_round_count_local, chaos_node_count);
@@ -217,6 +256,8 @@ PROCESS_BEGIN();
   }
 PROCESS_END();
 }
+
+
 
 PROCESS(movement_process, "movement process");
 
@@ -229,11 +270,11 @@ PROCESS_THREAD(movement_process, ev, data)
 
   // first set the position based on our mode id and move to the position
   init_pos_and_dir();
+  init_reservation();
   opx = px;
   opy = py;
 
-
-
+  memset(&mc_last_commited_value, 0, sizeof(merge_commit_value_t));
 
   etimer_set(&timer, MOVE_INTERVAL);
   do {
@@ -242,8 +283,16 @@ PROCESS_THREAD(movement_process, ev, data)
     py = opy;
     printf("#MoveTo %d.0 %d.0\n", px, py);
 
-    memset(&mc_value, 0, sizeof(merge_commit_value_t));
-    plan_reservation(&mc_value, node_id, tile_reservation_code);
+    own_reservation.size = TILES_WIDTH;
+
+    // TODO: Add multiple directions
+    // Add this with a parameter
+
+    // TODO: At this point, we really just want to find ANY way ;)
+    // Add this with a parameter
+    if (path_available(&mc_last_commited_value, &own_reservation, node_id)) {
+      reserve_path(&mc_value, &own_reservation, node_id);
+    }
 
     // insert extra wait_for_request time
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer)); etimer_reset(&timer);
@@ -254,11 +303,15 @@ PROCESS_THREAD(movement_process, ev, data)
         px += dx;
         py += dy;
 
+        // TODO: We want to free the tiles, that we have already visited!
+        // Add this with a parameter
+
         // check if we should release the reservation
-        if (abs(opx-px) + abs(opy-py) > 2) {
+        if (abs(opx-px) + abs(opy-py) > TILES_WIDTH /*TODO*/) {
           accepted = 0;
 
           // Release
+          own_reservation.size = 0;
           // Update collect value
           memset(&mc_value, 0, sizeof(merge_commit_value_t));
           break;
@@ -291,6 +344,7 @@ PROCESS_THREAD(main_process, ev, data)
   PROCESS_BEGIN();
   NETSTACK_MAC.on();
 
+
   if (rseed == 0) {
     rseed = node_id;
   }
@@ -312,74 +366,36 @@ static void mc_round_begin(const uint16_t round_count, const uint8_t id){
 }
 
 
-static int reserve_if_possible(merge_commit_value_t *dest, merge_commit_value_t *src, int id) {
-
-  // first collect the tiles!
-
-  uint8_t tile_ids[NUM_TILES] = {0};
-  uint8_t tile_count = 0;
-  int i = 0;
-
-  for(i = 0; i < NUM_TILES; ++i) {
-    if (src->tile_reservations[i] == id) {
-      // add to array
-      tile_ids[tile_count] = i;
-      tile_count++;
-    }
-  }
-
-  if (tile_count > 0) {
-    // node has reservation!
-
-    // check if the reservation is possible
-    for(i = 0; i < tile_count; ++i) {
-      int r = dest->tile_reservations[tile_ids[i]];
-      if (r != 0 &&  r != id) {
-        return 0; // NOT POSSIBLE -> we can directly return
-      }
-    }
-
-    // reservation is possible --> so we set all ids
-    for(i = 0; i < tile_count; ++i) {
-      dest->tile_reservations[tile_ids[i]] = id;
-    }
-    return 1; // POSSIBLE \o/
-  }
-  return 0;
-}
-
-void print_tiles(merge_commit_value_t *val) {
-  int x = 0;
-  int y = 0;
-
-  for(y = 0; y < TILES_HEIGHT; y++) {
-    for(x = 0; x < TILES_WIDTH; x++) {
-      printf("%d", val->tile_reservations[y*TILES_WIDTH+x]);
-    }
-    printf("\n");
-  }
-}
-
-int merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
+void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
 
   int i = 0;
   int c = 0;
   merge_commit_value_t new;
-  memcpy(&new, &tx_mc->value, sizeof(merge_commit_value_t));
-
-
+  memset(&new, 0, sizeof(merge_commit_value_t));
 
   for(i = 1; i <= chaos_node_count; ++i) {
-    if (!reserve_if_possible(&new, &rx_mc->value, i)) {
-      reserve_if_possible(&new, &tx_mc->value, i);
+
+    path_t path;
+    extract_path(&path, &rx_mc->value, i);
+
+    merge_commit_value_t *plans[2];
+    plans[0] = &tx_mc->value;
+    plans[1] = &rx_mc->value;
+
+    // TODO: We might want to try to add another route for ourselfs here
+    // Add with a parameter
+
+    c = 0;
+    while(c < (sizeof(plans) / sizeof(merge_commit_t *))) {
+      extract_path(&path, plans[c], i);
+      if (path.size > 0 && path_available(&new, &path, i)) {
+        reserve_path(&new, &path, i);
+        break; // We could reserve our path ;)
+      }
+      c++;
     }
   }
 
-  int ret = memcmp(&new, &tx_mc->value, sizeof(merge_commit_value_t)) ||
-            memcmp(&new, &rx_mc->value, sizeof(merge_commit_value_t));
-
-
   // now copy the generated reservations
   memcpy(&tx_mc->value, &new, sizeof(merge_commit_value_t));
-  return ret;
 }

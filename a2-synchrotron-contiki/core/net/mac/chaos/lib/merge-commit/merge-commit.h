@@ -47,10 +47,20 @@
 #include "chaos-config.h"
 
 #define MERGE_COMMIT_LOG_FLAGS 0
-#define MERGE_COMMIT_SLOT_LEN          (4*(RTIMER_SECOND/1000)+3*(RTIMER_SECOND/1000)/4)    //1 rtimer tick == 2*31.52 us
+
+
+#ifndef MERGE_COMMIT_SLOT_LEN_MSEC
+#define MERGE_COMMIT_SLOT_LEN_MSEC 1
+#endif
+
+#define MERGE_COMMIT_SLOT_LEN  (MERGE_COMMIT_SLOT_LEN_MSEC*(RTIMER_SECOND/1000))    //1 rtimer tick == 2*31.52 us
 
 //force radio off after MERGE_COMMIT_ROUND_MAX_SLOTS slots
+#ifndef MERGE_COMMIT_ROUND_MAX_SLOTS
 #define MERGE_COMMIT_ROUND_MAX_SLOTS   (350)
+#endif
+
+
 
 #define MERGE_COMMIT_SLOT_LEN_DCO      (MERGE_COMMIT_SLOT_LEN*CLOCK_PHI)    //TODO needs calibration
 
@@ -58,11 +68,13 @@
 #define PHASE_MERGE 4
 #define PHASE_COMMIT 8
 
-#ifndef EXCLUDE_MERGE_COMMIT_VALUE_STRUCT
-typedef struct __attribute__((packed)) {
-    uint32_t x;
-} merge_commit_value_t;
+#ifndef MERGE_COMMIT_VALUE_STRUCT_CONTENT
+#define MERGE_COMMIT_VALUE_STRUCT_CONTENT uint32_t x;
 #endif
+
+typedef struct __attribute__((packed)) {
+    MERGE_COMMIT_VALUE_STRUCT_CONTENT
+} merge_commit_value_t;
 
 typedef struct __attribute__((packed)) {
     merge_commit_value_t value;

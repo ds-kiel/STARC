@@ -808,6 +808,7 @@ chaos_round(const uint16_t round_number, const uint8_t app_id, const uint8_t* co
         log->txrx.src_node_id = (chaos_state_backup_log == CHAOS_RX ) ? rx_header->src_node_id : tx_header->src_node_id;
 #endif
 #if CHAOS_LOG_FLAGS
+
         if(!round_synced || !app_flags || !app_flags_len ) {
           memset(log->txrx.app_flags, 0, LOG_APP_FLAGS_LEN);
         } else {
@@ -930,7 +931,7 @@ uint8_t chaos_associate(rtimer_clock_t* t_sfd_actual_rtimer_ptr, uint16_t *round
           on();
           association_counter = 0;
           round_number++;
-          printf("{rd-%u st-%u ch-%u} ASC %s\n", round_number, slot_number, chaos_multichannel_get_current_channel(), CHAOS_RX_STATE_TO_STRING(rx_status));
+          //printf("{rd-%u st-%u ch-%u} ASC %s\n", round_number, slot_number, chaos_multichannel_get_current_channel(), CHAOS_RX_STATE_TO_STRING(rx_status));
         }
       } while(associated < 1 /*&& association_counter < CHAOS_ASSOCIATION_HOP_CHANNEL_THERSHOLD */); //XXX
         if( associated ){
