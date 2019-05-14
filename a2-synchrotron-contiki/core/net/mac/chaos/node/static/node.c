@@ -49,6 +49,7 @@ const uint8_t chaos_node_count = (CHAOS_NODES);
 const uint16_t mapping[] = (uint16_t[])TESTBED_MAPPING;
 
 #if TESTBED > 0 && !NO_TESTBED_ID_MAP /* 0 is cooja or no testbed */
+
 //execute mapping of node id to flag
 void init_node_index(){
 	unsigned int i;

@@ -29,7 +29,6 @@
 
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
-#warning "using project-conf.h"
 
 #undef CHAOS_CLOCK_DELAY_EXACT
 #define CHAOS_CLOCK_DELAY_EXACT 0

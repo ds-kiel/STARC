@@ -143,10 +143,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
     agree = 1;
   } else if(current_state == CHAOS_RX && chaos_txrx_success) {
     if( !got_valid_rx ){
-      //&& tx_two_pc->phase == PHASE_PROPOSE && rx_two_pc->phase == PHASE_PROPOSE -> not required to check this, this should hold
-      //first valid packet: let's vote
-      //compare local value and received value: if equal: accept proposal by voting for it, either vote against it
-      if( tx_two_pc->value == rx_two_pc->value ){
+      if(1 /* tx_two_pc->value == rx_two_pc->value */){
         //vote for the proposal: set my vote
         agree = 1;
         votes[array_index] |= 1 << (array_offset);
