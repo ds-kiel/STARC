@@ -175,7 +175,8 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
         if (tx_mc->phase == PHASE_MERGE) {
 
-          tx = merge_commit_merge_callback(rx_mc, tx_mc);
+
+          tx |= merge_commit_merge_callback(rx_mc, tx_mc);
 
           // Check if we should do the next phase!
           if (IS_INITIATOR() && flag_sum == FLAG_SUM) {
