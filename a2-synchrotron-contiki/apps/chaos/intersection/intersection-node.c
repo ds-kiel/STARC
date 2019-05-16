@@ -51,10 +51,6 @@
 #include "node.h"
 
 
-#define TILES_WIDTH 6
-#define TILES_HEIGHT 6
-#define NUM_TILES (TILES_WIDTH * TILES_HEIGHT)
-
 
 
 #include "merge-commit.h"
@@ -93,11 +89,15 @@ static void extract_path(path_t* dest, merge_commit_value_t *src, int node_id) {
 }
 
 
-static void reserve_path(merge_commit_value_t *val, path_t* path, int node_id) {
+static void reserve_path_with_offset(merge_commit_value_t *val, path_t* path, int node_id, int offset) {
   int i;
-  for(i = 0; i < path->size; ++i) {
+  for(i = offset; i < path->size; ++i) {
     val->tile_reservations[path->tiles[i]] = node_id;
   }
+}
+
+static void reserve_path(merge_commit_value_t *val, path_t* path, int node_id) {
+  reserve_path_with_offset(val, path, node_id, 0);
 }
 
 static int path_is_reserved(merge_commit_value_t* plan, path_t *path, int node_id) {
@@ -139,6 +139,8 @@ static int opx = 0;
 static int opy = 0;
 
 static int accepted = 0;
+
+static uint16_t own_arrival = 0;
 
 
 static path_t own_reservation;
@@ -192,6 +194,9 @@ static void init_reservation() {
   }
 }
 
+
+
+
 static void mc_round_begin(const uint16_t round_count, const uint8_t id);
 
 
@@ -214,8 +219,14 @@ static uint16_t mc_off_slot;
 static uint16_t mc_round_count_local = 0;
 
 
-// TODO: check type of node id...
-
+static void set_own_arrival(merge_commit_value_t *val) {
+  if (ARRIVAL_TIMES) {
+    if (!own_arrival) {
+      own_arrival = mc_round_count_local+1;
+    }
+    val->arrivals[node_id-1] = own_arrival;
+  }
+}
 
 
 PROCESS(mc_process, "Merge-Commit process");
@@ -241,8 +252,9 @@ PROCESS_BEGIN();
         } else if (own_reservation.size > 0 && !path_is_reserved(&mc_value, &own_reservation, node_id)){
           // TODO: At this point, we really just want to find ANY way ;)
           // Add this with a parameter
-          if (path_available(&mc_last_commited_value, &own_reservation, node_id)) {
+          if (WAIT_FOR_FREE_PATH && path_available(&mc_last_commited_value, &own_reservation, node_id)) {
             reserve_path(&mc_value, &own_reservation, node_id);
+            set_own_arrival(&mc_value);
           }
         }
       } else {
@@ -256,6 +268,8 @@ PROCESS_BEGIN();
   }
 PROCESS_END();
 }
+
+
 
 
 
@@ -290,8 +304,9 @@ PROCESS_THREAD(movement_process, ev, data)
 
     // TODO: At this point, we really just want to find ANY way ;)
     // Add this with a parameter
-    if (path_available(&mc_last_commited_value, &own_reservation, node_id)) {
+    if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, node_id)) {
       reserve_path(&mc_value, &own_reservation, node_id);
+      set_own_arrival(&mc_value);
     }
 
     // insert extra wait_for_request time
@@ -303,6 +318,23 @@ PROCESS_THREAD(movement_process, ev, data)
         px += dx;
         py += dy;
 
+        if (TILE_FREEDOM) {
+        //check if we are on our reserved path and free
+          if (own_reservation.size > 0) {
+            int offset = 0;
+
+            int cur = pos_to_id(px, py);
+            for(offset = 1; offset < own_reservation.size-1; offset++) {
+              if (cur == own_reservation.tiles[offset-1]) {
+                memset(&mc_value, 0, sizeof(merge_commit_value_t));
+                reserve_path_with_offset(&mc_value, &own_reservation, node_id, offset);
+                set_own_arrival(&mc_value);
+                break;
+              }
+            }
+          }
+        }
+
         // TODO: We want to free the tiles, that we have already visited!
         // Add this with a parameter
 
@@ -311,6 +343,7 @@ PROCESS_THREAD(movement_process, ev, data)
           accepted = 0;
 
           // Release
+          own_arrival = 0;
           own_reservation.size = 0;
           // Update collect value
           memset(&mc_value, 0, sizeof(merge_commit_value_t));
@@ -325,7 +358,7 @@ PROCESS_THREAD(movement_process, ev, data)
     static int random_waits = 0;
 
     etimer_restart(&timer);
-    random_waits = abs((random_rand() % 10))+5;
+    random_waits = abs((random_rand() % 10))*(TILES_WIDTH/2)+5;
 
     for(; random_waits > 0; random_waits--) {
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer)); etimer_reset(&timer);
@@ -366,17 +399,63 @@ static void mc_round_begin(const uint16_t round_count, const uint8_t id){
 }
 
 
+int comp_node_with_arrival (const void * a, const void * b)
+{
+  if (*(uint32_t*) a < *(uint32_t*) b) {
+    return -1;
+  } else {
+    // we don't care
+    return 1;
+  }
+}
+
 void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
 
+  static int time_diff = 0;
+  int start = RTIMER_NOW();
   int i = 0;
   int c = 0;
   merge_commit_value_t new;
   memset(&new, 0, sizeof(merge_commit_value_t));
 
-  for(i = 1; i <= chaos_node_count; ++i) {
+  int size = 0;
+  uint32_t node_id_with_arrivals[MAX_NODE_COUNT];
+
+  for(i = 0; i < chaos_node_count; ++i) {
+    if (ARRIVAL_TIMES) {
+      // we can use max value here since either one of them is 0 or both have the same value...
+      int arrival = MAX(rx_mc->value.arrivals[i], tx_mc->value.arrivals[i]);
+      if (arrival > 0) {
+
+        node_id_with_arrivals[size] = (arrival << 8) | (i&255);
+        size++;
+        // Do insertion sort with the array
+        int j = size-1;
+        while(j > 0 && node_id_with_arrivals[j-1] > node_id_with_arrivals[j]) {
+          // we need to swap these elements
+          uint32_t swap = node_id_with_arrivals[j];
+          node_id_with_arrivals[j] = node_id_with_arrivals[j-1];
+          node_id_with_arrivals[j-1] = swap;
+          j--;
+        }
+      }
+    } else {
+      // No need to sort since we are adding the ids in the correct order...
+      node_id_with_arrivals[size] =  (i&255);
+      size++;
+    }
+  }
+
+  //printf("Got %d reservations\n", size);
+
+
+  for(i = 0; i < size; ++i) {
+
+    // mask the id
+    int id = (node_id_with_arrivals[i] & 255) + 1;
 
     path_t path;
-    extract_path(&path, &rx_mc->value, i);
+    extract_path(&path, &rx_mc->value, id);
 
     merge_commit_value_t *plans[2];
     plans[0] = &tx_mc->value;
@@ -387,15 +466,30 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
 
     c = 0;
     while(c < (sizeof(plans) / sizeof(merge_commit_t *))) {
-      extract_path(&path, plans[c], i);
-      if (path.size > 0 && path_available(&new, &path, i)) {
-        reserve_path(&new, &path, i);
-        break; // We could reserve our path ;)
+      extract_path(&path, plans[c], id);
+      if (path.size > 0 && path_available(&new, &path, id)) {
+        reserve_path(&new, &path, id);
+
+        if (ARRIVAL_TIMES) {
+          // we need to add the arrival time of this request!
+          new.arrivals[id-1] = node_id_with_arrivals[i] >> 8;
+        }
+
+        break; // We could reserve the path ;)
       }
       c++;
     }
+
+
   }
 
   // now copy the generated reservations
   memcpy(&tx_mc->value, &new, sizeof(merge_commit_value_t));
+
+  int end = RTIMER_NOW();
+  if (time_diff < end-start) {
+    printf("New diff %d ms\n", 1000*time_diff/RTIMER_SECOND);
+    time_diff = end-start;
+  }
+
 }

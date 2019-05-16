@@ -43,6 +43,14 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
+
+
+
+#define TILE_FREEDOM 1
+#define ARRIVAL_TIMES 1
+#define WAIT_FOR_FREE_PATH 0
+
+
 #undef COOJA
 #define COOJA 1
 #undef INITIATOR_NODE
@@ -52,11 +60,27 @@
 #define CHAOS_RESTART_MIN 4
 #define CHAOS_RESTART_MAX 10
 
-#define MERGE_COMMIT_ROUND_MAX_SLOTS (200)
-#define MERGE_COMMIT_SLOT_LEN_MSEC 10
 
 #undef  CHAOS_INTERVAL
-#define CHAOS_INTERVAL (20*(RTIMER_SECOND/10))
+
+
+#if ARRIVAL_TIMES
+
+#define MERGE_COMMIT_ROUND_MAX_SLOTS (120)
+#define MERGE_COMMIT_SLOT_LEN_MSEC 20
+#define CHAOS_INTERVAL (40*(RTIMER_SECOND/10))
+
+#else
+
+#define MERGE_COMMIT_ROUND_MAX_SLOTS (120)
+#define MERGE_COMMIT_SLOT_LEN_MSEC 10
+#define CHAOS_INTERVAL (10*(RTIMER_SECOND/10))
+
+#endif
+
+
+
+
 
 #if COOJA
 //join parameters
@@ -203,7 +227,14 @@
 #undef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON 0
 
-#define MERGE_COMMIT_VALUE_STRUCT_CONTENT uint8_t tile_reservations[36];
+
+#define MAX_NODE_COUNT 16
+
+#define TILES_WIDTH 6
+#define TILES_HEIGHT 6
+#define NUM_TILES (TILES_WIDTH * TILES_HEIGHT)
+
+#define MERGE_COMMIT_VALUE_STRUCT_CONTENT uint16_t arrivals[MAX_NODE_COUNT]; uint8_t tile_reservations[NUM_TILES];
 
 
 #endif /* PROJECT_CONF_H_ */
