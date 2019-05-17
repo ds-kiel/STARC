@@ -190,8 +190,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             tx_mc->phase = PHASE_COMMIT;
             //TODO: we could also abort here
 
-            printf("Commiting...");
-            print_tiles(&tx_mc->value);
+            //print_tiles(&tx_mc->value);
 
             tx = 1;
             leds_on(LEDS_GREEN);
@@ -212,8 +211,8 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_length());
         uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
 
-        printf("Received commit...");
-        print_tiles(&tx_mc->value);
+        //printf("Received commit...");
+        //print_tiles(&tx_mc->value);
         tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
         tx = 1;
         leds_on(LEDS_BLUE);

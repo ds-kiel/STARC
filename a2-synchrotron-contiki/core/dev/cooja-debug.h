@@ -8,7 +8,7 @@
 #ifndef COOJA_DEBUG_H_
 #define COOJA_DEBUG_H_
 
-#if 0
+#if 1
 
 #define HEXC(c)
 #define COOJA_DEBUG_STR(str)
