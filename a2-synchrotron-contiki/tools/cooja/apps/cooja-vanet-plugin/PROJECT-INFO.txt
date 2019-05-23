@@ -1,0 +1,11 @@
+Name: org.contikios.cooja.plugins.IntersectionManager COOJA plugin
+Contact:
+Patrick Rathje
+License: BSD
+Contiki: CVS 2009-08-30
+Intended platforms:
+Tested platforms:
+URL:
+Screenshot:
+Description:
+The org.contikios.cooja.plugins.IntersectionManager

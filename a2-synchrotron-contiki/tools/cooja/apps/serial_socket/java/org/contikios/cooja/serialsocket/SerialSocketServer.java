@@ -533,7 +533,6 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
         cleanupClient();
       }
     }
-
   }
 
   @Override

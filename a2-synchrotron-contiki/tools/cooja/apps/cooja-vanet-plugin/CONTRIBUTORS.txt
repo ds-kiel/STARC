@@ -1,0 +1,4 @@
+org.contikios.cooja.plugins.IntersectionManager COOJA plugin
+
+Contributors:
+

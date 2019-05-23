@@ -316,7 +316,7 @@ int two_pc_round_begin(const uint16_t round_number, const uint8_t app_id, uint32
   flags[array_index] |= 1 << (array_offset);
 
   chaos_round(round_number, app_id, (const uint8_t const*)&two_pc_local, sizeof(two_pc_local.two_pc) + two_pc_get_flags_length() + two_pc_get_votes_length(), TWO_PC_SLOT_LEN_DCO, TWO_PC_ROUND_MAX_SLOTS, two_pc_get_flags_length(), process);
-  memcpy(two_pc_local.two_pc.flags_and_votes,tx_flags_final, two_pc_get_flags_length() + two_pc_get_votes_length());
+  memcpy(two_pc_local.two_pc.flags_and_votes, tx_flags_final, two_pc_get_flags_length() + two_pc_get_votes_length());
   *two_pc_value = two_pc_local.two_pc.value;
   *final_flags = two_pc_local.flags_and_votes;
   *phase = two_pc_local.two_pc.phase;
