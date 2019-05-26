@@ -1,7 +1,10 @@
 package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.Mote;
+import org.contikios.cooja.plugins.vanet.log.Logger;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
+
+import java.nio.charset.StandardCharsets;
 
 public class Vehicle {
     private Mote mote; // unique identifier
@@ -24,5 +27,13 @@ public class Vehicle {
 
     public void step(double delta) {
         // we can do
+
+        byte[] msg = null;
+
+        msg = messageProxy.receive();
+        while (msg != null) {
+            messageProxy.send(msg); // just resend it
+            msg = messageProxy.receive();
+        }
     }
 }

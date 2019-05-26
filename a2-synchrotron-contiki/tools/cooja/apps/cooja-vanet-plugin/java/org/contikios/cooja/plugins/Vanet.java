@@ -18,12 +18,17 @@ public class Vanet extends VisPlugin {
     private static Logger logger = Logger.getLogger(Vanet.class);
 
     private static final boolean QUIET = false;
+    private static final long TICKS = 50;
+    private static final long TICK_MS = 1000/TICKS;
 
     private Simulation simulation;
 
     private Observer millisecondObserver;
 
     private World world;
+
+
+    private long nextUpdate = 0;
 
     public Vanet(Simulation simulation, final Cooja Cooja) {
         super("Vanet", Cooja, false);
@@ -51,7 +56,11 @@ public class Vanet extends VisPlugin {
         millisecondObserver = new Observer() {
             @Override
             public void update(Observable o, Object arg) {
-                Vanet.this.update(1.0/1000.0); // one ms
+                if (simulation.getSimulationTimeMillis() >= nextUpdate) {
+                    System.out.println("VANET");
+                    Vanet.this.update(TICK_MS / 1000.0); // one s
+                    nextUpdate += TICK_MS;
+                }
             }
         };
         simulation.addMillisecondObserver(millisecondObserver);
@@ -73,7 +82,7 @@ public class Vanet extends VisPlugin {
             world = new World();
             Mote[] motes = simulation.getMotes();
 
-            // for each mote add a new vehicl   e
+            // for each mote add a new vehicle
             for (Mote m : motes) {
 
                 MessageProxy mp = new MessageProxy(m);
@@ -98,7 +107,6 @@ public class Vanet extends VisPlugin {
         // first update the world with the physics!
         // then update all the nodes
         if (world != null) {
-            logger.info("World simulation: " + simulation.getSimulationTimeMillis());
             world.simulate(delta);
         }
     }

@@ -33,7 +33,7 @@ public class Physics {
 
                 // else we check collisions!
                 if (collides(bodyA, bodyB)) {
-                    Logger.event("collision", bodyA.getName() + " with " + bodyB.getName());
+                   //Logger.event("collision", bodyA.getName() + " with " + bodyB.getName());
                 }
             }
         }

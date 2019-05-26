@@ -4,15 +4,16 @@ import org.contikios.cooja.Mote;
 import org.contikios.cooja.interfaces.SerialPort;
 
 import java.io.*;
-import java.util.Observable;
-import java.util.Observer;
+import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Stream;
 
 public class MessageProxy {
-    private LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>();
+    private LinkedBlockingQueue<byte[]> queue = new LinkedBlockingQueue<>();
 
-    private DataOutputStream outputStream;
+    private OutputStream outputStream;
 
     public MessageProxy(Mote mote) {
 
@@ -21,46 +22,160 @@ public class MessageProxy {
         // input from the mote
         MoteDataObserver dataObserver = new MoteDataObserver(motePort);
         motePort.addSerialDataObserver(dataObserver);
-        DataInputStream inputStream = new DataInputStream(dataObserver.getInputStream());
 
         // output to the mote
         MoteDataHandler dataHandler = new MoteDataHandler(motePort);
-        outputStream = new DataOutputStream(dataHandler.getOutputStream());
-
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+        outputStream = dataHandler.getOutputStream();
 
         // we start a thread to receive messages from the serial port!
-        Stream<String> stream = in.lines().filter(line -> line.startsWith("#VANET ")).map(line -> line.substring("#VANET ".length()));
+       // Stream<String> stream = in.lines();//.filter(line -> line.startsWith("#VANET ")).map(line -> line.substring("#VANET ".length()));
 
         // TODO: Clear this thread!
         new Thread(new Runnable() {
             @Override
             public void run() {
-                stream.forEach(q -> queue.add(q));
+
+                InputStream in = dataObserver.getInputStream();
+                ArrayList<Byte> line = new ArrayList<>();
+
+                byte[] identifierBytes = "#VANET ".getBytes(StandardCharsets.ISO_8859_1);
+
+                while(true) {
+                    line.clear();
+
+                    try {
+                        byte c = (byte) (in.read() & 0xFF);
+
+                        while(c != 0x0A) { // newline char
+                            line.add(c);
+                            c = (byte) (in.read() & 0xFF);
+                        }
+
+                        //check if the newline is really wanted...
+                        boolean matching = true;
+                        for(int i = 0; i < identifierBytes.length; ++i) {
+                            if (identifierBytes[i] != line.get(i)) {
+                                matching = false;
+                            }
+                        }
+
+                        if (matching) {
+                            byte[] bytes = new byte[line.size()-identifierBytes.length];
+
+                            // ugly byte arr copying...
+                            for(int i = identifierBytes.length; i < line.size(); ++i) {
+                                bytes[i-identifierBytes.length] = line.get(i);
+                            }
+
+                            queue.add(bytes);
+                        }
+
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                //stream.forEach(q ->
+                //    {System.out.print(q); queue.add(q.getBytes(StandardCharsets.US_ASCII));}
+                //);
             }
         }).start();
     }
 
-    public String receive() {
-        return queue.poll();
-    };
+    private byte[] encode(byte[] source) {
+        ArrayList<Byte> temp = new ArrayList<>();
 
-    public void send(String msg) {
-        String msgWithNewline = "#VANET " + msg;
-
-        if (msg.charAt(msg.length() - 1) != '\n') {
-            msgWithNewline = msgWithNewline + "\n";
+        for(int i = 0; i < source.length; ++i) {
+            byte c = source[i];
+            if (c == 0x11) {
+                temp.add((byte)0x11);
+                temp.add((byte)0x11);
+            } else if (c == 0x0A) {  // \n
+                temp.add((byte)0x11);
+                temp.add((byte)0x12);
+            } else if (c == 0x0D) {// \r
+                temp.add((byte)0x11);
+                temp.add((byte)0x13);
+            } else if (c == 0x00) {// \0
+                temp.add((byte)0x11);
+                temp.add((byte)0x14);
+            } else {
+                temp.add(c);
+            }
         }
 
+        byte[] bytes = new byte[temp.size()];
+
+        // ugly byte arr copying...
+        for(int i = 0; i < temp.size(); ++i) {
+            bytes[i] = temp.get(i);
+        }
+
+        return bytes;
+    }
+
+    private byte[] decode(byte[] source) {
+
+        ArrayList<Byte> temp = new ArrayList<>();
+
+        for(int i = 0; i < source.length; ++i) {
+            byte c = source[i];
+            if (c == 0x11) {
+                i++;
+                if (i < source.length) {
+                    c = source[i];
+
+                    if (c == 0x11) {
+                        // just add this
+                    } else if(c == 0x12) {
+                        c = 0x0A;
+                    } else if(c == 0x13) {
+                        c = 0x0D;
+                    } else if(c == 0x14) {
+                        c = 0x00;
+                    }
+                    temp.add(c);
+                }
+            } else {
+                temp.add(c);
+            }
+        }
+
+        byte[] bytes = new byte[temp.size()];
+
+        // ugly byte arr copying...
+        for(int i = 0; i < temp.size(); ++i) {
+            bytes[i] = temp.get(i);
+        }
+        return bytes;
+    }
+
+    public byte[] receive() {
+
+        byte[] data = queue.poll();
+
+        if (data == null) {
+            return null;
+        } else {
+            return decode(data);
+        }
+    };
+
+    public void send(byte[] data) {
+
+        byte[] encoded = encode(data);
+
+        // TODO: IT SEEMS LIKE THE FIRST SENT MESSAGE IS NOT OVERWRITTEN THE WHOLE TIME???
         try {
-            outputStream.write(msgWithNewline.getBytes());
+            //outputStream.write("#VANET ".getBytes(StandardCharsets.ISO_8859_1));
+            outputStream.write(encoded);
+            outputStream.write((byte) '\n');
             outputStream.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
     /* Based on SerialSocketServer code */
     private class MoteDataHandler {
@@ -108,7 +223,7 @@ public class MessageProxy {
                 @Override
                 public int read() throws IOException {
                     try {
-                        return byteQueue.take().intValue();
+                        return byteQueue.take().intValue() & 0xff;
                     } catch (InterruptedException e) {
                         return read();
                     }

@@ -236,5 +236,7 @@
 
 #define MERGE_COMMIT_VALUE_STRUCT_CONTENT uint16_t arrivals[MAX_NODE_COUNT]; uint8_t tile_reservations[NUM_TILES];
 
+#define SERIAL_LINE_CONF_BUFSIZE 256
+
 
 #endif /* PROJECT_CONF_H_ */

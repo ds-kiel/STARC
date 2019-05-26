@@ -42,6 +42,7 @@
 #include "contiki.h"
 #include <stdio.h> /* For printf() */
 #include "net/netstack.h"
+#include "dev/serial-line.h"
 #include <stdlib.h>
 
 #undef INITIATOR_NODE
@@ -59,7 +60,11 @@
 #include "random.h"
 
 #define REPEAT 1
-#define MOVE_INTERVAL CLOCK_SECOND
+#define MOVE_INTERVAL CLOCK_SECOND/10
+
+
+
+static char comm_test[100];
 
 
 typedef struct __attribute__((packed)) {
@@ -77,6 +82,8 @@ static void id_to_pos(int *x, int *y, int id) {
   *y = id/TILES_WIDTH;
 }
 
+// TODO: Move the tile-specific code to other files
+// TODO: We should
 static void extract_path(path_t* dest, merge_commit_value_t *src, int node_id) {
   int i = 0;
   dest->size = 0;
@@ -89,8 +96,7 @@ static void extract_path(path_t* dest, merge_commit_value_t *src, int node_id) {
     }
   }
 }
-
-
+  
 static void reserve_path_with_offset(merge_commit_value_t *val, path_t* path, int node_id, int offset) {
   int i;
   for(i = offset; i < path->size; ++i) {
@@ -164,6 +170,8 @@ void print_tiles(merge_commit_value_t *val) {
   }
 }
 
+
+// TODO: No positions and dirs inside c
 unsigned short rseed = 0; /* Will be set to a value by cooja! */
 static void init_pos_and_dir() {
 
@@ -190,6 +198,7 @@ static void init_pos_and_dir() {
   }
 }
 
+// TODO: This should be part of the java code I guess?
 static void init_reservation() {
 
   // we will distinguish three cases
@@ -288,6 +297,7 @@ static uint16_t mc_off_slot;
 static uint16_t mc_round_count_local = 0;
 
 
+// TODO: Someone should set the arrival value to 1 in order to keep the reservations until freed
 static void set_own_arrival(merge_commit_value_t *val) {
   if (ARRIVAL_TIMES) {
     if (!own_arrival) {
@@ -313,6 +323,8 @@ PROCESS_BEGIN();
 
         // Set latest known commit value
         memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
+
+        // TODO: Send commited value to JAVA
 
         if (path_is_reserved(&mc_commited_value, &own_reservation, node_id)) {
           print_tiles(&mc_commited_value);
@@ -340,8 +352,78 @@ PROCESS_END();
 }
 
 
+// TODO: We need to really test these functions!!
+int decode_data( char * dest, const char * source) {
 
+  int initial_size = strlen(source);
+  int res_size = 0;
+  int i = 0;
 
+  for(i = 0; i < initial_size; ++i) {
+
+    char c = source[i];
+
+    if ((uint8_t)c == 0x11) {
+      i++;
+      if (i < initial_size) {
+        c = source[i];
+
+        if ((uint8_t) c == 0x11) {
+          // Nothing to do
+        } else if ((uint8_t) c == 0x12) {
+          c = '\n';
+        } else if ((uint8_t) c == 0x13) {
+          c = '\r';
+        } else if ((uint8_t) c == 0x14) {
+          c = '\0';
+        }
+
+        dest[res_size] = c;
+        res_size++;
+      }
+    } else {
+      // no need to convert anything
+      dest[res_size] = c;
+      res_size++;
+    }
+  }
+
+  //TODO: test if the newline character is included in the message
+
+  return res_size;
+}
+
+void send_data( char * data, uint32_t size) {
+  // we will use device control characters to encode our message!
+
+  printf("#VANET ");
+  int i = 0;
+  for(i = 0; i < size; ++i) {
+    // we will encode the special characters \n, \r and zero like the following
+    // \n -> 0x11 0x12
+    // \r -> 0x11 0x13
+    // 0 -> 0x11 0x14
+    // 0x11 -> 0x11 0x11 This is needed so that we know
+
+    char c = data[i];
+    if (c == '\n') {
+      putchar(0x11);
+      putchar(0x12);
+    } else if (c == '\r') {
+      putchar(0x11);
+      putchar(0x13);
+    }else if (c == '\0') {
+      putchar(0x11);
+      putchar(0x14);
+    } else if ((uint8_t) c == 0x11){
+      putchar(0x11);
+      putchar(0x11);
+    } else {
+      putchar(c);
+    }
+  }
+  putchar('\n'); //aaaand finish the newline ;)
+}
 
 PROCESS(movement_process, "movement process");
 
@@ -351,6 +433,32 @@ PROCESS_THREAD(movement_process, ev, data)
   static struct etimer timer;
   PROCESS_BEGIN();
 
+  static char current_test = 0;// '?';
+  static char test_buf[sizeof(comm_test)];
+
+
+  while(1) {
+    //memset(comm_test, current_test, sizeof(comm_test));
+
+    int i = 0;
+    for(i = 0; i < sizeof(comm_test); ++i) {
+      comm_test[i] = rand() % 256;
+    }
+    send_data(comm_test, sizeof(comm_test));
+
+    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message && data != NULL);
+
+        printf("received line: %d %s ", strlen((char *)data), (char *)data);
+        current_test++;
+
+    int size = decode_data(test_buf, (const char *) data);
+printf(" decoded %d  %d \n", size, sizeof(comm_test)  );
+
+if(!size == sizeof(comm_test) || memcmp(comm_test, test_buf, sizeof(comm_test))) {
+printf(" ERROR %d vs %d \n", comm_test[0], test_buf[0]);
+}
+  }
+  //reset to 0s
 
   // first set the position based on our mode id and move to the position
   init_pos_and_dir();
@@ -367,7 +475,9 @@ PROCESS_THREAD(movement_process, ev, data)
     // Reset original position
     px = opx;
     py = opy;
-    printf("#MoveTo %d.0 %d.0\n", px, py);
+    //printf("#MoveTo %d.0 %d.0\n", px, py);
+
+
 
     init_reservation();
     next_step = 0; // reset progress
@@ -587,5 +697,4 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
     printf("New diff %d ms\n", 1000*time_diff/RTIMER_SECOND);
     time_diff = end-start;
   }
-
 }
