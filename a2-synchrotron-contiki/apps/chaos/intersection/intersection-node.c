@@ -436,6 +436,8 @@ PROCESS_THREAD(movement_process, ev, data)
   static char current_test = 0;// '?';
   static char test_buf[sizeof(comm_test)];
 
+  // TODO: Add me as unit test!
+  static int test_size = 0;
 
   while(1) {
     //memset(comm_test, current_test, sizeof(comm_test));
@@ -444,7 +446,10 @@ PROCESS_THREAD(movement_process, ev, data)
     for(i = 0; i < sizeof(comm_test); ++i) {
       comm_test[i] = rand() % 256;
     }
-    send_data(comm_test, sizeof(comm_test));
+    test_size = rand() % (sizeof(comm_test)+1);
+
+
+    send_data(comm_test, test_size);
 
     PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message && data != NULL);
 
@@ -454,7 +459,7 @@ PROCESS_THREAD(movement_process, ev, data)
     int size = decode_data(test_buf, (const char *) data);
 printf(" decoded %d  %d \n", size, sizeof(comm_test)  );
 
-if(!size == sizeof(comm_test) || memcmp(comm_test, test_buf, sizeof(comm_test))) {
+if(!size == sizeof(comm_test) || memcmp(comm_test, test_buf, test_size)) {
 printf(" ERROR %d vs %d \n", comm_test[0], test_buf[0]);
 }
   }
