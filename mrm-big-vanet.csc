@@ -263,7 +263,7 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>1</z>
+    <z>2</z>
     <height>160</height>
     <location_x>741</location_x>
     <location_y>70</location_y>
@@ -273,14 +273,12 @@
     <plugin_config>
       <moterelations>true</moterelations>
       <skin>org.contikios.cooja.plugins.skins.IDVisualizerSkin</skin>
-      <skin>org.contikios.cooja.plugins.skins.GridVisualizerSkin</skin>
-      <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>org.contikios.mrm.MRMVisualizerSkin</skin>
-      <skin>org.contikios.cooja.plugins.skins.ImageVisualizerSkin</skin>
-      <viewport>27.116787929036402 0.0 0.0 27.116787929036402 220.8226480136422 136.18868550346903</viewport>
+      <skin>org.contikios.cooja.plugins.skins.VanetVisualizerSkin</skin>
+      <viewport>47.72307929844564 0.0 0.0 47.72307929844564 206.97451234385372 84.72686260241856</viewport>
     </plugin_config>
     <width>642</width>
-    <z>2</z>
+    <z>0</z>
     <height>475</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -347,10 +345,10 @@
   <plugin>
     org.contikios.cooja.plugins.Vanet
     <width>150</width>
-    <z>0</z>
+    <z>1</z>
     <height>300</height>
-    <location_x>31</location_x>
-    <location_y>31</location_y>
+    <location_x>322</location_x>
+    <location_y>88</location_y>
   </plugin>
 </simconf>
 

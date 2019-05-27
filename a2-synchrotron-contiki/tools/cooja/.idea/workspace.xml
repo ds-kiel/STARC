@@ -2,16 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5a4379da-c354-499e-a105-038048a2b773" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../../apps/chaos/intersection/intersection-node.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../apps/chaos/intersection/intersection-node.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../apps/chaos/intersection/project-conf.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../apps/chaos/intersection/project-conf.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/MessageProxy.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/MessageProxy.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Physics.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Physics.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Vector2D.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Vector2D.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/lib/vanet.jar" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/lib/vanet.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../mrm-big-vanet.csc" beforeDir="false" afterPath="$PROJECT_DIR$/../../../mrm-big-vanet.csc" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -27,103 +27,158 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="232">
-              <caret line="47" column="35" selection-start-line="47" selection-start-column="35" selection-end-line="47" selection-end-column="35" />
+            <state relative-caret-position="52">
+              <caret line="27" column="29" selection-start-line="27" selection-start-column="24" selection-end-line="27" selection-end-column="29" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#1389#1390#0" expanded="true" />
                 <element signature="e#1457#1458#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="420">
-              <caret line="32" column="27" selection-start-line="32" selection-start-column="27" selection-end-line="32" selection-end-column="27" />
+            <state relative-caret-position="360">
+              <caret line="97" column="35" selection-start-line="97" selection-start-column="35" selection-end-line="97" selection-end-column="35" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#2524#2525#0" expanded="true" />
+                <element signature="e#2556#2557#0" expanded="true" />
+                <element signature="e#2625#2626#0" expanded="true" />
+                <element signature="e#2664#2665#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
+        <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/lang/Math.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="345">
+              <caret line="1764" column="25" selection-start-line="1764" selection-start-column="25" selection-end-line="1764" selection-end-column="25" />
+              <folding>
+                <element signature="e#59392#59393#0" expanded="true" />
+                <element signature="e#59463#59464#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="978">
+              <caret line="183" column="28" selection-start-line="183" selection-start-column="28" selection-end-line="183" selection-end-column="28" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#2505#2506#0" expanded="true" />
+                <element signature="e#2567#2568#0" expanded="true" />
+                <element signature="e#7810#7811#0" expanded="true" />
+                <element signature="e#7920#7921#0" expanded="true" />
+                <element signature="e#8047#8048#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/TiledMapHandler.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="381">
+              <caret line="30" column="22" selection-start-line="30" selection-start-column="22" selection-end-line="30" selection-end-column="22" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#564#565#0" expanded="true" />
+                <element signature="e#585#586#0" expanded="true" />
+                <element signature="e#628#629#0" expanded="true" />
+                <element signature="e#656#657#0" expanded="true" />
+                <element signature="e#682#683#0" expanded="true" />
+                <element signature="e#711#712#0" expanded="true" />
+                <element signature="e#562#563#0" expanded="true" />
+                <element signature="e#603#604#0" expanded="true" />
+                <element signature="e#686#687#0" expanded="true" />
+                <element signature="e#738#739#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/util/HashMap.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="345">
+              <caret line="553" column="13" selection-start-line="553" selection-start-column="13" selection-end-line="553" selection-end-column="13" />
+              <folding>
+                <element signature="e#23597#23598#0" expanded="true" />
+                <element signature="e#23651#23652#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Vector2D.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="601">
+              <caret line="65" column="34" selection-start-line="65" selection-start-column="34" selection-end-line="65" selection-end-column="34" />
+              <folding>
+                <element signature="e#149#150#0" expanded="true" />
+                <element signature="e#174#175#0" expanded="true" />
+                <element signature="e#213#214#0" expanded="true" />
+                <element signature="e#250#251#0" expanded="true" />
+                <element signature="e#367#368#0" expanded="true" />
+                <element signature="e#391#392#0" expanded="true" />
+                <element signature="e#425#426#0" expanded="true" />
+                <element signature="e#451#452#0" expanded="true" />
+                <element signature="e#479#480#0" expanded="true" />
+                <element signature="e#503#504#0" expanded="true" />
+                <element signature="e#537#538#0" expanded="true" />
+                <element signature="e#563#564#0" expanded="true" />
+                <element signature="e#873#874#0" expanded="true" />
+                <element signature="e#902#903#0" expanded="true" />
+                <element signature="e#1354#1355#0" expanded="true" />
+                <element signature="e#1427#1428#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/lang/Object.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="457">
+              <caret line="106" column="11" selection-start-line="106" selection-start-column="11" selection-end-line="106" selection-end-column="11" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="899">
+              <caret line="64" selection-start-line="64" selection-end-line="64" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#1928#1929#0" expanded="true" />
+                <element signature="e#1954#1955#0" expanded="true" />
+                <element signature="e#2013#2014#0" expanded="true" />
+                <element signature="e#2057#2058#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/MessageProxy.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="606">
-              <caret line="194" column="48" selection-start-line="194" selection-start-column="48" selection-end-line="194" selection-end-column="48" />
+            <state relative-caret-position="455">
+              <caret line="135" column="33" selection-start-line="135" selection-start-column="33" selection-end-line="135" selection-end-column="33" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/io/OutputStream.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="219">
-              <caret line="73" column="16" selection-start-line="73" selection-start-column="16" selection-end-line="73" selection-end-column="16" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/io/ObjectOutput.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="219">
-              <caret line="64" column="16" selection-start-line="64" selection-start-column="16" selection-end-line="64" selection-end-column="16" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/contikimote/ContikiMote.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="481">
-              <caret line="91" column="30" selection-start-line="91" selection-start-column="30" selection-end-line="91" selection-end-column="30" />
-              <folding>
-                <element signature="e#3596#3597#0" expanded="true" />
-                <element signature="e#3631#3632#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/interfaces/Log.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="195">
-              <caret line="41" column="22" selection-start-line="41" selection-start-column="22" selection-end-line="41" selection-end-column="22" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/interfaces/SerialPort.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="37" column="27" selection-start-line="37" selection-start-column="17" selection-end-line="37" selection-end-column="27" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/util/MoteSerialSocketConnection.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="176">
-              <caret line="106" column="42" selection-start-line="106" selection-start-column="42" selection-end-line="106" selection-end-column="42" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/motes/AbstractEmulatedMote.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="90">
-              <caret line="35" column="42" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="42" />
             </state>
           </provider>
         </entry>
@@ -140,14 +195,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>byteQueue</find>
-      <find>nextLine</find>
-      <find>read</find>
-      <find>new OutputStream</find>
-      <find>lines</find>
-      <find>lines()</find>
-      <find>StreamDecoder</find>
-      <find>read()</find>
       <find>getInputStream</find>
       <find>System.out.println</find>
       <find>System.out.</find>
@@ -170,9 +217,19 @@
       <find>SerialPort</find>
       <find>motePort</find>
       <find>PROCESS_WAIT_EVENT_UNTIL</find>
+      <find>posToIndex</find>
+      <find>odx</find>
+      <find>own_reservation.size</find>
+      <find>node_id</find>
+      <find>opx</find>
+      <find>Math</find>
+      <find>requestAccepted</find>
+      <find>VANET</find>
     </findStrings>
     <replaceStrings>
       <replace>Vanet</replace>
+      <replace>reservation_size</replace>
+      <replace>nodeId</replace>
     </replaceStrings>
     <dirStrings>
       <dir>$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins</dir>
@@ -199,30 +256,33 @@
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/log/NullLogger.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/PhysicsEntity.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Entity.java" />
-        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Vector2D.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/physics/physics.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/CircleBody.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Body.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/physics/VehicleBody.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/intersection_manager/IntersectionManagerImplementation.java" />
         <option value="$PROJECT_DIR$/apps/serial_socket/java/org/contikios/cooja/serialsocket/SerialSocketServer.java" />
-        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/log/Logger.java" />
-        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Physics.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/communication/ProxyOutputStream.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/communication/ProxyInputStream.java" />
         <option value="$PROJECT_DIR$/java/org/contikios/cooja/contikimote/interfaces/ContikiRS232.java" />
         <option value="$PROJECT_DIR$/java/org/contikios/cooja/motes/AbstractApplicationMote.java" />
         <option value="$PROJECT_DIR$/java/org/contikios/cooja/interfaces/ApplicationSerialPort.java" />
-        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java" />
-        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/MessageProxy.java" />
+        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/TiledPathHandler.java" />
+        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/TiledMapHandler.java" />
+        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java" />
+        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Vector2D.java" />
+        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java" />
+        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" />
+        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="23" />
+    <option name="x" value="1761" />
+    <option name="y" value="-282" />
     <option name="width" value="1280" />
     <option name="height" value="777" />
   </component>
@@ -273,6 +333,15 @@
               <item name="cooja-vanet-plugin" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="plugins" type="462c0819:PsiDirectoryNode" />
+              <item name="skins" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="cooja" type="b2602c69:ProjectViewProjectNode" />
+              <item name="cooja" type="462c0819:PsiDirectoryNode" />
+              <item name="apps" type="462c0819:PsiDirectoryNode" />
+              <item name="cooja-vanet-plugin" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="plugins" type="462c0819:PsiDirectoryNode" />
               <item name="vanet" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -294,6 +363,24 @@
               <item name="plugins" type="462c0819:PsiDirectoryNode" />
               <item name="vanet" type="462c0819:PsiDirectoryNode" />
               <item name="world" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="cooja" type="b2602c69:ProjectViewProjectNode" />
+              <item name="cooja" type="462c0819:PsiDirectoryNode" />
+              <item name="apps" type="462c0819:PsiDirectoryNode" />
+              <item name="cooja-vanet-plugin" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="plugins" type="462c0819:PsiDirectoryNode" />
+              <item name="vanet" type="462c0819:PsiDirectoryNode" />
+              <item name="world" type="462c0819:PsiDirectoryNode" />
+              <item name="physics" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="cooja" type="b2602c69:ProjectViewProjectNode" />
+              <item name="cooja" type="462c0819:PsiDirectoryNode" />
+              <item name="apps" type="462c0819:PsiDirectoryNode" />
+              <item name="cooja-vanet-plugin" type="462c0819:PsiDirectoryNode" />
+              <item name="lib" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="cooja" type="b2602c69:ProjectViewProjectNode" />
@@ -400,12 +487,12 @@
       <workItem from="1557820667987" duration="1761000" />
       <workItem from="1558445655318" duration="2605000" />
       <workItem from="1558598941489" duration="17531000" />
-      <workItem from="1558692747358" duration="18304000" />
+      <workItem from="1558692747358" duration="26489000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="42318000" />
+    <option name="totallyTimeSpent" value="50503000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -417,9 +504,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1280" height="777" extended-state="6" />
+    <frame x="1280" y="-605" width="1920" height="1177" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.3279483" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21618743" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -453,393 +541,6 @@
     <option name="version" value="1" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/intersection_manager/IntersectionManagerImplementation.java" />
-    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/plugins/Visualizer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="337">
-          <caret line="95" selection-start-line="95" selection-end-line="95" selection-end-column="31" />
-          <folding>
-            <element signature="docComment;class#Visualizer#0" />
-            <element signature="e#5410#5438#0" />
-            <element signature="e#5966#5980#0" />
-            <element signature="e#6177#6451#0" />
-            <element signature="e#6455#6479#0" />
-            <element signature="e#6534#6584#0" />
-            <element signature="e#6668#6713#0" />
-            <element signature="e#6922#6939#0" />
-            <element signature="initializer##0;class#Visualizer#0" />
-            <element signature="e#7069#7108#0" />
-            <element signature="e#7687#7714#0" />
-            <element signature="e#8078#8094#0" />
-            <element signature="e#8078#8378#0" />
-            <element signature="e#8382#8621#0" />
-            <element signature="e#8838#21837#0" />
-            <element signature="e#8978#9013#0" />
-            <element signature="e#9142#9370#1" />
-            <element signature="e#9286#9364#1" />
-            <element signature="e#9377#9388#0" />
-            <element signature="class#9496:9798" />
-            <element signature="method#menuSelected#0;class#9496:9798" />
-            <element signature="method#menuDeselected#0;class#9496:9798" />
-            <element signature="method#menuCanceled#0;class#9496:9798" />
-            <element signature="class#9959:10109" />
-            <element signature="class#10375:10526" />
-            <element signature="e#11100#11117#0" />
-            <element signature="class#11135:12849" />
-            <element signature="initializer##0;class#11135:12849" />
-            <element signature="method#paintComponent#0;class#11135:12849" />
-            <element signature="e#11412#11477#1" />
-            <element signature="e#11639#11686#1" />
-            <element signature="e#11759#11805#1" />
-            <element signature="method#getToolTipText#0;class#11135:12849" />
-            <element signature="e#12021#12055#1" />
-            <element signature="e#12145#12218#1" />
-            <element signature="e#12270#12312#1" />
-            <element signature="e#12318#12366#1" />
-            <element signature="e#12986#13029#0" />
-            <element signature="class#13247:13903" />
-            <element signature="method#moteWasAdded#0;class#13247:13903" />
-            <element signature="e#13413#13658#1" />
-            <element signature="method#moteWasRemoved#0;class#13247:13903" />
-            <element signature="e#13814#13889#1" />
-            <element signature="e#13950#14085#1" />
-            <element signature="e#14032#14079#1" />
-            <element signature="e#14091#14120#0" />
-            <element signature="e#14301#14330#1" />
-            <element signature="e#14562#14578#0" />
-            <element signature="e#14618#14753#1" />
-            <element signature="e#14767#14795#0" />
-            <element signature="e#14845#14905#1" />
-            <element signature="e#14923#14980#1" />
-            <element signature="e#15122#15150#0" />
-            <element signature="e#15687#16045#1" />
-            <element signature="e#15699#15743#0" />
-            <element signature="e#15804#15983#1" />
-            <element signature="e#16054#16079#0" />
-            <element signature="e#16413#16524#1" />
-            <element signature="e#16546#16562#0" />
-            <element signature="class#16601:16840" />
-            <element signature="class#16875:17441" />
-            <element signature="method#mousePressed#0;class#16875:17441" />
-            <element signature="e#16987#17060#1" />
-            <element signature="e#17111#17153#1" />
-            <element signature="method#mouseReleased#0;class#16875:17441" />
-            <element signature="e#17259#17332#1" />
-            <element signature="e#17383#17427#1" />
-            <element signature="e#17697#17769#1" />
-            <element signature="e#17783#17855#1" />
-            <element signature="e#17878#17910#0" />
-            <element signature="e#18205#18243#0" />
-            <element signature="e#18379#18413#0" />
-            <element signature="class#18459:21486" />
-            <element signature="method#dragEnter#0;class#18459:21486" />
-            <element signature="e#18592#18664#1" />
-            <element signature="e#18678#18718#1" />
-            <element signature="method#dragExit#0;class#18459:21486" />
-            <element signature="method#dropActionChanged#0;class#18459:21486" />
-            <element signature="e#18921#18993#1" />
-            <element signature="e#19007#19047#1" />
-            <element signature="method#dragOver#0;class#18459:21486" />
-            <element signature="e#19166#19238#1" />
-            <element signature="e#19252#19292#1" />
-            <element signature="method#drop#0;class#18459:21486" />
-            <element signature="e#19438#19468#0" />
-            <element signature="e#19575#19633#1" />
-            <element signature="e#19707#20094#0" />
-            <element signature="e#19893#19926#1" />
-            <element signature="e#20021#20054#1" />
-            <element signature="e#20154#20183#0" />
-            <element signature="e#20229#20258#1" />
-            <element signature="method#acceptOrRejectDrag#0;class#18459:21486" />
-            <element signature="e#20457#20523#0" />
-            <element signature="e#20676#20711#1" />
-            <element signature="e#20721#20751#0" />
-            <element signature="e#20851#20886#1" />
-            <element signature="e#20899#21298#0" />
-            <element signature="e#21085#21124#1" />
-            <element signature="e#21219#21258#1" />
-            <element signature="e#21358#21393#0" />
-            <element signature="e#21403#21431#0" />
-            <element signature="e#21643#21662#0" />
-            <element signature="e#21668#21777#0" />
-            <element signature="e#21841#22598#0" />
-            <element signature="e#21968#22114#1" />
-            <element signature="e#22010#22108#1" />
-            <element signature="e#22154#22262#1" />
-            <element signature="e#22162#22242#0" />
-            <element signature="e#22268#22302#0" />
-            <element signature="e#22311#22480#0" />
-            <element signature="e#22544#22579#0" />
-            <element signature="e#22602#23125#0" />
-            <element signature="e#22689#22710#1" />
-            <element signature="e#22716#22744#0" />
-            <element signature="e#22884#23121#1" />
-            <element signature="e#22912#22939#1" />
-            <element signature="e#23129#23286#0" />
-            <element signature="e#23290#23408#0" />
-            <element signature="e#23290#23625#0" />
-            <element signature="e#23556#23577#1" />
-            <element signature="e#23629#23773#0" />
-            <element signature="e#23777#23883#0" />
-            <element signature="e#23777#24076#0" />
-            <element signature="e#24013#24034#1" />
-            <element signature="e#24080#24206#0" />
-            <element signature="e#24210#24414#0" />
-            <element signature="e#24335#24362#1" />
-            <element signature="e#24543#27140#0" />
-            <element signature="e#24635#24662#0" />
-            <element signature="e#24770#25747#1" />
-            <element signature="e#24813#24846#0" />
-            <element signature="e#24883#25741#1" />
-            <element signature="e#25037#25733#1" />
-            <element signature="e#25053#25581#0" />
-            <element signature="e#25182#25569#1" />
-            <element signature="e#25651#25723#0" />
-            <element signature="e#25753#25786#0" />
-            <element signature="e#25907#26559#1" />
-            <element signature="e#25919#26423#0" />
-            <element signature="e#26052#26415#1" />
-            <element signature="e#26489#26553#0" />
-            <element signature="e#26565#26594#0" />
-            <element signature="e#26631#26917#0" />
-            <element signature="e#26923#26938#0" />
-            <element signature="e#27195#30030#0" />
-            <element signature="e#27249#27277#0" />
-            <element signature="e#27706#27802#1" />
-            <element signature="e#27839#27945#1" />
-            <element signature="e#28017#30026#1" />
-            <element signature="e#28025#28073#0" />
-            <element signature="e#28114#28141#1" />
-            <element signature="e#28340#28367#0" />
-            <element signature="e#28415#28529#1" />
-            <element signature="e#28459#28521#1" />
-            <element signature="e#28755#28830#1" />
-            <element signature="e#28992#29098#1" />
-            <element signature="e#29137#29245#1" />
-            <element signature="e#29151#29185#0" />
-            <element signature="e#29261#29835#1" />
-            <element signature="e#29275#29296#0" />
-            <element signature="e#29402#29547#1" />
-            <element signature="e#29452#29533#1" />
-            <element signature="e#29590#29705#1" />
-            <element signature="e#29890#29933#1" />
-            <element signature="e#29972#30020#1" />
-            <element signature="e#30034#30707#0" />
-            <element signature="e#30138#30165#1" />
-            <element signature="e#30171#30229#0" />
-            <element signature="e#30330#30678#1" />
-            <element signature="e#30531#30672#1" />
-            <element signature="e#30605#30664#1" />
-            <element signature="e#30711#32044#0" />
-            <element signature="e#31026#31047#1" />
-            <element signature="e#31188#31220#1" />
-            <element signature="e#31230#31316#1" />
-            <element signature="e#31370#31391#0" />
-            <element signature="e#31432#31495#1" />
-            <element signature="e#31539#31627#1" />
-            <element signature="e#31637#32025#1" />
-            <element signature="e#31669#31734#1" />
-            <element signature="e#31746#31962#1" />
-            <element signature="e#31869#31954#1" />
-            <element signature="e#32109#34702#0" />
-            <element signature="e#32262#34698#0" />
-            <element signature="e#32322#32388#1" />
-            <element signature="e#32402#32850#1" />
-            <element signature="e#32414#32478#0" />
-            <element signature="e#32605#32840#1" />
-            <element signature="e#32968#33396#1" />
-            <element signature="e#33530#33605#0" />
-            <element signature="e#34706#36013#0" />
-            <element signature="e#34794#35851#0" />
-            <element signature="e#34908#35008#1" />
-            <element signature="e#34920#34965#0" />
-            <element signature="e#35022#35257#1" />
-            <element signature="e#35034#35065#0" />
-            <element signature="e#35116#35175#1" />
-            <element signature="e#35191#35247#1" />
-            <element signature="e#35331#35431#1" />
-            <element signature="e#35343#35388#0" />
-            <element signature="e#35445#35580#1" />
-            <element signature="e#35457#35496#0" />
-            <element signature="e#35623#35649#0" />
-            <element signature="e#35748#35774#0" />
-            <element signature="e#35856#35899#0" />
-            <element signature="e#36017#36837#0" />
-            <element signature="e#36125#36182#1" />
-            <element signature="e#36192#36225#1" />
-            <element signature="e#36230#36300#0" />
-            <element signature="e#36334#36533#1" />
-            <element signature="e#36920#37052#0" />
-            <element signature="e#37056#37512#0" />
-            <element signature="e#37516#37681#0" />
-            <element signature="e#37516#38256#0" />
-            <element signature="e#37848#38170#1" />
-            <element signature="e#38133#38164#1" />
-            <element signature="e#38260#38632#0" />
-            <element signature="e#38260#39777#0" />
-            <element signature="e#39169#39638#1" />
-            <element signature="e#39581#39632#1" />
-            <element signature="e#39664#39690#1" />
-            <element signature="e#39781#42718#0" />
-            <element signature="e#39868#39894#0" />
-            <element signature="e#39928#40477#1" />
-            <element signature="e#40044#40471#1" />
-            <element signature="e#40510#42714#1" />
-            <element signature="e#40519#40566#0" />
-            <element signature="e#40647#40761#1" />
-            <element signature="e#40725#40753#1" />
-            <element signature="e#40792#40843#1" />
-            <element signature="e#41054#41202#1" />
-            <element signature="e#41282#41435#1" />
-            <element signature="e#41475#41770#1" />
-            <element signature="e#41810#41961#1" />
-            <element signature="e#42008#42553#1" />
-            <element signature="e#42018#42112#0" />
-            <element signature="e#42559#42708#1" />
-            <element signature="e#42768#43519#0" />
-            <element signature="e#43709#43758#0" />
-            <element signature="e#43709#45673#0" />
-            <element signature="e#43863#43946#1" />
-            <element signature="e#43871#43885#0" />
-            <element signature="e#44052#44069#0" />
-            <element signature="e#44074#44230#1" />
-            <element signature="e#44236#44250#0" />
-            <element signature="e#44279#44555#1" />
-            <element signature="e#44561#44581#0" />
-            <element signature="e#44606#44631#1" />
-            <element signature="e#44641#44702#1" />
-            <element signature="e#44727#44752#1" />
-            <element signature="e#44762#44824#1" />
-            <element signature="e#45031#45057#0" />
-            <element signature="e#45677#45869#0" />
-            <element signature="e#45677#46074#0" />
-            <element signature="e#46078#46321#0" />
-            <element signature="e#46078#46463#0" />
-            <element signature="e#46467#46496#0" />
-            <element signature="e#46560#46747#0" />
-            <element signature="e#46877#47128#0" />
-            <element signature="e#47132#47267#0" />
-            <element signature="e#47271#47406#0" />
-            <element signature="e#47410#47542#0" />
-            <element signature="e#47546#47678#0" />
-            <element signature="e#47682#48306#0" />
-            <element signature="e#47767#47800#1" />
-            <element signature="e#47865#47933#1" />
-            <element signature="e#47973#48042#1" />
-            <element signature="e#48164#48302#1" />
-            <element signature="e#48246#48296#1" />
-            <element signature="e#48310#48392#0" />
-            <element signature="e#48377#48387#0" />
-            <element signature="e#48519#48555#0" />
-            <element signature="e#48629#49854#0" />
-            <element signature="e#48762#48795#0" />
-            <element signature="e#48829#48943#1" />
-            <element signature="e#48949#48960#0" />
-            <element signature="e#49016#49186#1" />
-            <element signature="e#49192#49206#0" />
-            <element signature="e#49554#49576#0" />
-            <element signature="e#49757#49830#1" />
-            <element signature="e#49858#51981#0" />
-            <element signature="e#50054#51960#1" />
-            <element signature="e#50089#51954#0" />
-            <element signature="e#50167#50222#0" />
-            <element signature="e#50267#50352#1" />
-            <element signature="e#50419#50919#1" />
-            <element signature="e#50488#50517#0" />
-            <element signature="e#50589#50909#1" />
-            <element signature="e#50940#51025#1" />
-            <element signature="e#51161#51619#0" />
-            <element signature="e#51662#51764#0" />
-            <element signature="e#52212#52334#1" />
-            <element signature="e#52243#52280#1" />
-            <element signature="e#52429#52979#0" />
-            <element signature="e#52511#52709#0" />
-            <element signature="e#52984#53933#0" />
-            <element signature="e#53166#53448#0" />
-            <element signature="e#53345#53394#1" />
-            <element signature="e#53400#53442#1" />
-            <element signature="e#53454#53929#0" />
-            <element signature="e#53532#53636#0" />
-            <element signature="e#53694#53799#1" />
-            <element signature="e#53807#53841#0" />
-            <element signature="e#53938#55016#0" />
-            <element signature="e#54281#55012#0" />
-            <element signature="e#54474#54499#1" />
-            <element signature="e#54507#54550#0" />
-            <element signature="e#54919#54944#1" />
-            <element signature="e#55102#55357#0" />
-            <element signature="e#55247#55331#1" />
-            <element signature="e#55289#55323#1" />
-            <element signature="e#55497#56397#0" />
-            <element signature="e#55726#55846#1" />
-            <element signature="e#55768#55838#1" />
-            <element signature="e#55878#55903#1" />
-            <element signature="e#55911#55954#0" />
-            <element signature="e#56304#56329#1" />
-            <element signature="e#56406#57280#0" />
-            <element signature="e#56586#56864#0" />
-            <element signature="e#56765#56812#1" />
-            <element signature="e#56818#56858#1" />
-            <element signature="e#56870#57276#0" />
-            <element signature="e#56947#57052#0" />
-            <element signature="e#57110#57215#1" />
-            <element signature="e#57285#57773#0" />
-            <element signature="e#57367#57519#0" />
-            <element signature="e#57778#59334#0" />
-            <element signature="e#57868#58655#0" />
-            <element signature="e#58022#58047#1" />
-            <element signature="e#58246#58346#1" />
-            <element signature="e#58256#58288#0" />
-            <element signature="e#58358#58470#1" />
-            <element signature="e#58368#58397#0" />
-            <element signature="e#58661#59167#0" />
-            <element signature="e#58817#58868#1" />
-            <element signature="e#59067#59121#1" />
-            <element signature="e#59173#59330#0" />
-            <element signature="e#59338#60209#0" />
-            <element signature="e#60213#61199#0" />
-            <element signature="e#60358#60517#0" />
-            <element signature="e#60603#61195#0" />
-            <element signature="e#60649#60675#0" />
-            <element signature="e#60695#60720#1" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/log/Logger.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" selection-start-line="1" selection-end-line="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/cooja-image-renderer-plugin/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor />
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/cooja-image-renderer-plugin/build.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="630">
-          <caret line="42" column="33" selection-start-line="42" selection-start-column="6" selection-end-line="42" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="951">
-          <caret line="122" column="25" selection-start-line="122" selection-start-column="25" selection-end-line="122" selection-end-column="25" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#2505#2506#0" expanded="true" />
-            <element signature="e#2567#2568#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/apps/cooja-image-renderer-plugin/java/org/contikios/cooja/plugins/ImageRenderer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="30">
@@ -854,25 +555,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state>
           <caret column="71" selection-start-column="71" selection-end-column="71" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Vector2D.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="750">
-          <caret line="64" column="25" selection-start-line="64" selection-start-column="25" selection-end-line="64" selection-end-column="25" />
-          <folding>
-            <element signature="e#149#150#0" expanded="true" />
-            <element signature="e#174#175#0" expanded="true" />
-            <element signature="e#367#368#0" expanded="true" />
-            <element signature="e#391#392#0" expanded="true" />
-            <element signature="e#425#426#0" expanded="true" />
-            <element signature="e#451#452#0" expanded="true" />
-            <element signature="e#479#480#0" expanded="true" />
-            <element signature="e#503#504#0" expanded="true" />
-            <element signature="e#537#538#0" expanded="true" />
-            <element signature="e#563#564#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1002,16 +684,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="225">
           <caret line="15" column="37" selection-start-line="15" selection-start-column="32" selection-end-line="15" selection-end-column="37" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="448">
-          <caret line="39" column="26" selection-start-line="39" selection-start-column="26" selection-end-line="39" selection-end-column="26" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -1182,12 +854,137 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java">
+    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/util/HashSet.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="232">
-          <caret line="47" column="35" selection-start-line="47" selection-start-column="35" selection-end-line="47" selection-end-column="35" />
+        <state relative-caret-position="263">
+          <caret line="202" column="22" lean-forward="true" selection-start-line="202" selection-start-column="22" selection-end-line="202" selection-end-column="22" />
+          <folding>
+            <element signature="e#8033#8034#0" expanded="true" />
+            <element signature="e#8081#8082#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/lang/Object.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="457">
+          <caret line="106" column="11" selection-start-line="106" selection-start-column="11" selection-end-line="106" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/MessageProxy.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="455">
+          <caret line="135" column="33" selection-start-line="135" selection-start-column="33" selection-end-line="135" selection-end-column="33" />
           <folding>
             <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/lang/Math.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="345">
+          <caret line="1764" column="25" selection-start-line="1764" selection-start-column="25" selection-end-line="1764" selection-end-column="25" />
+          <folding>
+            <element signature="e#59392#59393#0" expanded="true" />
+            <element signature="e#59463#59464#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/TiledMapHandler.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="381">
+          <caret line="30" column="22" selection-start-line="30" selection-start-column="22" selection-end-line="30" selection-end-column="22" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#564#565#0" expanded="true" />
+            <element signature="e#585#586#0" expanded="true" />
+            <element signature="e#628#629#0" expanded="true" />
+            <element signature="e#656#657#0" expanded="true" />
+            <element signature="e#682#683#0" expanded="true" />
+            <element signature="e#711#712#0" expanded="true" />
+            <element signature="e#562#563#0" expanded="true" />
+            <element signature="e#603#604#0" expanded="true" />
+            <element signature="e#686#687#0" expanded="true" />
+            <element signature="e#738#739#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Vector2D.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="601">
+          <caret line="65" column="34" selection-start-line="65" selection-start-column="34" selection-end-line="65" selection-end-column="34" />
+          <folding>
+            <element signature="e#149#150#0" expanded="true" />
+            <element signature="e#174#175#0" expanded="true" />
+            <element signature="e#213#214#0" expanded="true" />
+            <element signature="e#250#251#0" expanded="true" />
+            <element signature="e#367#368#0" expanded="true" />
+            <element signature="e#391#392#0" expanded="true" />
+            <element signature="e#425#426#0" expanded="true" />
+            <element signature="e#451#452#0" expanded="true" />
+            <element signature="e#479#480#0" expanded="true" />
+            <element signature="e#503#504#0" expanded="true" />
+            <element signature="e#537#538#0" expanded="true" />
+            <element signature="e#563#564#0" expanded="true" />
+            <element signature="e#873#874#0" expanded="true" />
+            <element signature="e#902#903#0" expanded="true" />
+            <element signature="e#1354#1355#0" expanded="true" />
+            <element signature="e#1427#1428#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/util/HashMap.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="345">
+          <caret line="553" column="13" selection-start-line="553" selection-start-column="13" selection-end-line="553" selection-end-column="13" />
+          <folding>
+            <element signature="e#23597#23598#0" expanded="true" />
+            <element signature="e#23651#23652#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="899">
+          <caret line="64" selection-start-line="64" selection-end-line="64" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#1928#1929#0" expanded="true" />
+            <element signature="e#1954#1955#0" expanded="true" />
+            <element signature="e#2013#2014#0" expanded="true" />
+            <element signature="e#2057#2058#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="978">
+          <caret line="183" column="28" selection-start-line="183" selection-start-column="28" selection-end-line="183" selection-end-column="28" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#2505#2506#0" expanded="true" />
+            <element signature="e#2567#2568#0" expanded="true" />
+            <element signature="e#7810#7811#0" expanded="true" />
+            <element signature="e#7920#7921#0" expanded="true" />
+            <element signature="e#8047#8048#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="52">
+          <caret line="27" column="29" selection-start-line="27" selection-start-column="24" selection-end-line="27" selection-end-column="29" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#1389#1390#0" expanded="true" />
             <element signature="e#1457#1458#0" expanded="true" />
           </folding>
         </state>
@@ -1195,20 +992,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="32" column="27" selection-start-line="32" selection-start-column="27" selection-end-line="32" selection-end-column="27" />
+        <state relative-caret-position="360">
+          <caret line="97" column="35" selection-start-line="97" selection-start-column="35" selection-end-line="97" selection-end-column="35" />
           <folding>
             <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/MessageProxy.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="606">
-          <caret line="194" column="48" selection-start-line="194" selection-start-column="48" selection-end-line="194" selection-end-column="48" />
-          <folding>
-            <element signature="imports" expanded="true" />
+            <element signature="e#2524#2525#0" expanded="true" />
+            <element signature="e#2556#2557#0" expanded="true" />
+            <element signature="e#2625#2626#0" expanded="true" />
+            <element signature="e#2664#2665#0" expanded="true" />
           </folding>
         </state>
       </provider>

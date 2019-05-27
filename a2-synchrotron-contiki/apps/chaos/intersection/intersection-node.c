@@ -64,7 +64,82 @@
 
 
 
-static char comm_test[100];
+// TODO: We need to really test these functions!!
+int decode_data( char * dest, const char * source) {
+
+  int initial_size = strlen(source);
+  int res_size = 0;
+  int i = 0;
+
+  for(i = 0; i < initial_size; ++i) {
+
+    char c = source[i];
+
+    if ((uint8_t)c == 0x11) {
+      i++;
+      if (i < initial_size) {
+        c = source[i];
+
+        if ((uint8_t) c == 0x11) {
+          // Nothing to do
+        } else if ((uint8_t) c == 0x12) {
+          c = '\n';
+        } else if ((uint8_t) c == 0x13) {
+          c = '\r';
+        } else if ((uint8_t) c == 0x14) {
+          c = '\0';
+        }
+
+        dest[res_size] = c;
+        res_size++;
+      }
+    } else {
+      // no need to convert anything
+      dest[res_size] = c;
+      res_size++;
+    }
+  }
+
+  //TODO: test if the newline character is included in the message
+
+  return res_size;
+}
+
+void send_data( char * data, uint32_t size) {
+  // we will use device control characters to encode our message!
+
+  printf("#VANET ");
+  int i = 0;
+  for(i = 0; i < size; ++i) {
+    // we will encode the special characters \n, \r and zero like the following
+    // \n -> 0x11 0x12
+    // \r -> 0x11 0x13
+    // 0 -> 0x11 0x14
+    // 0x11 -> 0x11 0x11 This is needed so that we know
+
+    char c = data[i];
+    if (c == '\n') {
+      putchar(0x11);
+      putchar(0x12);
+    } else if (c == '\r') {
+      putchar(0x11);
+      putchar(0x13);
+    }else if (c == '\0') {
+      putchar(0x11);
+      putchar(0x14);
+    } else if ((uint8_t) c == 0x11){
+      putchar(0x11);
+      putchar(0x11);
+    } else {
+      putchar(c);
+    }
+  }
+  putchar('\n'); //aaaand finish the newline ;)
+}
+
+void send_str(const char *str) {
+  printf("#VANET %s\n", str);
+}
 
 
 typedef struct __attribute__((packed)) {
@@ -198,81 +273,6 @@ static void init_pos_and_dir() {
   }
 }
 
-// TODO: This should be part of the java code I guess?
-static void init_reservation() {
-
-  // we will distinguish three cases
-
-  own_reservation.size = 0;
-
-  int offset = (node_id-1)%3;
-
-  if (offset == 1 || !OTHER_DIRECTIONS) {
-    {
-      // we will try to move straight
-
-      int x = opx;
-      int y = opy;
-      int i = 0;
-
-      // Move TILES_WIDTH tiles straight
-      for(i = 0; i < TILES_WIDTH; ++i) {
-        x += odx;
-        y += ody;
-
-        own_reservation.tiles[own_reservation.size] = pos_to_id(x, y);
-        own_reservation.size++;
-      }
-
-      x += odx;
-      y += ody;
-      target_x = x;
-      target_y = y;
-    }
-  } else if (offset == 0) {
-    // we will try to go left
-
-    int x = opx;
-    int y = opy;
-    int i = 0;
-
-    // Move four tiles straight
-    for(i = 0; i < 4; ++i) {
-      x += odx;
-      y += ody;
-
-      own_reservation.tiles[own_reservation.size] = pos_to_id(x, y);
-      own_reservation.size++;
-    }
-
-    // Move three tiles to the left
-    for(i = 0; i < 3; ++i) {
-      x += ody;
-      y += -odx;
-
-      own_reservation.tiles[own_reservation.size] = pos_to_id(x, y);
-      own_reservation.size++;
-    }
-
-    // and set the target which is another tile to the left
-
-    x += ody;
-    y += -odx;
-    target_x = x;
-    target_y = y;
-
-
-  } else if (offset == 2) {
-    // we will try to go right
-    // so we move one into our original position
-    // and just one to the right, which is our target position
-
-    own_reservation.size = 1;
-    own_reservation.tiles[0] = pos_to_id(opx + odx, opy + ody);
-    target_x = opx + odx - ody;
-    target_y = opy + ody + odx;
-  }
-}
 
 
 static void mc_round_begin(const uint16_t round_count, const uint8_t id);
@@ -307,14 +307,13 @@ static void set_own_arrival(merge_commit_value_t *val) {
   }
 }
 
-
 PROCESS(mc_process, "Merge-Commit process");
 PROCESS_THREAD(mc_process, ev, data)
 {
   // TODO: init commit value
 PROCESS_BEGIN();
   while(1) {
-    PROCESS_YIELD();
+    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
 
     if(chaos_has_node_index){
       if (mc_phase == PHASE_COMMIT) {
@@ -327,9 +326,8 @@ PROCESS_BEGIN();
         // TODO: Send commited value to JAVA
 
         if (path_is_reserved(&mc_commited_value, &own_reservation, node_id)) {
-          print_tiles(&mc_commited_value);
+          send_str("accepted"); // ack the new reservation
           printf("Node id %d was accepted\n", node_id);
-          accepted = 1;
           own_arrival = 1; // we do not want that any other node intercepts our request...
         } else if (own_reservation.size > 0 && !path_is_reserved(&mc_value, &own_reservation, node_id)){
           // TODO: At this point, we really just want to find ANY way ;)
@@ -352,232 +350,65 @@ PROCESS_END();
 }
 
 
-// TODO: We need to really test these functions!!
-int decode_data( char * dest, const char * source) {
-
-  int initial_size = strlen(source);
-  int res_size = 0;
-  int i = 0;
-
-  for(i = 0; i < initial_size; ++i) {
-
-    char c = source[i];
-
-    if ((uint8_t)c == 0x11) {
-      i++;
-      if (i < initial_size) {
-        c = source[i];
-
-        if ((uint8_t) c == 0x11) {
-          // Nothing to do
-        } else if ((uint8_t) c == 0x12) {
-          c = '\n';
-        } else if ((uint8_t) c == 0x13) {
-          c = '\r';
-        } else if ((uint8_t) c == 0x14) {
-          c = '\0';
-        }
-
-        dest[res_size] = c;
-        res_size++;
-      }
-    } else {
-      // no need to convert anything
-      dest[res_size] = c;
-      res_size++;
-    }
-  }
-
-  //TODO: test if the newline character is included in the message
-
-  return res_size;
-}
-
-void send_data( char * data, uint32_t size) {
-  // we will use device control characters to encode our message!
-
-  printf("#VANET ");
-  int i = 0;
-  for(i = 0; i < size; ++i) {
-    // we will encode the special characters \n, \r and zero like the following
-    // \n -> 0x11 0x12
-    // \r -> 0x11 0x13
-    // 0 -> 0x11 0x14
-    // 0x11 -> 0x11 0x11 This is needed so that we know
-
-    char c = data[i];
-    if (c == '\n') {
-      putchar(0x11);
-      putchar(0x12);
-    } else if (c == '\r') {
-      putchar(0x11);
-      putchar(0x13);
-    }else if (c == '\0') {
-      putchar(0x11);
-      putchar(0x14);
-    } else if ((uint8_t) c == 0x11){
-      putchar(0x11);
-      putchar(0x11);
-    } else {
-      putchar(c);
-    }
-  }
-  putchar('\n'); //aaaand finish the newline ;)
-}
-
-PROCESS(movement_process, "movement process");
-
-PROCESS_THREAD(movement_process, ev, data)
+PROCESS(comm_process, "communication process");
+/*
+ * This process reacts to messages from the serial port
+ */
+PROCESS_THREAD(comm_process, ev, data)
 {
-
-  static struct etimer timer;
   PROCESS_BEGIN();
 
-  static char current_test = 0;// '?';
-  static char test_buf[sizeof(comm_test)];
-
-  // TODO: Add me as unit test!
-  static int test_size = 0;
-
-  while(1) {
-    //memset(comm_test, current_test, sizeof(comm_test));
-
-    int i = 0;
-    for(i = 0; i < sizeof(comm_test); ++i) {
-      comm_test[i] = rand() % 256;
-    }
-    test_size = rand() % (sizeof(comm_test)+1);
-
-
-    send_data(comm_test, test_size);
-
-    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message && data != NULL);
-
-        printf("received line: %d %s ", strlen((char *)data), (char *)data);
-        current_test++;
-
-    int size = decode_data(test_buf, (const char *) data);
-printf(" decoded %d  %d \n", size, sizeof(comm_test)  );
-
-if(!size == sizeof(comm_test) || memcmp(comm_test, test_buf, test_size)) {
-printf(" ERROR %d vs %d \n", comm_test[0], test_buf[0]);
-}
-  }
-  //reset to 0s
-
-  // first set the position based on our mode id and move to the position
-  init_pos_and_dir();
-  init_reservation();
-  opx = px;
-  opy = py;
-
+  // TODO: This could be reduced
+  static char comm_buf[SERIAL_LINE_CONF_BUFSIZE];
   memset(&mc_last_commited_value, 0, sizeof(merge_commit_value_t));
 
-  etimer_set(&timer, MOVE_INTERVAL);
+  send_str("init"); // send init to plugin
 
-  static uint8_t next_step = 0;
-  do {
-    // Reset original position
-    px = opx;
-    py = opy;
-    //printf("#MoveTo %d.0 %d.0\n", px, py);
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message && data != NULL);
 
+    int size = decode_data(comm_buf, (const char *) data);
+    printf("decoded %d\n", size);
 
-
-    init_reservation();
-    next_step = 0; // reset progress
-
-    // Add this with a parameter
-
-    // Add this with a parameter
-    if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, node_id)) {
-      // TODO: At this point, we really just want to find ANY way ;)
-      reserve_path(&mc_value, &own_reservation, node_id);
-      set_own_arrival(&mc_value);
+    if (size == 0) {
+      continue;
     }
 
-etimer_stop(&timer);
-etimer_set(&timer, MOVE_INTERVAL);
+    // for now we only receive a new reservation...
+    // copy that reservation to our own
 
-    // insert extra wait_for_request time
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer)); etimer_reset(&timer);
+    own_reservation.size = size;
+    memcpy(own_reservation.tiles, data, size);
 
-    while (1) {
-      if (accepted && own_reservation.size > 0) {
-
-        int wx,wy; // the wanted position
-
-        // we update our direction based on the path
-        if (next_step < own_reservation.size) {
-          // we will use the next tile of the own reservation
-          id_to_pos(&wx, &wy, own_reservation.tiles[next_step]);
-        } else {
-          // use target position
-          wx = target_x;
-          wy = target_y;
-        }
+    // now we check if the new reservation is already part of our current reservation
+    // we distinguish three cases
+    // 1. the reservation is just 0
+    // 2. the reservation is part of the current reservation
+    // 3. the reservation is completely new
 
 
-        if (px < wx) {
-          dx = 1;
-        } else if (px > wx) {
-          dx = -1;
-        } else {
-          dx = 0;
-        }
+    uint8_t part_of_current = path_is_reserved(&mc_value, &own_reservation, node_id);
 
-        if (py < wy) {
-          dy = 1;
-        } else if (py > wy) {
-          dy = -1;
-        } else {
-          dy = 0;
-        }
+    // clean current commit value
+    memset(&mc_value, 0, sizeof(merge_commit_value_t));
 
-        printf("#Move %d.0 %d.0\n", dx, dy);
-        px += dx;
-        py += dy;
-        next_step++;
+    if (size == 0) {
+      own_arrival = 0; // reset own arrival since we have no intention for a reservation
+    } else  {
 
-        if (TILE_FREEDOM) {
-        //check if we are on our reserved path and free
-          if (own_reservation.size > 0 && next_step < own_reservation.size-1) {
-            memset(&mc_value, 0, sizeof(merge_commit_value_t));
-            reserve_path_with_offset(&mc_value, &own_reservation, node_id, next_step);
-            set_own_arrival(&mc_value);
-          }
-        }
-
-        // TODO: We want to free the tiles, that we have already visited!
-        // Add this with a parameter
-
-        // check if we should release the reservation
-        if (next_step > own_reservation.size) {
-          accepted = 0;
-
-          // Release
-          own_arrival = 0;
-          own_reservation.size = 0;
-          // Update collect value
-          memset(&mc_value, 0, sizeof(merge_commit_value_t));
-          break;
-        }
+      if (!part_of_current) {
+        // we need to reset our own arrival time
+        own_arrival = 0;
       }
 
-      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer)); etimer_reset(&timer);
+      if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, node_id)) {
+        reserve_path(&mc_value, &own_reservation, node_id);
+        set_own_arrival(&mc_value);
+      }
     }
 
-    // some extra waiting time ;)
-    static int random_waits = 0;
-
-    etimer_restart(&timer);
-    random_waits = abs((random_rand() % 10))*(TILES_WIDTH/2)+5;
-
-    for(; random_waits > 0; random_waits--) {
-      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer)); etimer_reset(&timer);
-    }
-
-  } while(REPEAT);
+    send_str("ack"); // ack the new reservation
+  };
 
   PROCESS_END();
 }
@@ -590,16 +421,15 @@ PROCESS_THREAD(main_process, ev, data)
   PROCESS_BEGIN();
   NETSTACK_MAC.on();
 
-
   if (rseed == 0) {
     rseed = node_id;
   }
   random_init(rseed);
   printf("Starting main process with seed: %d\n", rseed);
 
-  process_start(&movement_process, NULL);
+  process_start(&comm_process, NULL);
   process_start(&mc_process, NULL);
-  PROCESS_YIELD();
+  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
   PROCESS_END();
 }
 
@@ -703,3 +533,40 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
     time_diff = end-start;
   }
 }
+
+
+/* TODO Add test case
+
+  static char comm_test[100];
+
+  static char current_test = 0;// '?';
+  static char test_buf[sizeof(comm_test)];
+
+  // TODO: Add me as unit test!
+  static int test_size = 0;
+
+  while(1) {
+    //memset(comm_test, current_test, sizeof(comm_test));
+
+    int i = 0;
+    for(i = 0; i < sizeof(comm_test); ++i) {
+      comm_test[i] = rand() % 256;
+    }
+    test_size = rand() % (sizeof(comm_test)+1);
+
+
+    send_data(comm_test, test_size);
+
+    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message && data != NULL);
+
+        printf("received line: %d %s ", strlen((char *)data), (char *)data);
+        current_test++;
+
+    int size = decode_data(test_buf, (const char *) data);
+printf(" decoded %d  %d \n", size, sizeof(comm_test)  );
+
+if(!size == sizeof(comm_test) || memcmp(comm_test, test_buf, test_size)) {
+printf(" ERROR %d vs %d \n", comm_test[0], test_buf[0]);
+}
+  }
+ */

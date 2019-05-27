@@ -37,6 +37,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.apache.log4j.Logger;
 
@@ -44,8 +46,12 @@ import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.Position;
+import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.Visualizer;
 import org.contikios.cooja.plugins.VisualizerSkin;
+import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
+import org.contikios.cooja.plugins.vanet.world.World;
+import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import javax.imageio.ImageIO;
 
@@ -98,8 +104,8 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         double centerY = height/2.0;
 
         // and add an offset
-        double offsetX = 0.5+2.0;
-        double offsetY = 0.5+2.0;
+        double offsetX = 3.0;
+        double offsetY = 3.0;
 
 
         Point tl = visualizer.transformPositionToPixel(-centerX+offsetX, -centerY+offsetY, 0.0);
@@ -111,6 +117,10 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                 return false;
             }
         });
+
+        // TODO: Use the static world of our Vanet plugin
+
+        drawWaypointsForSelection(g);
     }
 
 
@@ -163,6 +173,45 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                         visualizer.getWidth(),
                         pixel
                 );
+            }
+        }
+    }
+
+    private void drawWaypointsForSelection(Graphics g) {
+
+        World world = Vanet.world;
+
+        if (world != null) {
+            if (visualizer.getSelectedMotes().size() > 0) {
+                for (Mote mote: visualizer.getSelectedMotes()) {
+                    Vehicle v = world.getVehicle(mote);
+
+                    ArrayList<Vector2D> wps = v.getWaypoints();
+
+                    for (int i = 0; i < wps.size(); ++i) {
+
+                        Vector2D p = wps.get(i);
+                        // we draw a little circle at the waypoint
+
+                        if (i < v.getCurWayPointIndex()) {
+                            g.setColor(Color.BLUE);
+                        } else if (i > v.getCurWayPointIndex()) {
+                            g.setColor(Color.GRAY);
+                        } else {
+                            g.setColor(Color.RED);
+                        }
+
+                        float r = 0.1f;
+
+                        Point tl = visualizer.transformPositionToPixel(p.getX(), p.getY(), 0);
+                        Point br = visualizer.transformPositionToPixel(p.getX()+r, p.getY()+r, 0);
+
+                        int dx = br.x-tl.x;
+                        int dy = br.y-tl.y;
+
+                        g.fillOval(tl.x-dx/2, tl.y-dy/2, dx, dy);
+                    }
+                }
             }
         }
     }

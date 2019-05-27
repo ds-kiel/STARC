@@ -50,8 +50,17 @@ public class Vector2D {
     }
 
     public void translate(Vector2D other) {
+        add(other);
+    }
+
+    public void add(Vector2D other) {
         this.x += other.x;
         this.y += other.y;
+    }
+
+    public void sub(Vector2D other) {
+        this.x -= other.x;
+        this.y -= other.y;
     }
 
     public void rotate(double a) {
@@ -62,9 +71,20 @@ public class Vector2D {
         y = y1;
     }
 
+
+    public static Vector2D diff(Vector2D a, Vector2D b) {
+        Vector2D r = new Vector2D(a);
+        r.sub(b);
+        return r;
+    }
+
     public static double distance(Vector2D a, Vector2D b) {
         return Math.sqrt(
                 (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)
         );
+    }
+
+    public static double angle(Vector2D a, Vector2D b) {
+        return Math.atan2( a.x*b.y - a.y*b.x, a.x*b.x + a.y*b.y );
     }
 }

@@ -190,8 +190,6 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             tx_mc->phase = PHASE_COMMIT;
             //TODO: we could also abort here
 
-            //print_tiles(&tx_mc->value);
-
             tx = 1;
             leds_on(LEDS_GREEN);
           }
@@ -211,8 +209,6 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_length());
         uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
 
-        //printf("Received commit...");
-        //print_tiles(&tx_mc->value);
         tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
         tx = 1;
         leds_on(LEDS_BLUE);
@@ -311,12 +307,7 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   chaos_round(round_number, app_id, (const uint8_t const*)&mc_local, sizeof(mc_local.mc) + merge_commit_get_flags_length(), MERGE_COMMIT_SLOT_LEN_DCO, MERGE_COMMIT_ROUND_MAX_SLOTS, merge_commit_get_flags_length(), process);
   memcpy(&mc_local.mc.flags, tx_flags_final, merge_commit_get_flags_length());
 
-  printf("Final value...");
-  print_tiles(&mc_local.mc.value);
-
   memcpy(merge_commit_value, &mc_local.mc.value, sizeof(merge_commit_value_t));
-  printf("Copied value...");
-  print_tiles(merge_commit_value);
   *final_flags = mc_local.flags;
   *phase = mc_local.mc.phase;
   return completion_slot;

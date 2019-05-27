@@ -168,7 +168,6 @@ public class MessageProxy {
 
         // TODO: IT SEEMS LIKE THE FIRST SENT MESSAGE IS NOT OVERWRITTEN THE WHOLE TIME???
         try {
-            //outputStream.write("#VANET ".getBytes(StandardCharsets.ISO_8859_1));
             outputStream.write(encoded);
             outputStream.write((byte) '\n');
             outputStream.flush();

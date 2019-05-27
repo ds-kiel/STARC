@@ -18,14 +18,14 @@ public class Vanet extends VisPlugin {
     private static Logger logger = Logger.getLogger(Vanet.class);
 
     private static final boolean QUIET = false;
-    private static final long TICKS = 50;
+    private static final long TICKS = 10;
     private static final long TICK_MS = 1000/TICKS;
 
     private Simulation simulation;
 
     private Observer millisecondObserver;
 
-    private World world;
+    public static World world;
 
 
     private long nextUpdate = 0;
@@ -57,7 +57,6 @@ public class Vanet extends VisPlugin {
             @Override
             public void update(Observable o, Object arg) {
                 if (simulation.getSimulationTimeMillis() >= nextUpdate) {
-                    System.out.println("VANET");
                     Vanet.this.update(TICK_MS / 1000.0); // one s
                     nextUpdate += TICK_MS;
                 }
