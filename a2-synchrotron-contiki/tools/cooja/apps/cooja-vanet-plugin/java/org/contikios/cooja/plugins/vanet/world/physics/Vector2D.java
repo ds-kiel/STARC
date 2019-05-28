@@ -45,7 +45,7 @@ public class Vector2D {
     public void normalize() {
         double l = length();
         if (l > 0) {
-            scale(1/l);
+            scale(1.0/l);
         }
     }
 
@@ -82,6 +82,14 @@ public class Vector2D {
         return Math.sqrt(
                 (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)
         );
+    }
+
+    public static double dot(Vector2D a, Vector2D b) {
+        return a.x*b.x+a.y*b.y;
+    }
+
+    public String toString() {
+        return "(" +x + ", " + y +")";
     }
 
     public static double angle(Vector2D a, Vector2D b) {

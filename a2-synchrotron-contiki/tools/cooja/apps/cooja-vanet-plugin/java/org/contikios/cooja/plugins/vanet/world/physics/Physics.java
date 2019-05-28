@@ -2,8 +2,12 @@ package org.contikios.cooja.plugins.vanet.world.physics;
 
 
 import org.contikios.cooja.plugins.vanet.log.Logger;
+import org.contikios.cooja.plugins.vanet.world.physics.Computation.Intersection;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Physics {
 
@@ -22,6 +26,9 @@ public class Physics {
             body.getCenter().translate(vel);
         }
 
+        if(false) {
+
+        }
         int size = bodies.size();
 
         for (int i = 0; i < size; i++) {
@@ -52,5 +59,61 @@ public class Physics {
         } else {
             return false;
         }
+    }
+
+    private Vector2D closestPointOnLine(Vector2D lineStart, Vector2D lineDir, Vector2D pos) {
+
+        Vector2D b = new Vector2D(lineDir);
+        b.normalize();
+        b.scale(-Vector2D.dot(Vector2D.diff(lineStart, pos), b));
+
+        Vector2D closestPoint = new Vector2D(lineStart);
+        closestPoint.add(b);
+
+        return closestPoint;
+    }
+
+    private Intersection intersectsLine(Body body, Vector2D linePos, Vector2D lineDir) {
+
+        if (body instanceof CircleBody) {
+
+            CircleBody cBody = (CircleBody) body;
+            Vector2D closestPoint = closestPointOnLine(linePos, lineDir, body.getCenter());
+
+            Vector2D diff = Vector2D.diff(closestPoint, linePos);
+
+            double sign = 0.0;
+            if(Math.signum(lineDir.getX()) != 0.0) {
+                sign = Math.signum(lineDir.getX()) * Math.signum(diff.getX());
+            } else if (Math.signum(lineDir.getY()) != 0.0) {
+                sign = Math.signum(lineDir.getY()) * Math.signum(diff.getY());
+            }
+
+            double d = sign*diff.length();
+
+            double distToLine = Vector2D.distance(body.getCenter(), closestPoint);
+            double r = cBody.getRadius();
+
+            // we only have an intersection if the
+            if (distToLine <= r) {
+                double offset = Math.sqrt(r*r-distToLine*distToLine);
+
+                Intersection in = new Intersection();
+                in.body = body;
+
+                in.distance = d;
+                return in;
+            }
+        }
+        return null;
+    }
+
+    public Collection<Intersection> computeLineIntersections(Vector2D pos, Vector2D dir) {
+        // dir has to be normalized!
+
+        return this.bodies.stream()
+                .map(b -> intersectsLine(b,pos,dir))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }

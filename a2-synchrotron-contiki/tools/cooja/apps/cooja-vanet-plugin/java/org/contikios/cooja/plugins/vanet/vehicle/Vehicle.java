@@ -1,6 +1,7 @@
 package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.Mote;
+import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
@@ -12,6 +13,7 @@ public class Vehicle {
     private MessageProxy messageProxy; // used for communication with cooja motes
     private VehicleBody body; // our physics model
     private TiledMapHandler mapHandler;
+    private DirectionalDistanceSensor distanceSensor;
 
     static final boolean OTHER_DIRECTIONS = true;
     static final boolean TILE_FREEDOM = true;
@@ -25,9 +27,6 @@ public class Vehicle {
     private int state = STATE_INIT;
 
 
-
-
-
     static private final int STATE_REQUEST_INIT = 0;
     static private final int STATE_REQUEST_SENT = 1;
     static private final int STATE_REQUEST_ACKNOWLEDGED = 2;
@@ -39,15 +38,20 @@ public class Vehicle {
 
     private int requestState = STATE_REQUEST_INIT;
 
-    public Vehicle(Mote mote, MessageProxy messageProxy, VehicleBody body) {
+    public Vehicle(Mote mote, MessageProxy messageProxy, VehicleBody body, DirectionalDistanceSensor distanceSensor) {
         this.mote = mote;
         this.messageProxy = messageProxy;
         this.body = body;
+        this.distanceSensor = distanceSensor;
 
         this.mapHandler = new TiledMapHandler(6,6,1,1);
 
         initPosition();
         initReservation();
+    }
+
+    public DirectionalDistanceSensor getDistanceSensor() {
+        return distanceSensor;
     }
 
     public Mote getMote() {
@@ -93,6 +97,10 @@ public class Vehicle {
         if (state == STATE_MOVING && TILE_FREEDOM) {
             // free our reservation
             requestReservation();
+        }
+
+        if (distanceSensor.readValue() >= 0.0) {
+            System.out.println("Mote " + mote.getID() + " has sensor value:  " + distanceSensor.readValue());
         }
 
         handleReservation();
@@ -202,31 +210,29 @@ public class Vehicle {
 
         Vector2D vel = body.getVel();
         Vector2D pos = body.getCenter();
+        Vector2D dir = body.getDir();
+
 
         // we check our waypoints
         if (curWayPoint != null) {
 
-            if (vel.length() < 0.0000001) {
-                // init dir...
-                vel.setX(Math.signum(odx));
-                vel.setY(Math.signum(ody));
-                vel.scale(0.0000001);
-            }
-
-            // compare the wantedDir with the current velocity
+            // compare the wantedDir with the current direction
             Vector2D wantedDir = Vector2D.diff(curWayPoint, pos);
 
-            double a = Vector2D.angle(vel, wantedDir);
+            double a = Vector2D.angle(dir, wantedDir);
             //System.out.println("Mote " + mote.getID() + " wants to turn " + (a/(Math.PI) * 180));
 
             // check our steering
             double turn = delta*maxTurn;
             double a2 = Math.abs(a);
             turn = Math.max(-a2, Math.min(a2, turn));
+            dir.rotate(Math.signum(a)*turn);
+
+            // rotate the velocity too
             vel.rotate(Math.signum(a)*turn);
 
             // compute angle again
-            a = Vector2D.angle(wantedDir, vel);
+            a = Vector2D.angle(wantedDir, dir);
 
             // check if we want to accelerate or decelerate
             if (Math.abs(a) < Math.PI/4) {
@@ -235,13 +241,11 @@ public class Vehicle {
                 // we start to accelerate
                 if (vel.length() < maxSpeed) {
 
-                    Vector2D dir = new Vector2D(vel);
-                    dir.normalize();
-
-                    dir.scale(delta * acc);
+                    Vector2D force = new Vector2D(dir);
+                    force.scale(delta);
 
                     // accelerate!
-                    vel.translate(dir);
+                    vel.translate(force);
                 }
 
                 if (vel.length() > maxSpeed) {
@@ -298,6 +302,11 @@ public class Vehicle {
 
         opx = body.getCenter().getX();
         opy = body.getCenter().getY();
+
+
+        Vector2D dir = body.getDir();
+        dir.setX(Math.signum(odx));
+        dir.setY(Math.signum(ody));
     }
 
 

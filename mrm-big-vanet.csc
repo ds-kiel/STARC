@@ -6,8 +6,6 @@
   <project EXPORT="discard">[APPS_DIR]/serial_socket</project>
   <project EXPORT="discard">[APPS_DIR]/collect-view</project>
   <project EXPORT="discard">[APPS_DIR]/powertracker</project>
-  <project EXPORT="discard">[APPS_DIR]/cooja-image-renderer-plugin</project>
-  <project EXPORT="discard">[APPS_DIR]/cooja-mobility-plugin</project>
   <project EXPORT="discard">[APPS_DIR]/cooja-vanet-plugin</project>
   <simulation>
     <title>My simulation</title>
@@ -263,7 +261,7 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>1</z>
+    <z>5</z>
     <height>160</height>
     <location_x>741</location_x>
     <location_y>70</location_y>
@@ -277,7 +275,7 @@
       <viewport>45.56277056277057 0.0 0.0 45.56277056277057 204.28391053391053 85.11724386724386</viewport>
     </plugin_config>
     <width>642</width>
-    <z>0</z>
+    <z>4</z>
     <height>475</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -290,7 +288,7 @@
       <coloring />
     </plugin_config>
     <width>70</width>
-    <z>7</z>
+    <z>3</z>
     <height>240</height>
     <location_x>400</location_x>
     <location_y>160</location_y>
@@ -316,7 +314,7 @@
       <zoomfactor>500.0</zoomfactor>
     </plugin_config>
     <width>470</width>
-    <z>6</z>
+    <z>2</z>
     <height>166</height>
     <location_x>0</location_x>
     <location_y>465</location_y>
@@ -328,39 +326,18 @@
       <decorations>true</decorations>
     </plugin_config>
     <width>150</width>
-    <z>5</z>
+    <z>1</z>
     <height>300</height>
     <location_x>680</location_x>
     <location_y>0</location_y>
   </plugin>
   <plugin>
-    org.contikios.cooja.plugins.DynamicMobility
-    <width>500</width>
-    <z>4</z>
-    <height>200</height>
-    <location_x>30</location_x>
-    <location_y>495</location_y>
-  </plugin>
-  <plugin>
     org.contikios.cooja.plugins.Vanet
     <width>150</width>
-    <z>3</z>
+    <z>0</z>
     <height>300</height>
-    <location_x>322</location_x>
-    <location_y>88</location_y>
-  </plugin>
-  <plugin>
-    org.contikios.cooja.plugins.LogListener
-    <plugin_config>
-      <filter>ID:4</filter>
-      <formatted_time />
-      <coloring />
-    </plugin_config>
-    <width>964</width>
-    <z>2</z>
-    <height>287</height>
-    <location_x>61</location_x>
-    <location_y>307</location_y>
+    <location_x>30</location_x>
+    <location_y>495</location_y>
   </plugin>
 </simconf>
 

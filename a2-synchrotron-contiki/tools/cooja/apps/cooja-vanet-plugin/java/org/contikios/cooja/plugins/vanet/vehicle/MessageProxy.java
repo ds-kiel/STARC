@@ -1,6 +1,7 @@
 package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.Mote;
+import org.contikios.cooja.interfaces.Log;
 import org.contikios.cooja.interfaces.SerialPort;
 
 import java.io.*;
@@ -38,7 +39,7 @@ public class MessageProxy {
                 InputStream in = dataObserver.getInputStream();
                 ArrayList<Byte> line = new ArrayList<>();
 
-                byte[] identifierBytes = "#VANET ".getBytes(StandardCharsets.ISO_8859_1);
+                final byte[] identifierBytes = "#VANET ".getBytes(StandardCharsets.ISO_8859_1);
 
                 while(true) {
                     line.clear();
@@ -46,17 +47,20 @@ public class MessageProxy {
                     try {
                         byte c = (byte) (in.read() & 0xFF);
 
-                        while(c != 0x0A) { // newline char
-                            line.add(c);
-                            c = (byte) (in.read() & 0xFF);
-                        }
-
-                        //check if the newline is really wanted...
                         boolean matching = true;
-                        for(int i = 0; i < identifierBytes.length; ++i) {
-                            if (identifierBytes[i] != line.get(i)) {
-                                matching = false;
+
+                        while(c != 0x0A) { // newline char
+
+                            int l = line.size();
+
+                            //check if the newline is really wanted...
+                            matching = matching && ((l >= identifierBytes.length) || c == identifierBytes[l]);
+
+                            if (matching) {
+                                line.add(c);
                             }
+
+                            c = (byte) (in.read() & 0xFF);
                         }
 
                         if (matching) {
@@ -69,8 +73,6 @@ public class MessageProxy {
 
                             queue.add(bytes);
                         }
-
-
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -166,7 +168,6 @@ public class MessageProxy {
 
         byte[] encoded = encode(data);
 
-        // TODO: IT SEEMS LIKE THE FIRST SENT MESSAGE IS NOT OVERWRITTEN THE WHOLE TIME???
         try {
             outputStream.write(encoded);
             outputStream.write((byte) '\n');

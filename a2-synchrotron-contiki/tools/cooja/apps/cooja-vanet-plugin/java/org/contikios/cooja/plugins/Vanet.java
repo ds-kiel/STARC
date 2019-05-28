@@ -5,6 +5,7 @@ import org.contikios.cooja.*;
 
 import org.contikios.cooja.plugins.vanet.vehicle.MessageProxy;
 import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
+import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
 import org.contikios.cooja.plugins.vanet.world.World;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
@@ -18,7 +19,7 @@ public class Vanet extends VisPlugin {
     private static Logger logger = Logger.getLogger(Vanet.class);
 
     private static final boolean QUIET = false;
-    private static final long TICKS = 10;
+    private static final long TICKS = 50;
     private static final long TICK_MS = 1000/TICKS;
 
     private Simulation simulation;
@@ -94,7 +95,7 @@ public class Vanet extends VisPlugin {
                     )
                 );
 
-                Vehicle v = new Vehicle(m, mp, body);
+                Vehicle v = new Vehicle(m, mp, body, new DirectionalDistanceSensor(body));
                 world.addVehicle(v);
             }
         } catch (Exception e) {

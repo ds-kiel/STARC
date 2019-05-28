@@ -1,6 +1,6 @@
 package org.contikios.cooja.plugins.vanet.world.physics;
 
-abstract class Body {
+public abstract class Body {
     protected Vector2D center = new Vector2D();
     protected Vector2D vel = new Vector2D();
     protected Vector2D acc = new Vector2D();

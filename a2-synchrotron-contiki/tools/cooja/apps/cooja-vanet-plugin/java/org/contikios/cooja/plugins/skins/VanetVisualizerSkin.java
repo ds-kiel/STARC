@@ -120,7 +120,12 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
         // TODO: Use the static world of our Vanet plugin
 
-        drawWaypointsForSelection(g);
+        World world = Vanet.world;
+
+        if (world != null) {
+            drawCollisionBoundaries(g, world);
+            drawWaypointsForSelection(g, world);
+        }
     }
 
 
@@ -177,41 +182,73 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         }
     }
 
-    private void drawWaypointsForSelection(Graphics g) {
+    private void drawWaypointsForSelection(Graphics g, World world) {
+        if (visualizer.getSelectedMotes().size() > 0) {
+            for (Mote mote: visualizer.getSelectedMotes()) {
+                Vehicle v = world.getVehicle(mote);
 
-        World world = Vanet.world;
+                ArrayList<Vector2D> wps = v.getWaypoints();
 
-        if (world != null) {
-            if (visualizer.getSelectedMotes().size() > 0) {
-                for (Mote mote: visualizer.getSelectedMotes()) {
-                    Vehicle v = world.getVehicle(mote);
+                for (int i = 0; i < wps.size(); ++i) {
 
-                    ArrayList<Vector2D> wps = v.getWaypoints();
+                    Vector2D p = wps.get(i);
+                    // we draw a little circle at the waypoint
 
-                    for (int i = 0; i < wps.size(); ++i) {
+                    Color c = Color.RED;
 
-                        Vector2D p = wps.get(i);
-                        // we draw a little circle at the waypoint
-
-                        if (i < v.getCurWayPointIndex()) {
-                            g.setColor(Color.BLUE);
-                        } else if (i > v.getCurWayPointIndex()) {
-                            g.setColor(Color.GRAY);
-                        } else {
-                            g.setColor(Color.RED);
-                        }
-
-                        float r = 0.1f;
-
-                        Point tl = visualizer.transformPositionToPixel(p.getX(), p.getY(), 0);
-                        Point br = visualizer.transformPositionToPixel(p.getX()+r, p.getY()+r, 0);
-
-                        int dx = br.x-tl.x;
-                        int dy = br.y-tl.y;
-
-                        g.fillOval(tl.x-dx/2, tl.y-dy/2, dx, dy);
+                    if (i < v.getCurWayPointIndex()) {
+                        c = Color.BLUE;
+                    } else if (i > v.getCurWayPointIndex()) {
+                        c = Color.GRAY;
                     }
+
+                    float r = 0.075f;
+                    drawCircle(g, p, r, c);
                 }
+            }
+        }
+    }
+
+
+    private void drawCircle(Graphics g, Vector2D p, double r, Color color) {
+        g.setColor(color);
+        Point tl = visualizer.transformPositionToPixel(p.getX(), p.getY(), 0);
+        Point br = visualizer.transformPositionToPixel(p.getX()+r*2, p.getY()+r*2, 0);
+
+        int dx = br.x-tl.x;
+        int dy = br.y-tl.y;
+
+        g.fillOval(tl.x-dx/2, tl.y-dy/2, dx, dy);
+    }
+    private void drawCollisionBoundaries(Graphics g, World world) {
+
+        if (visualizer.getSelectedMotes().size() > 0) {
+            for (Mote mote: visualizer.getSelectedMotes()) {
+                Vehicle v = world.getVehicle(mote);
+
+                Vector2D p = v.getBody().getCenter();
+
+                double r = v.getBody().getRadius();
+                drawCircle(g, p, r, Color.YELLOW);
+
+
+
+                Vector2D dir = v.getBody().getDir();
+
+                Vector2D endPos = new Vector2D(dir);
+                endPos.scale(r);
+                endPos.add(p);
+
+                Point lineStart = visualizer.transformPositionToPixel(p.getX(), p.getY(), 0);
+                Point lineEnd = visualizer.transformPositionToPixel(endPos.getX(), endPos.getY(), 0);
+
+
+                Graphics2D g2 = (Graphics2D) g;
+
+                //g2.setStroke(new BasicStroke(10));
+                // draw a line for the current movement direction
+                g2.setColor(Color.BLACK);
+                g2.drawLine(lineStart.x, lineStart.y, lineEnd.x, lineEnd.y);
             }
         }
     }

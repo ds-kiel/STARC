@@ -4,8 +4,10 @@ import org.contikios.cooja.Mote;
 import org.contikios.cooja.interfaces.Position;
 import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
+import org.contikios.cooja.plugins.vanet.world.physics.Sensor;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -14,6 +16,7 @@ public class World {
     private Physics physics;
 
     private HashMap<Integer, Vehicle> vehicles = new HashMap<>();
+    private Collection<Sensor> sensors = new ArrayList<>();
 
     public World() {
         this.physics = new Physics();
@@ -25,23 +28,19 @@ public class World {
 
         // step through every vehicle and update the position in the simulation
         Collection<Vehicle> vehicleCollection = vehicles.values();
-        for (Vehicle v: vehicleCollection) {
-            readPosition(v);
-        }
-
-        // step through every vehicle logic and execute it
-        for (Vehicle v: vehicleCollection) {
-            v.step(delta);
-        }
+        vehicleCollection.forEach(this::readPosition);
 
         // simulate components for each step
         this.physics.simulate(delta);
-        // add other components here like sensors etc...
+
+        // update other components here like sensors etc...
+        sensors.forEach( s -> s.update(this.physics, delta));
+
+        // step through every vehicle logic and execute it
+        vehicleCollection.forEach(v -> v.step(delta));
 
         // step through every vehicle and update the position in the simulation
-        for (Vehicle v: vehicleCollection) {
-            writeBackPosition(v);
-        }
+        vehicleCollection.forEach(this::writeBackPosition);
     }
 
     private void writeBackPosition(Vehicle v) {
@@ -69,6 +68,7 @@ public class World {
 
     public void addVehicle(Vehicle v) {
         this.vehicles.put(v.getMote().getID(), v);
+        this.sensors.add(v.getDistanceSensor());
         // we also add the vehicle body to the physics
         this.physics.addBody(v.getBody());
         writeBackPosition(v); // support initial position setting
