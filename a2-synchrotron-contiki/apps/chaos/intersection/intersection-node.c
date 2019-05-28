@@ -52,10 +52,6 @@
 #include "node.h"
 
 
-#define OTHER_DIRECTIONS 1
-
-
-
 #include "merge-commit.h"
 #include "random.h"
 
@@ -326,9 +322,10 @@ PROCESS_BEGIN();
         // TODO: Send commited value to JAVA
 
         if (path_is_reserved(&mc_commited_value, &own_reservation, node_id)) {
+          own_arrival = 1; // we do not want that any other node intercepts our request...
+          set_own_arrival(&mc_value); // we need to set this!
           send_str("accepted"); // ack the new reservation
           printf("Node id %d was accepted\n", node_id);
-          own_arrival = 1; // we do not want that any other node intercepts our request...
         } else if (own_reservation.size > 0 && !path_is_reserved(&mc_value, &own_reservation, node_id)){
           // TODO: At this point, we really just want to find ANY way ;)
           // Add this with a parameter
@@ -370,15 +367,31 @@ PROCESS_THREAD(comm_process, ev, data)
     int size = decode_data(comm_buf, (const char *) data);
     printf("decoded %d\n", size);
 
-    if (size == 0) {
-      continue;
-    }
+    //if (size == 0) {
+    //  continue;
+    //}
 
     // for now we only receive a new reservation...
     // copy that reservation to our own
 
     own_reservation.size = size;
-    memcpy(own_reservation.tiles, data, size);
+    memcpy(own_reservation.tiles, comm_buf, size);
+
+    uint8_t part_of_current = path_is_reserved(&mc_value, &own_reservation, node_id);
+
+    if (part_of_current) {
+      printf("Got updated reservation with size %d: ", size);
+    } else {
+      printf("Got NEW reservation with size %d: ", size);
+    }
+    int i = 0;
+    for(i = 0; i < size; ++i) {
+      int x;
+      int y;
+      id_to_pos(&x, &y, ((const char *)comm_buf)[i]);
+      printf("%d, ", ((const char *)comm_buf)[i]);
+    }
+    printf("\n");
 
     // now we check if the new reservation is already part of our current reservation
     // we distinguish three cases
@@ -387,7 +400,7 @@ PROCESS_THREAD(comm_process, ev, data)
     // 3. the reservation is completely new
 
 
-    uint8_t part_of_current = path_is_reserved(&mc_value, &own_reservation, node_id);
+
 
     // clean current commit value
     memset(&mc_value, 0, sizeof(merge_commit_value_t));
@@ -404,6 +417,7 @@ PROCESS_THREAD(comm_process, ev, data)
       if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, node_id)) {
         reserve_path(&mc_value, &own_reservation, node_id);
         set_own_arrival(&mc_value);
+        printf("Try to reserve new path with arrival %d: \n", own_arrival);
       }
     }
 
@@ -435,6 +449,8 @@ PROCESS_THREAD(main_process, ev, data)
 
 static void mc_round_begin(const uint16_t round_count, const uint8_t id){
   memcpy(&mc_commited_value, &mc_value, sizeof(merge_commit_value_t));
+
+  printf("Starting round with arrival %d\n", mc_commited_value.arrivals[node_id-1]);
   mc_complete = merge_commit_round_begin(round_count, id, &mc_commited_value, &mc_phase, &mc_flags);
   mc_off_slot = merge_commit_get_off_slot();
   mc_round_count_local = round_count;

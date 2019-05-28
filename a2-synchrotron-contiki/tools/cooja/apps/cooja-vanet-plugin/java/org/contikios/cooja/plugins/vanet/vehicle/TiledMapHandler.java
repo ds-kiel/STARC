@@ -55,19 +55,23 @@ public class TiledMapHandler {
 
             int[] temp = reserved.stream().mapToInt(Integer::intValue).toArray();;
 
+
             byte[] bytes = new byte[temp.length];
 
             // ugly byte arr copying...
+
             for(int i = 0; i < temp.length; ++i) {
+                System.out.print((temp[i]&0xFF) + ", ");
                 bytes[i] = (byte) (temp[i]&0xFF);
             }
+            System.out.print("\n");
             return bytes;
         }
     }
 
     private int posToIndex(Vector2D pos) {
-        int x = Math.max(0, Math.min((int) (pos.getX() / tileWidth), width));
-        int y = Math.max(0, Math.min((int) (pos.getY() / tileHeight), height));
+        int x = Math.max(0, Math.min((int) (pos.getX() / tileWidth), width-1));
+        int y = Math.max(0, Math.min((int) (pos.getY() / tileHeight), height-1));
         return y*width+x;
     }
 }

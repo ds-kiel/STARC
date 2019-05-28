@@ -5,7 +5,7 @@ import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 
 public class Vehicle {
     private Mote mote; // unique identifier
@@ -13,15 +13,38 @@ public class Vehicle {
     private VehicleBody body; // our physics model
     private TiledMapHandler mapHandler;
 
-
     static final boolean OTHER_DIRECTIONS = true;
+    static final boolean TILE_FREEDOM = true;
+
+    static private final int STATE_INIT = 0;
+    static private final int STATE_INITIALIZED = 5;
+    static private final int STATE_WAITING = 7;
+    static private final int STATE_MOVING = 10;
+    static private final int STATE_FINISHED = 60;
+
+    private int state = STATE_INIT;
+
+
+
+
+
+    static private final int STATE_REQUEST_INIT = 0;
+    static private final int STATE_REQUEST_SENT = 1;
+    static private final int STATE_REQUEST_ACKNOWLEDGED = 2;
+    static private final int STATE_REQUEST_ACCEPTED = 3;
+
+
+    byte[] wantedRequest = new byte[0];
+    byte[] currentRequest = new byte[0];
+
+    private int requestState = STATE_REQUEST_INIT;
 
     public Vehicle(Mote mote, MessageProxy messageProxy, VehicleBody body) {
         this.mote = mote;
         this.messageProxy = messageProxy;
         this.body = body;
 
-        this.mapHandler = new TiledMapHandler(3,3,1,1);
+        this.mapHandler = new TiledMapHandler(6,6,1,1);
 
         initPosition();
         initReservation();
@@ -35,6 +58,7 @@ public class Vehicle {
         return body;
     }
 
+
     public void step(double delta) {
         // handle messages first
         byte[] msg = null;
@@ -47,24 +71,86 @@ public class Vehicle {
 
 
         updateWaypoints();
-        handleVehicle(delta);
-
         // now we will handle our movement
         // we are able to turn and to accelerate/decelerate
+        handleVehicle(delta);
+
+        if (state == STATE_INITIALIZED) {
+            requestReservation();
+            state = STATE_WAITING;
+        }
+
+        if (state == STATE_WAITING && requestState == STATE_REQUEST_ACCEPTED) {
+            state = STATE_MOVING;
+        }
+
+        if (curWayPointIndex >= waypoints.size()) {
+            requestReservation();
+            state = STATE_FINISHED;
+        }
 
 
+        if (state == STATE_MOVING && TILE_FREEDOM) {
+            // free our reservation
+            requestReservation();
+        }
+
+        handleReservation();
+    }
+
+    private void handleReservation() {
+        if (!Arrays.equals(wantedRequest, currentRequest)) {
+            // we need to update our request
+            if (requestState != STATE_REQUEST_SENT) {
+                // we can send our new request
+                currentRequest = wantedRequest;
+                messageProxy.send(currentRequest);
+                requestState = STATE_REQUEST_SENT;
+            }
+        }
+    }
+
+    private void requestReservation() {
+        TiledMapHandler.PathHelper pathHandler = mapHandler.createPathHelper();
+        for(int i = curWayPointIndex; i < waypoints.size(); ++i) {
+            pathHandler.reservePos(waypoints.get(i));
+        }
+        System.out.print("Mote " + mote.getID() + " TILES: ");
+        wantedRequest = pathHandler.getByteIndices();
+
+        if (!Arrays.equals(wantedRequest, currentRequest)) {
+            // we need to update our request
+            if (requestState == STATE_REQUEST_ACCEPTED) {
+                requestState = STATE_REQUEST_INIT;
+            }
+        }
     }
 
     private void handleMessage(byte[] msg) {
-        System.out.println(new String(msg));
-        // TODO!
+        //System.out.println(new String(msg));
 
+        if (state == STATE_INIT && new String(msg).equals("init")) {
+            state = STATE_INITIALIZED;
+        }
+
+
+        // handle request states
+        if (requestState == STATE_REQUEST_SENT && new String(msg).equals("ack")) {
+            requestState = STATE_REQUEST_ACKNOWLEDGED;
+        } else if (requestState == STATE_REQUEST_ACKNOWLEDGED && new String(msg).equals("accepted")) {
+            if (Arrays.equals(wantedRequest, currentRequest)) {
+                requestState = STATE_REQUEST_ACCEPTED;
+            } else {
+                requestState = STATE_REQUEST_INIT;
+            }
+        }
     }
 
 
+    private boolean mayMove() {
+        return state == STATE_MOVING;
+    }
 
-
-    boolean requestAccepted = true;
 
     ArrayList<Vector2D> waypoints;
     Vector2D curWayPoint;
@@ -73,7 +159,7 @@ public class Vehicle {
     private double odx, ody, opx, opy;
 
     private void updateWaypoints() {
-        if (!requestAccepted) {
+        if (!mayMove()) {
             curWayPoint = null;
             return;
         }
@@ -110,7 +196,7 @@ public class Vehicle {
 
     private void handleVehicle(double delta) {
 
-        double acc = 0.1;
+        double acc = 0.2;
         double maxSpeed = 1.0;
         double maxTurn = (Math.PI*2)/4; //(360/4 = 90 degrees per second)
 
@@ -120,18 +206,18 @@ public class Vehicle {
         // we check our waypoints
         if (curWayPoint != null) {
 
-            if (vel.length() < 0.00001) {
+            if (vel.length() < 0.0000001) {
                 // init dir...
                 vel.setX(Math.signum(odx));
                 vel.setY(Math.signum(ody));
-                vel.scale(0.00001);
+                vel.scale(0.0000001);
             }
 
             // compare the wantedDir with the current velocity
             Vector2D wantedDir = Vector2D.diff(curWayPoint, pos);
 
             double a = Vector2D.angle(vel, wantedDir);
-            System.out.println("Mote " + mote.getID() + " wants to turn " + (a/(Math.PI) * 180));
+            //System.out.println("Mote " + mote.getID() + " wants to turn " + (a/(Math.PI) * 180));
 
             // check our steering
             double turn = delta*maxTurn;
@@ -145,7 +231,7 @@ public class Vehicle {
             // check if we want to accelerate or decelerate
             if (Math.abs(a) < Math.PI/4) {
 
-                System.out.println("Mote " + mote.getID() + " is accelerating");
+                //System.out.println("Mote " + mote.getID() + " is accelerating");
                 // we start to accelerate
                 if (vel.length() < maxSpeed) {
 
@@ -162,7 +248,7 @@ public class Vehicle {
                     vel.scale(maxSpeed/vel.length());
                 }
             } else {
-                System.out.println("Mote " + mote.getID() + " is decelerating");
+                //System.out.println("Mote " + mote.getID() + " is decelerating");
                 // we start to decelerate
                 // TODO: a bit more realistic?
                 if (vel.length() > 0) {
@@ -171,7 +257,7 @@ public class Vehicle {
             }
         } else {
             // just stop
-            System.out.println("Mote " + mote.getID() + " is stopping");
+            //System.out.println("Mote " + mote.getID() + " is stopping");
             // we start to decelerate
             // TODO: a bit more realistic?
             if (vel.length() > 0) {
@@ -223,7 +309,7 @@ public class Vehicle {
         // we will distinguish three cases
 
         int nodeId = this.mote.getID();
-        
+
         int offset = (nodeId-1)%3;
 
         if (offset == 1 || !OTHER_DIRECTIONS) {
