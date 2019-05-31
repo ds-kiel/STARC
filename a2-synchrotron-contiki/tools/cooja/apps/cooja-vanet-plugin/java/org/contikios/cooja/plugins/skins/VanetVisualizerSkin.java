@@ -31,14 +31,13 @@
 package org.contikios.cooja.plugins.skins;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 
 import org.apache.log4j.Logger;
 
@@ -54,6 +53,7 @@ import org.contikios.cooja.plugins.vanet.world.World;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 
 /**
  * image visualizer skin.
@@ -66,7 +66,10 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
     private Visualizer visualizer = null;
 
+    private JPanel canvas = null;
     private BufferedImage img;
+
+    private boolean showTileReservations = false;
 
 
     public VanetVisualizerSkin() {
@@ -85,10 +88,6 @@ public class VanetVisualizerSkin implements VisualizerSkin {
     }
 
     public void paintBeforeMotes(Graphics g) {
-
-        if (img == null) {
-            img = loadFromFile("img/intersection-big.png");
-        }
 
         render1mBackgroundGrid(g);
 
@@ -126,6 +125,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
             drawCollisionBoundaries(g, world);
             drawWaypointsForSelection(g, world);
         }
+
     }
 
 
@@ -253,8 +253,36 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         }
     }
 
+    private void drawTileReservations(Graphics g, World world) {
+        if (!showTileReservations) {
+            return;
+        }
+        // TODO
+    }
+
     public void setActive(Simulation simulation, Visualizer vis) {
         this.visualizer = vis;
+
+        this.canvas = vis.getCurrentCanvas();
+
+        this.canvas.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_T) {
+                    showTileReservations = !showTileReservations;
+                }
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
     }
 
     public void setInactive() {

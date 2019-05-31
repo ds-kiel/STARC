@@ -95,7 +95,7 @@ public class Vanet extends VisPlugin {
                     )
                 );
 
-                Vehicle v = new Vehicle(m, mp, body, new DirectionalDistanceSensor(body));
+                Vehicle v = new Vehicle(m, mp, world, body, new DirectionalDistanceSensor(body));
                 world.addVehicle(v);
             }
         } catch (Exception e) {

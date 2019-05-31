@@ -30,7 +30,7 @@ public class DirectionalDistanceSensor implements Sensor  {
 
         for (Intersection i: intersectedBodies) {
             if (i.body == ownBody) {
-                continue; // no intersection with ourself ;)
+                continue; // no junction with ourself ;)
             }
 
             double v = i.distance;

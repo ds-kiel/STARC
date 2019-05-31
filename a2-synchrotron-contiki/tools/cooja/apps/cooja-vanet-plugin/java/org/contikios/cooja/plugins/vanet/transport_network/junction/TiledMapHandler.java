@@ -1,4 +1,4 @@
-package org.contikios.cooja.plugins.vanet.vehicle;
+package org.contikios.cooja.plugins.vanet.transport_network.junction;
 
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
@@ -12,11 +12,18 @@ public class TiledMapHandler {
     private double tileWidth = 0;
     private double tileHeight = 0;
 
-    public TiledMapHandler(int width, int height, double tileWidth, double tileHeight) {
+    private Vector2D offset;
+
+    public TiledMapHandler(int width, int height, double tileWidth, double tileHeight, Vector2D offset) {
         this.width = width;
         this.height = height;
         this.tileWidth = tileWidth;
         this.tileHeight = tileHeight;
+        this.offset = offset;
+    }
+
+    public double getTileScaling() {
+        return 1.0; // TODO
     }
 
     public int getNumTiles() {
@@ -31,8 +38,11 @@ public class TiledMapHandler {
         return height;
     }
 
+    public Vector2D getOffset() {
+        return offset;
+    }
 
-    PathHelper createPathHelper() {
+    public PathHelper createPathHelper() {
         return new PathHelper(this);
     }
 
@@ -69,9 +79,16 @@ public class TiledMapHandler {
         }
     }
 
-    private int posToIndex(Vector2D pos) {
-        int x = Math.max(0, Math.min((int) (pos.getX() / tileWidth), width-1));
-        int y = Math.max(0, Math.min((int) (pos.getY() / tileHeight), height-1));
+    public int posToIndex(Vector2D pos) {
+        int x = Math.max(0, Math.min((int) ((pos.getX()-offset.getX()) / tileWidth), width-1));
+        int y = Math.max(0, Math.min((int) ((pos.getY()-offset.getY()) / tileHeight), height-1));
         return y*width+x;
+    }
+
+    public Vector2D indexToPos(int i) {
+        int x = i%width;
+        int y = (i-x)/width;
+
+        return new Vector2D(x*tileWidth+offset.getX()+0.5, y*tileHeight+offset.getY()+0.5);
     }
 }

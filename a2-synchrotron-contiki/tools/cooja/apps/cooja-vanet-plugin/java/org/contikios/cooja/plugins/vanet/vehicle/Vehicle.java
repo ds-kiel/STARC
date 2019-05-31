@@ -1,10 +1,14 @@
 package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.Mote;
+import org.contikios.cooja.plugins.vanet.transport_network.junction.Lane;
+import org.contikios.cooja.plugins.vanet.transport_network.junction.TiledMapHandler;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
+import org.contikios.cooja.plugins.vanet.world.World;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -19,10 +23,12 @@ public class Vehicle {
     static final boolean TILE_FREEDOM = true;
 
     static private final int STATE_INIT = 0;
-    static private final int STATE_INITIALIZED = 5;
-    static private final int STATE_WAITING = 7;
-    static private final int STATE_MOVING = 10;
-    static private final int STATE_FINISHED = 60;
+    static private final int STATE_INITIALIZED = 1;
+    static private final int STATE_QUEUING = 2;
+    static private final int STATE_WAITING = 3;
+    static private final int STATE_MOVING = 4;
+    static private final int STATE_LEAVING = 5;
+    static private final int STATE_FINISHED = 6;
 
     private int state = STATE_INIT;
 
@@ -38,16 +44,25 @@ public class Vehicle {
 
     private int requestState = STATE_REQUEST_INIT;
 
-    public Vehicle(Mote mote, MessageProxy messageProxy, VehicleBody body, DirectionalDistanceSensor distanceSensor) {
+    private Lane lane;
+
+
+    private World world;
+
+    public Vehicle(Mote mote, MessageProxy messageProxy, World world, VehicleBody body, DirectionalDistanceSensor distanceSensor) {
         this.mote = mote;
         this.messageProxy = messageProxy;
         this.body = body;
         this.distanceSensor = distanceSensor;
 
-        this.mapHandler = new TiledMapHandler(6,6,1,1);
+        this.world = world;
+        this.mapHandler = world.getMapHandler();
 
-        initPosition();
-        initReservation();
+        init();
+    }
+
+    public World getWorld() {
+        return world;
     }
 
     public DirectionalDistanceSensor getDistanceSensor() {
@@ -74,36 +89,90 @@ public class Vehicle {
         }
 
 
-        updateWaypoints();
+        state = handleStates(state);
+
+        Vector2D wantedPos = null;
+
+        if (state == STATE_QUEUING) {
+            // and the distance to front
+            double sensedDist = distanceSensor.readValue();
+
+
+            double velDist = body.getVel().length(); // we need to increase the sensor distance when moving
+            velDist *= velDist; // quadratic
+
+            velDist *= 2; // add a little bit more weight
+
+            //System.out.println("Mote " + mote.getID() + " has sensed: " + sensedDist + " with velDist " + velDist);
+
+            if (sensedDist > 1.0+velDist || sensedDist == -1.0) { // we start moving, if there is enough space
+                wantedPos = startPos;
+            }
+        } else if (state == STATE_MOVING) {
+            wantedPos = curWayPoint;
+        }
+
         // now we will handle our movement
         // we are able to turn and to accelerate/decelerate
-        handleVehicle(delta);
+        handleVehicle(wantedPos, delta);
+        handleReservation();
+    }
+
+
+    Vector2D startPos;
+    Vector2D endPos;
+
+    // Update the state, return value will be the next state
+    private int handleStates(int state) {
 
         if (state == STATE_INITIALIZED) {
             requestReservation();
-            state = STATE_WAITING;
+            return STATE_QUEUING;
+        } else if (state == STATE_QUEUING) {
+            //TODO!
+            // SET POSITION on init
+            // check if we can move in our wanted direction
+            // move if we have enough space
+
+            if (Vector2D.distance(startPos, body.getCenter()) < 0.2) {
+                // TODO: Initialize join! (for the current junction!!)
+                return STATE_WAITING;
+            } else {
+                return STATE_QUEUING;
+            }
+        } else if (state == STATE_WAITING) {
+
+            if (requestState == STATE_REQUEST_ACCEPTED) {
+                return STATE_MOVING;
+            } else {
+                return STATE_WAITING;
+            }
         }
+        else if (state == STATE_MOVING) {
+            updateWaypoints();
 
-        if (state == STATE_WAITING && requestState == STATE_REQUEST_ACCEPTED) {
-            state = STATE_MOVING;
+
+            if (TILE_FREEDOM) {
+                // free our reservation
+                requestReservation();
+            }
+
+            if (curWayPointIndex >= waypoints.size()) {
+                requestReservation();
+                return STATE_FINISHED;
+            }
+
+            return STATE_MOVING;
+        } else if (state == STATE_LEAVING) {
+            // TODO: Leave the junction, leave the chaos group...
+            //
+            return STATE_FINISHED;
+        } else if (state == STATE_FINISHED) {
+
+            // TODO: Move until end of lane and reset to some other lane!
+            return STATE_FINISHED;
         }
-
-        if (curWayPointIndex >= waypoints.size()) {
-            requestReservation();
-            state = STATE_FINISHED;
-        }
-
-
-        if (state == STATE_MOVING && TILE_FREEDOM) {
-            // free our reservation
-            requestReservation();
-        }
-
-        if (distanceSensor.readValue() >= 0.0) {
-            System.out.println("Mote " + mote.getID() + " has sensor value:  " + distanceSensor.readValue());
-        }
-
-        handleReservation();
+        return state;
     }
 
     private void handleReservation() {
@@ -154,23 +223,11 @@ public class Vehicle {
         }
     }
 
-
-    private boolean mayMove() {
-        return state == STATE_MOVING;
-    }
-
-
-    ArrayList<Vector2D> waypoints;
-    Vector2D curWayPoint;
-    int curWayPointIndex = 0;
-
-    private double odx, ody, opx, opy;
+    private ArrayList<Vector2D> waypoints;
+    private Vector2D curWayPoint;
+    private int curWayPointIndex = 0;
 
     private void updateWaypoints() {
-        if (!mayMove()) {
-            curWayPoint = null;
-            return;
-        }
 
         if (waypoints.size() == 0 || curWayPointIndex >= waypoints.size()) {
             return; // cant update if there is no way...
@@ -202,22 +259,26 @@ public class Vehicle {
         return curWayPointIndex;
     }
 
-    private void handleVehicle(double delta) {
+    private void handleVehicle(Vector2D wantedPos, double delta) {
 
-        double acc = 0.2;
+        double acc = 7;
+        double dec = 10;
         double maxSpeed = 1.0;
         double maxTurn = (Math.PI*2)/4; //(360/4 = 90 degrees per second)
+        double threshold = 0.1; // we only move if the distance to the waypoint is more than this value...
 
         Vector2D vel = body.getVel();
         Vector2D pos = body.getCenter();
         Vector2D dir = body.getDir();
 
+        Vector2D acceleration = new Vector2D();
+
 
         // we check our waypoints
-        if (curWayPoint != null) {
+        if (wantedPos != null) {
 
             // compare the wantedDir with the current direction
-            Vector2D wantedDir = Vector2D.diff(curWayPoint, pos);
+            Vector2D wantedDir = Vector2D.diff(wantedPos, pos);
 
             double a = Vector2D.angle(dir, wantedDir);
             //System.out.println("Mote " + mote.getID() + " wants to turn " + (a/(Math.PI) * 180));
@@ -235,146 +296,57 @@ public class Vehicle {
             a = Vector2D.angle(wantedDir, dir);
 
             // check if we want to accelerate or decelerate
-            if (Math.abs(a) < Math.PI/4) {
+            if (Math.abs(a) < Math.PI/4 && Vector2D.distance(wantedPos, pos) > threshold) {
 
                 //System.out.println("Mote " + mote.getID() + " is accelerating");
                 // we start to accelerate
-                if (vel.length() < maxSpeed) {
-
-                    Vector2D force = new Vector2D(dir);
-                    force.scale(delta);
-
-                    // accelerate!
-                    vel.translate(force);
-                }
-
-                if (vel.length() > maxSpeed) {
-                    vel.scale(maxSpeed/vel.length());
+                double x = maxSpeed-vel.length();
+                if (x > 0.1*delta) {
+                    acceleration = new Vector2D(dir);
+                    acceleration.scale(acc);
                 }
             } else {
                 //System.out.println("Mote " + mote.getID() + " is decelerating");
                 // we start to decelerate
                 // TODO: a bit more realistic?
-                if (vel.length() > 0) {
-                    vel.scale(Math.pow(0.5, delta));
+                if (vel.length() > 0.1*delta) {
+                    acceleration = new Vector2D(dir);
+                    acceleration.scale(-dec);
                 }
             }
         } else {
             // just stop
-            //System.out.println("Mote " + mote.getID() + " is stopping");
+            // System.out.println("Mote " + mote.getID() + " is stopping");
             // we start to decelerate
-            // TODO: a bit more realistic?
-            if (vel.length() > 0) {
-                vel.scale(Math.pow(0.5, delta));
+            if (vel.length() > 0.1*delta) {
+                acceleration = new Vector2D(dir);
+                acceleration.scale(-dec);
+            } else {
+                vel.setX(0);
+                vel.setY(0);
             }
         }
+
+        // per second squared
+        acceleration.scale(delta*delta);
+
+        // accelerate!
+        vel.translate(acceleration);
     }
 
 
 
-    private void initPosition() {
+    private void init() {
         // init the wanted position
 
-        int nodeId = this.mote.getID();
+        AbstractMap.SimpleImmutableEntry<Lane, Vector2D> res = this.world.getFreePosition();
 
-        int offset = (nodeId-1)%3;
+        this.lane = res.getKey();
+        this.waypoints = this.lane.getWayPoints(this.mapHandler);
 
-        switch((int)(nodeId-1)/3) {
-            case 0:
-                body.setCenter(new Vector2D(-1, 3+offset));
-                odx = 1; ody = 0;
-                break;
-            case 1:
-                body.setCenter(new Vector2D(3+offset, 6));
-                odx = 0; ody = -1;
-                break;
-            case 2:
-                body.setCenter(new Vector2D(6, 2-offset));
-                odx = -1; ody = 0;
-                break;
-            case 3:
-                body.setCenter(new Vector2D(2-offset, -1));
-                odx = 0; ody = 1;
-                break;
-        }
+        this.body.setCenter(res.getValue()); // move to center of tile
+        this.body.setDir(new Vector2D(this.lane.getDirection()));
 
-        body.getCenter().translate(new Vector2D(0.5, 0.5)); // move to center of tile
-
-        opx = body.getCenter().getX();
-        opy = body.getCenter().getY();
-
-
-        Vector2D dir = body.getDir();
-        dir.setX(Math.signum(odx));
-        dir.setY(Math.signum(ody));
-    }
-
-
-
-    private void initReservation() {
-
-        waypoints = new ArrayList<>();
-
-        // we will distinguish three cases
-
-        int nodeId = this.mote.getID();
-
-        int offset = (nodeId-1)%3;
-
-        if (offset == 1 || !OTHER_DIRECTIONS) {
-            {
-                // we will try to move straight
-
-                double x = opx;
-                double y = opy;
-
-                // Move TILES_WIDTH tiles straight
-                for(int i = 0; i < mapHandler.getWidth(); ++i) {
-                    x += odx;
-                    y += ody;
-
-                    waypoints.add(new Vector2D(x, y));
-                }
-
-                x += odx;
-                y += ody;
-                waypoints.add(new Vector2D(x, y));
-            }
-        } else if (offset == 0) {
-            // we will try to go left
-
-            double x = opx;
-            double y = opy;
-
-            // Move four tiles straight
-            for(int i = 0; i < 4; ++i) {
-                x += odx;
-                y += ody;
-
-                waypoints.add(new Vector2D(x, y));
-            }
-
-            // Move three tiles to the left
-            for(int i = 0; i < 3; ++i) {
-                x += ody;
-                y += -odx;
-
-                waypoints.add(new Vector2D(x, y));
-
-            }
-
-            // and set the target which is another tile to the left
-
-            x += ody;
-            y += -odx;
-            waypoints.add(new Vector2D(x, y));
-        } else if (offset == 2) {
-            // we will try to go right
-            // so we move one into our original position
-            // and just one to the right, which is our target position
-
-            waypoints.add(new Vector2D(opx + odx, opy + ody));
-            waypoints.add(new Vector2D(opx + odx - ody, opy + ody + odx));
-        }
+        startPos = this.lane.getEndPos();
     }
 }

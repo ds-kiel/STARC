@@ -94,7 +94,7 @@ public class Physics {
             double distToLine = Vector2D.distance(body.getCenter(), closestPoint);
             double r = cBody.getRadius();
 
-            // we only have an intersection if the
+            // we only have an junction if the
             if (distToLine <= r) {
                 double offset = Math.sqrt(r*r-distToLine*distToLine);
 
