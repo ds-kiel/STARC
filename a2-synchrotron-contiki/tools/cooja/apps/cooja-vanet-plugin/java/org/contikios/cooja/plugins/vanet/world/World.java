@@ -11,10 +11,7 @@ import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Sensor;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 
 public class World {
 
@@ -26,6 +23,8 @@ public class World {
     private TransportNetwork transportNetwork;
 
     private TiledMapHandler mapHandler;
+
+    public static Random RAND;
 
     public World() {
         this.physics = new Physics();
@@ -88,13 +87,11 @@ public class World {
         writeBackPosition(v); // support initial position setting
     }
 
-
     public AbstractMap.SimpleImmutableEntry<Lane, Vector2D> getFreePosition() {
        Lane l = this.transportNetwork.getRandomStartLane();
 
        Vector2D d = new Vector2D(l.getDirection());
        d.scale(-1);
-
 
        // we translate the endpos a bit such that we check right from the beginning
        Vector2D endPos = new Vector2D(l.getDirection());

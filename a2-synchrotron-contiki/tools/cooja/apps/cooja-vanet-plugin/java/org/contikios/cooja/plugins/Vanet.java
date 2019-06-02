@@ -3,6 +3,7 @@ package org.contikios.cooja.plugins;
 import org.apache.log4j.Logger;
 import org.contikios.cooja.*;
 
+import org.contikios.cooja.plugins.skins.VanetVisualizerSkin;
 import org.contikios.cooja.plugins.vanet.vehicle.MessageProxy;
 import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
@@ -12,6 +13,7 @@ import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Random;
 
 @ClassDescription("Vanet")
 @PluginType(PluginType.SIM_PLUGIN)
@@ -79,6 +81,7 @@ public class Vanet extends VisPlugin {
         }
 
         try {
+            World.RAND = new Random(simulation.getRandomSeed()+124);
             world = new World();
             Mote[] motes = simulation.getMotes();
 
@@ -108,6 +111,7 @@ public class Vanet extends VisPlugin {
         // then update all the nodes
         if (world != null) {
             world.simulate(delta);
+            VanetVisualizerSkin.saveImage(simulation.getSimulationTimeMillis());
         }
     }
 }

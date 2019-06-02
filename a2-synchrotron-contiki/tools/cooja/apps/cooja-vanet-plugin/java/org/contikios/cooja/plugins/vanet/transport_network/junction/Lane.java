@@ -114,6 +114,12 @@ public class Lane {
             p.add(dirStep);
             waypoints.add(new Vector2D(p));
         }
+
+        for(int i = 0; i < 2; ++i) {
+            p.add(dirStep);
+            waypoints.add(new Vector2D(p));
+        }
+
         return waypoints;
     }
 }

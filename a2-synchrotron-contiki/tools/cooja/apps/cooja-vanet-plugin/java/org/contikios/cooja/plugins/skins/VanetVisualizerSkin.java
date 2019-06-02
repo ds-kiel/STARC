@@ -35,6 +35,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -64,9 +65,9 @@ import javax.swing.*;
 public class VanetVisualizerSkin implements VisualizerSkin {
     private static Logger logger = Logger.getLogger(VanetVisualizerSkin.class);
 
-    private Visualizer visualizer = null;
+    private static Visualizer visualizer = null;
 
-    private JPanel canvas = null;
+    private static JPanel canvas = null;
     private BufferedImage img;
 
     private boolean showTileReservations = false;
@@ -297,5 +298,23 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
     public Visualizer getVisualizer() {
         return visualizer;
+    }
+
+
+    public static void saveImage(long ms) {
+        if (visualizer != null && canvas != null) {
+            JPanel paintPane = canvas;
+            BufferedImage image = new BufferedImage(paintPane.getWidth(), paintPane.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = image.createGraphics();
+            paintPane.printAll(g);
+            g.dispose();
+            try {
+                File f = new File(String.format("export/Visualizer_%08d.png", ms));
+                ImageIO.write(image, "png", f);
+                System.out.println(f.getAbsoluteFile());
+            } catch (IOException exp) {
+                exp.printStackTrace();
+            }
+        }
     }
 }

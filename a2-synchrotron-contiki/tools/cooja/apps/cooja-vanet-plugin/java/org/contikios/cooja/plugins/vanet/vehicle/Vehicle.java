@@ -58,7 +58,7 @@ public class Vehicle {
         this.world = world;
         this.mapHandler = world.getMapHandler();
 
-        init();
+        initRandomPos();
     }
 
     public World getWorld() {
@@ -93,19 +93,20 @@ public class Vehicle {
 
         Vector2D wantedPos = null;
 
+        double threshold = 0.1; // we only move if the distance to the waypoint is more than this value...
+
         if (state == STATE_QUEUING) {
             // and the distance to front
             double sensedDist = distanceSensor.readValue();
 
-
+            // TODO: check if sensed dist is higher than the distance to startpos plus vehicle size?
             double velDist = body.getVel().length(); // we need to increase the sensor distance when moving
+
             velDist *= velDist; // quadratic
 
-            velDist *= 2; // add a little bit more weight
+            threshold += velDist*2; // increase the threshold since we do not want to move over the position!
 
-            //System.out.println("Mote " + mote.getID() + " has sensed: " + sensedDist + " with velDist " + velDist);
-
-            if (sensedDist > 1.0+velDist || sensedDist == -1.0) { // we start moving, if there is enough space
+            if (sensedDist > 1.0+velDist*2 || sensedDist == -1.0) { // we start moving, if there is enough space
                 wantedPos = startPos;
             }
         } else if (state == STATE_MOVING) {
@@ -114,7 +115,7 @@ public class Vehicle {
 
         // now we will handle our movement
         // we are able to turn and to accelerate/decelerate
-        handleVehicle(wantedPos, delta);
+        handleVehicle(delta, wantedPos, threshold);
         handleReservation();
     }
 
@@ -126,16 +127,10 @@ public class Vehicle {
     private int handleStates(int state) {
 
         if (state == STATE_INITIALIZED) {
-            requestReservation();
             return STATE_QUEUING;
         } else if (state == STATE_QUEUING) {
-            //TODO!
-            // SET POSITION on init
-            // check if we can move in our wanted direction
-            // move if we have enough space
-
             if (Vector2D.distance(startPos, body.getCenter()) < 0.2) {
-                // TODO: Initialize join! (for the current junction!!)
+                requestReservation();
                 return STATE_WAITING;
             } else {
                 return STATE_QUEUING;
@@ -159,7 +154,7 @@ public class Vehicle {
 
             if (curWayPointIndex >= waypoints.size()) {
                 requestReservation();
-                return STATE_FINISHED;
+                return STATE_LEAVING;
             }
 
             return STATE_MOVING;
@@ -169,8 +164,9 @@ public class Vehicle {
             return STATE_FINISHED;
         } else if (state == STATE_FINISHED) {
 
-            // TODO: Move until end of lane and reset to some other lane!
-            return STATE_FINISHED;
+            // we reset to some other lane
+            initRandomPos();
+            return STATE_INITIALIZED;
         }
         return state;
     }
@@ -259,13 +255,12 @@ public class Vehicle {
         return curWayPointIndex;
     }
 
-    private void handleVehicle(Vector2D wantedPos, double delta) {
+    private void handleVehicle(double delta, Vector2D wantedPos, double threshold) {
 
         double acc = 7;
         double dec = 10;
         double maxSpeed = 1.0;
         double maxTurn = (Math.PI*2)/4; //(360/4 = 90 degrees per second)
-        double threshold = 0.1; // we only move if the distance to the waypoint is more than this value...
 
         Vector2D vel = body.getVel();
         Vector2D pos = body.getCenter();
@@ -334,9 +329,7 @@ public class Vehicle {
         vel.translate(acceleration);
     }
 
-
-
-    private void init() {
+    private void initRandomPos() {
         // init the wanted position
 
         AbstractMap.SimpleImmutableEntry<Lane, Vector2D> res = this.world.getFreePosition();
@@ -346,7 +339,10 @@ public class Vehicle {
 
         this.body.setCenter(res.getValue()); // move to center of tile
         this.body.setDir(new Vector2D(this.lane.getDirection()));
+        this.body.setVel(new Vector2D()); // reset vel
 
         startPos = this.lane.getEndPos();
+        curWayPointIndex = 0;
+        curWayPoint = null;
     }
 }

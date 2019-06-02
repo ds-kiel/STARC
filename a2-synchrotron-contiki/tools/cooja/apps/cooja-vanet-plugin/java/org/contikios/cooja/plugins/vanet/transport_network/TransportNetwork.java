@@ -2,6 +2,7 @@ package org.contikios.cooja.plugins.vanet.transport_network;
 
 import org.contikios.cooja.plugins.vanet.transport_network.junction.Junction;
 import org.contikios.cooja.plugins.vanet.transport_network.junction.Lane;
+import org.contikios.cooja.plugins.vanet.world.World;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -26,6 +27,6 @@ public class TransportNetwork {
 
     public Lane getRandomStartLane() {
         Collection<Lane> startLanes = junction.getLanes().stream().filter(Lane::hasEnd).collect(Collectors.toList());
-        return startLanes.stream()./*skip((int) (startLanes.size() * Math.random())).*/findAny().get();
+        return startLanes.stream().skip((int) (startLanes.size() * World.RAND.nextFloat())).findAny().get();
     }
 }
