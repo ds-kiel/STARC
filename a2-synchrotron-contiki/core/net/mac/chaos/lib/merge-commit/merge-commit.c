@@ -135,6 +135,8 @@ static chaos_state_t
 process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, int chaos_txrx_success, size_t payload_length, uint8_t* rx_payload, uint8_t* tx_payload, uint8_t** app_flags)
 {
 
+  int start = RTIMER_NOW();
+
   merge_commit_t* tx_mc = (merge_commit_t*)tx_payload;
   merge_commit_t* rx_mc = (merge_commit_t*)rx_payload;
 
@@ -363,6 +365,14 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
       next_state = CHAOS_RX_SYNC;
     }
   }*/
+
+
+  static int time_diff = 0;
+  int endTime = RTIMER_NOW();
+  if (time_diff < endTime-start) {
+    printf("New Merge-Commit diff %d ms\n", 1000*time_diff/RTIMER_SECOND);
+    time_diff = endTime-start;
+  }
 
   return next_state;
 }
