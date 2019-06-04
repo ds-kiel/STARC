@@ -108,10 +108,10 @@ public class Vanet extends VisPlugin {
 
     private void update(double delta) {
         // first update the world with the physics!
-        // then update all the nodes
+        // then update all the nodes#+
         if (world != null) {
             world.simulate(delta);
-            VanetVisualizerSkin.saveImage(simulation.getSimulationTimeMillis());
+            //VanetVisualizerSkin.saveImage(simulation.getSimulationTimeMillis());
         }
     }
 }

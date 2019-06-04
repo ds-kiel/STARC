@@ -44,6 +44,9 @@
 #define PROJECT_CONF_H_
 
 
+#ifndef NODE_LIST_LEN
+#define NODE_LIST_LEN 4  //describes how many nodes can join in a single round
+#endif
 
 
 #define TILE_FREEDOM 1
@@ -64,28 +67,15 @@
 #undef  CHAOS_INTERVAL
 
 
-#if ARRIVAL_TIMES == 1
-
 #define MERGE_COMMIT_ROUND_MAX_SLOTS (120)
-#define MERGE_COMMIT_SLOT_LEN_MSEC 6
+#define MERGE_COMMIT_SLOT_LEN_MSEC 8
 #define CHAOS_INTERVAL (20*(RTIMER_SECOND/10))
-
-#else
-
-#define MERGE_COMMIT_ROUND_MAX_SLOTS (120)
-#define MERGE_COMMIT_SLOT_LEN_MSEC 10
-#define CHAOS_INTERVAL (10*(RTIMER_SECOND/10))
-
-#endif
-
-
-
 
 
 #if COOJA
 //join parameters
-#define JOIN_ROUND_MAX_SLOTS   (120)
-#define JOIN_ROUNDS_AFTER_BOOTUP (5)
+#define JOIN_ROUND_MAX_SLOTS   (1)
+#define JOIN_ROUNDS_AFTER_BOOTUP (1)
 #else
 //join parameters
 #define JOIN_ROUND_MAX_SLOTS   (120)

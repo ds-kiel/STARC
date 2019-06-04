@@ -239,49 +239,17 @@ void print_tiles(merge_commit_value_t *val) {
     }
     printf(", ");
   }
+  printf("\n");
 }
 
-
-// TODO: No positions and dirs inside c
-unsigned short rseed = 0; /* Will be set to a value by cooja! */
-static void init_pos_and_dir() {
-
-
-  int offset = (node_id-1)%3;
-
-  switch((node_id-1)/3) {
-    case 0:
-      px = -1; py = 3+offset;
-      odx = 1; ody = 0;
-      break;
-    case 1:
-      px = 3+offset; py = 6;
-      odx = 0; ody = -1;
-      break;
-    case 2:
-      px = 6; py = 2-offset;
-      odx = -1; ody = 0;
-      break;
-    case 3:
-      px = 2-offset; py = -1;
-      odx = 0; ody = 1;
-      break;
-  }
-}
 
 
 
 static void mc_round_begin(const uint16_t round_count, const uint8_t id);
 
 
-CHAOS_APP(chaos_merge_commit_app, MERGE_COMMIT_SLOT_LEN, MERGE_COMMIT_ROUND_MAX_SLOTS, 1, merge_commit_is_pending, mc_round_begin);
-
-#if NETSTACK_CONF_WITH_CHAOS_NODE_DYNAMIC
-#include "join.h"
-CHAOS_APPS(&join, &chaos_merge_commit_app);
-#else
+CHAOS_APP(chaos_merge_commit_app, MERGE_COMMIT_SLOT_LEN, MERGE_COMMIT_ROUND_MAX_SLOTS, 0, merge_commit_is_pending, mc_round_begin);
 CHAOS_APPS(&chaos_merge_commit_app);
-#endif /* NETSTACK_CONF_WITH_CHAOS_NODE_DYNAMIC */
 
 /* Commit variables */
 static merge_commit_value_t mc_value;
@@ -316,6 +284,10 @@ PROCESS_BEGIN();
         printf("Commit completed\n");
         printf("OFFSLOT: %d\n", mc_off_slot);
 
+        printf("own reserv.size %d\n", own_reservation.size);
+
+        print_tiles(&mc_commited_value);
+
         // Set latest known commit value
         memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
 
@@ -338,7 +310,7 @@ PROCESS_BEGIN();
         printf("Commit NOT completed\n");
       }
     } else {
-      printf("{rd %u res} 2pc: waiting to join, n: %u\n", mc_round_count_local, chaos_node_count);
+      printf("{rd %u res} mc: waiting to join, n: %u\n", mc_round_count_local, chaos_node_count);
     }
     // COMMIT HAS FINISHED!
     // CHECK IF IT WAS SUCCESSFUL!
@@ -451,6 +423,7 @@ static void mc_round_begin(const uint16_t round_count, const uint8_t id){
   memcpy(&mc_commited_value, &mc_value, sizeof(merge_commit_value_t));
 
   printf("Starting round with arrival %d\n", mc_commited_value.arrivals[node_id-1]);
+
   mc_complete = merge_commit_round_begin(round_count, id, &mc_commited_value, &mc_phase, &mc_flags);
   mc_off_slot = merge_commit_get_off_slot();
   mc_round_count_local = round_count;
@@ -489,6 +462,7 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
         node_id_with_arrivals[size] = (arrival << 8) | (i&255);
         size++;
         // Do insertion sort with the array
+        // TODO: Use Merge Sort for better performance
         int j = size-1;
         while(j > 0 && node_id_with_arrivals[j-1] > node_id_with_arrivals[j]) {
           // we need to swap these elements
@@ -504,8 +478,6 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
       size++;
     }
   }
-
-
     //printf("Got reservations from ");
   for(i = 0; i < size; ++i) {
 

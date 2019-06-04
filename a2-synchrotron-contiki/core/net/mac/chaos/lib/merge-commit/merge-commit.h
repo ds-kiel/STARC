@@ -46,6 +46,8 @@
 #include "testbed.h"
 #include "chaos-config.h"
 
+#include "join.h"
+
 #define MERGE_COMMIT_LOG_FLAGS 0
 
 
@@ -72,12 +74,17 @@
 #define MERGE_COMMIT_VALUE_STRUCT_CONTENT uint32_t x;
 #endif
 
+// struct definitions
+
+
 typedef struct __attribute__((packed)) {
     MERGE_COMMIT_VALUE_STRUCT_CONTENT
 } merge_commit_value_t;
 
+
 typedef struct __attribute__((packed)) {
     merge_commit_value_t value;
+    join_data_t join_data;
     uint8_t phase;
     uint8_t flags[];
 } merge_commit_t;

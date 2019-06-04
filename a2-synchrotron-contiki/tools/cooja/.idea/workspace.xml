@@ -2,7 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5a4379da-c354-499e-a105-038048a2b773" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/../../.idea/a2-synchrotron-contiki.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/a2-synchrotron-contiki.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../apps/chaos/intersection/intersection-node.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../apps/chaos/intersection/intersection-node.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../apps/chaos/intersection/project-conf.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../apps/chaos/intersection/project-conf.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../core/net/mac/chaos/lib/merge-commit/merge-commit.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../core/net/mac/chaos/lib/merge-commit/merge-commit.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../core/net/mac/chaos/lib/merge-commit/merge-commit.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../core/net/mac/chaos/lib/merge-commit/merge-commit.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../examples/contiki-intersection-mote" beforeDir="false" afterPath="$PROJECT_DIR$/../../examples/contiki-intersection-mote" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-image-renderer-plugin" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-image-renderer-plugin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-image-renderer-plugin/java/org/contikios/cooja/plugins/skins/ImageVisualizerSkin.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-image-renderer-plugin/java/org/contikios/cooja/plugins/skins/ImageVisualizerSkin.java" afterDir="false" />
@@ -13,11 +19,6 @@
       <change beforePath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/V2IMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/V2IMessage.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/TransportNetwork.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/TransportNetwork.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/junction/Lane.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/junction/Lane.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/lib/vanet.jar" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/lib/vanet.jar" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -34,8 +35,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="345">
-              <caret line="108" column="39" selection-start-line="108" selection-start-column="39" selection-end-line="108" selection-end-column="39" />
+            <state>
+              <caret line="110" column="38" selection-start-line="110" selection-start-column="38" selection-end-line="110" selection-end-column="38" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -46,7 +47,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/plugins/VisualizerSkin.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-352">
+            <state relative-caret-position="180">
               <caret line="44" column="17" selection-start-line="44" selection-start-column="17" selection-end-line="44" selection-end-column="17" />
             </state>
           </provider>
@@ -55,7 +56,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/Simulation.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-788">
+            <state relative-caret-position="225">
               <caret line="54" column="13" selection-start-line="54" selection-start-column="13" selection-end-line="54" selection-end-column="13" />
             </state>
           </provider>
@@ -64,13 +65,13 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
+            <state relative-caret-position="1680">
               <caret line="130" column="44" selection-start-line="130" selection-start-column="44" selection-end-line="130" selection-end-column="44" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#2130#2131#0" expanded="true" />
-                <element signature="e#2158#2159#0" expanded="true" />
+                <element signature="e#7977#7978#0" expanded="true" />
                 <element signature="e#8009#8010#0" expanded="true" />
+                <element signature="e#8049#8050#0" expanded="true" />
                 <element signature="e#8088#8089#0" expanded="true" />
               </folding>
             </state>
@@ -80,7 +81,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/util/Random.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="188">
+            <state relative-caret-position="1365">
               <caret line="126" column="42" selection-start-line="126" selection-start-column="36" selection-end-line="126" selection-end-column="42" />
               <folding>
                 <element signature="e#3504#3505#0" expanded="true" />
@@ -90,11 +91,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="130">
-              <caret line="294" selection-start-line="294" selection-end-line="294" />
+            <state relative-caret-position="283">
+              <caret line="303" column="43" selection-start-line="303" selection-start-column="43" selection-end-line="303" selection-end-column="43" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -105,7 +106,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/plugins/Visualizer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="18962">
+            <state relative-caret-position="19755">
               <caret line="1460" column="32" selection-start-line="1460" selection-start-column="16" selection-end-line="1460" selection-end-column="32" />
               <folding>
                 <element signature="e#46532#46533#0" expanded="true" />
@@ -124,11 +125,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/VisPlugin.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="64">
-              <caret line="54" column="49" selection-start-line="54" selection-start-column="49" selection-end-line="54" selection-end-column="49" />
+            <state relative-caret-position="439">
+              <caret line="83" column="3" selection-start-line="83" selection-start-column="3" selection-end-line="83" selection-end-column="3" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -139,7 +140,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/javax/swing/JInternalFrame.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="200">
+            <state relative-caret-position="1095">
               <caret line="111" column="13" selection-start-line="111" selection-start-column="13" selection-end-line="111" selection-end-column="13" />
               <folding>
                 <element signature="e#20634#20635#0" expanded="true" />
@@ -260,8 +261,8 @@
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" />
         <option value="$PROJECT_DIR$/java/org/contikios/cooja/VisPlugin.java" />
-        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java" />
         <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" />
+        <option value="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java" />
       </list>
     </option>
   </component>
@@ -276,6 +277,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -406,7 +408,6 @@
         </subPane>
       </pane>
       <pane id="PackagesPane" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -504,12 +505,13 @@
       <workItem from="1558598941489" duration="17531000" />
       <workItem from="1558692747358" duration="26888000" />
       <workItem from="1559028980599" duration="18927000" />
-      <workItem from="1559217109734" duration="23035000" />
+      <workItem from="1559217109734" duration="23164000" />
+      <workItem from="1559656353974" duration="1596000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="92864000" />
+    <option name="totallyTimeSpent" value="94589000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -522,9 +524,8 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1277" height="735" extended-state="0" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25263157" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25668016" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -952,9 +953,37 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/plugins/VisualizerSkin.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="44" column="17" selection-start-line="44" selection-start-column="17" selection-end-line="44" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/Simulation.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="54" column="13" selection-start-line="54" selection-start-column="13" selection-end-line="54" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1680">
+          <caret line="130" column="44" selection-start-line="130" selection-start-column="44" selection-end-line="130" selection-end-column="44" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#7977#7978#0" expanded="true" />
+            <element signature="e#8009#8010#0" expanded="true" />
+            <element signature="e#8049#8050#0" expanded="true" />
+            <element signature="e#8088#8089#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/util/Random.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="188">
+        <state relative-caret-position="1365">
           <caret line="126" column="42" selection-start-line="126" selection-start-column="36" selection-end-line="126" selection-end-column="42" />
           <folding>
             <element signature="e#3504#3505#0" expanded="true" />
@@ -963,24 +992,14 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java">
+    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/plugins/Visualizer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="130" column="44" selection-start-line="130" selection-start-column="44" selection-end-line="130" selection-end-column="44" />
+        <state relative-caret-position="19755">
+          <caret line="1460" column="32" selection-start-line="1460" selection-start-column="16" selection-end-line="1460" selection-end-column="32" />
           <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#2130#2131#0" expanded="true" />
-            <element signature="e#2158#2159#0" expanded="true" />
-            <element signature="e#8009#8010#0" expanded="true" />
-            <element signature="e#8088#8089#0" expanded="true" />
+            <element signature="e#46532#46533#0" expanded="true" />
+            <element signature="e#46555#46556#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/Simulation.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-788">
-          <caret line="54" column="13" selection-start-line="54" selection-start-column="13" selection-end-line="54" selection-end-column="13" />
         </state>
       </provider>
     </entry>
@@ -993,7 +1012,7 @@
     </entry>
     <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/javax/swing/JInternalFrame.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
+        <state relative-caret-position="1095">
           <caret line="111" column="13" selection-start-line="111" selection-start-column="13" selection-end-line="111" selection-end-column="13" />
           <folding>
             <element signature="e#20634#20635#0" expanded="true" />
@@ -1002,48 +1021,30 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/VisPlugin.java">
+    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="64">
-          <caret line="54" column="49" selection-start-line="54" selection-start-column="49" selection-end-line="54" selection-end-column="49" />
+        <state relative-caret-position="283">
+          <caret line="303" column="43" selection-start-line="303" selection-start-column="43" selection-end-line="303" selection-end-column="43" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/plugins/Visualizer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18962">
-          <caret line="1460" column="32" selection-start-line="1460" selection-start-column="16" selection-end-line="1460" selection-end-column="32" />
-          <folding>
-            <element signature="e#46532#46533#0" expanded="true" />
-            <element signature="e#46555#46556#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/plugins/VisualizerSkin.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-352">
-          <caret line="44" column="17" selection-start-line="44" selection-start-column="17" selection-end-line="44" selection-end-column="17" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="108" column="39" selection-start-line="108" selection-start-column="39" selection-end-line="108" selection-end-column="39" />
+        <state>
+          <caret line="110" column="38" selection-start-line="110" selection-start-column="38" selection-end-line="110" selection-end-column="38" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java">
+    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/VisPlugin.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="130">
-          <caret line="294" selection-start-line="294" selection-end-line="294" />
+        <state relative-caret-position="439">
+          <caret line="83" column="3" selection-start-line="83" selection-start-column="3" selection-end-line="83" selection-end-column="3" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
