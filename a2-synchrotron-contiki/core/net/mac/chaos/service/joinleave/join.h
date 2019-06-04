@@ -35,6 +35,8 @@
  * \author
  *         Beshr Al Nahas <beshr@chalmers.se>
  *         Olaf Landsiedel <olafl@chalmers.se>
+ *         Valentin Poirot <poirotv@chalmers.se>
+ *         Patrick Rathje <mail@patrickrathje.de>
  */
 
 #ifndef _JOIN_H_
@@ -53,7 +55,7 @@ int join_get_joined_nodes_not_committed_num( void );
 int join_is_in_round( void );
 uint16_t join_get_commit_slot( void );
 void join_print_nodes( void );
-int join_get_index_for_node_id(int node_id);
+int join_get_index_for_node_id(node_id_t node_id);
 uint16_t join_get_off_slot( void );
 
 #if TESTBED == indriya
@@ -62,6 +64,10 @@ uint16_t join_get_off_slot( void );
 #else //disable check
 #define FAULTY_NODE_ID (0)
 #define FAULTY_NODE_COUNT (255)
+#endif
+
+#ifndef NODE_LIST_LEN
+#define NODE_LIST_LEN 10  //describes how many nodes can join in a single round
 #endif
 
 #if FAULTY_NODE_ID || FAULTY_NODE_COUNT
@@ -94,4 +100,26 @@ extern uint8_t chaos_join_commit_log[JOIN_ROUND_MAX_SLOTS];
 extern uint8_t chaos_join_flags_log[JOIN_ROUND_MAX_SLOTS];
 #endif
 
+typedef struct __attribute__((packed)) {
+    node_id_t node_id;
+    node_index_t chaos_index;
+} join_node_map_entry_t;
+
+typedef struct __attribute__((packed)) {
+    uint8_t node_count;
+    union {
+        uint8_t commit_field;
+        struct{
+            uint8_t                   //control flags
+                    slot_count :5,       //number of slots into which nodes wrote their ids
+                    overflow :1,              /* available join slots too short */
+                    commit :2;                /* commit join */
+        };
+    };
+    node_id_t slots[NODE_LIST_LEN]; //slots to write node ids into /* assigned indices */
+    node_index_t indices[NODE_LIST_LEN]; //slots to write node ids into /* assigned indices */
+} join_data_t;
+
+inline int join_merge_lists(node_id_t merge[], uint8_t max, node_id_t ids_a[], uint8_t ca, node_id_t ids_b[], uint8_t cb, uint8_t * delta);
+inline int add_node(node_id_t id, uint8_t chaos_node_count_before_commit);
 #endif /* _JOIN_H_ */

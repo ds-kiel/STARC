@@ -87,9 +87,7 @@ volatile join_debug_t join_debug_var = {0,0,0,0,0};
 #define CHAOS_RESTART_MAX 10
 #endif
 
-#ifndef NODE_LIST_LEN
-#define NODE_LIST_LEN 10  //describes how many nodes can join in a single round
-#endif
+
 
 #ifndef JOIN_TEST_LEAVE_THRESHOLD
 #define JOIN_TEST_LEAVE_THRESHOLD (JOIN_ROUNDS_AFTER_BOOTUP+10)
@@ -100,18 +98,7 @@ volatile join_debug_t join_debug_var = {0,0,0,0,0};
 #define FLAG_SUM(node_count)  ((((node_count) - 1) / 8 * 0xFF) + LAST_FLAGS(node_count))
 
 typedef struct __attribute__((packed)) {
-  uint8_t node_count;
-  union {
-    uint8_t commit_field;
-    struct{
-      uint8_t                   //control flags
-        slot_count :5,       //number of slots into which nodes wrote their ids
-        overflow :1,              /* available join slots too short */
-        commit :2;                /* commit join */
-    };
-  };
-  node_id_t slot[NODE_LIST_LEN];              //slots to write node ids into
-  node_index_t index[NODE_LIST_LEN]; /* assigned indices */
+  join_data_t data;
   uint8_t flags[FLAGS_LEN(MAX_NODE_COUNT)];  //flags used to confirm the commit
 } join_t;
 
@@ -126,27 +113,27 @@ static uint8_t invalid_rx_count = 0;
 static uint8_t tx_timeout_enabled = 0;
 static uint8_t tx_count_complete = 0;
 static uint8_t delta_at_slot = 0;
+
+
 //static uint8_t got_valid_rx = 0;
 static uint8_t pending = 0;
 static uint16_t commit_slot = 0;
 static uint16_t off_slot = 0;
 static uint16_t complete_slot = 0;
 
+
 //initiator management
 static uint8_t is_join_round = 0; // only used on initiator
 static node_id_t joined_nodes[MAX_NODE_COUNT] = { 0 };
-enum {
-  NODE_ID = 0, NODE_IDX = 1
-};
-static node_id_t joined_nodes_map[MAX_NODE_COUNT][2] = { {0, 0} };
-static node_id_t joined_nodes_map_tmp[MAX_NODE_COUNT][2] = { {0, 0} };
+
+static join_node_map_entry_t joined_nodes_map[MAX_NODE_COUNT];
 
 static void round_begin(const uint16_t round_count, const uint8_t id);
 static int is_pending(const uint16_t round_count);
 static void round_begin_sniffer(chaos_header_t* header);
 static void round_end_sniffer(const chaos_header_t* header);
-static int binary_search( uint16_t array[][2], int size, uint16_t search_id );
-static void merge_sort( uint16_t a[][2], uint16_t aux[][2], int hi, int lo );
+static int join_binary_search( join_node_map_entry_t array[], int size, node_id_t search_id );
+static void join_merge_sort(join_node_map_entry_t a[], join_node_map_entry_t aux[], int lo, int hi);
 
 CHAOS_SERVICE(join, JOIN_SLOT_LEN, JOIN_ROUND_MAX_SLOTS, 0, is_pending, round_begin, round_begin_sniffer, round_end_sniffer);
 
@@ -158,15 +145,18 @@ static uint8_t bit_count(uint8_t u)
 static void do_sort_joined_nodes_map(){
   LEDS_ON(LEDS_RED);
   //need to do a precopy!!
-  memcpy(joined_nodes_map_tmp, joined_nodes_map, sizeof(joined_nodes_map));
-  merge_sort(joined_nodes_map, joined_nodes_map_tmp, 0, chaos_node_count-1);
+
+  join_node_map_entry_t tmp[MAX_NODE_COUNT];
+  memcpy(tmp, joined_nodes_map, sizeof(joined_nodes_map));
+  join_merge_sort(joined_nodes_map, tmp, 0, chaos_node_count-1);
+
   LEDS_OFF(LEDS_RED);
 }
 
 void join_print_nodes(void){
   int i;
-  for( i=0; i<chaos_node_count; i++ ){
-    printf("%u:%u%s", joined_nodes_map[i][NODE_ID], joined_nodes_map[i][NODE_IDX], (((i+1) & 7) == 0) ? "\n" : ", " );
+  for( i=0; i< chaos_node_count; i++ ){
+    printf("%u:%u%s", joined_nodes_map[i].node_id, joined_nodes_map[i].chaos_index, (((i+1) & 7) == 0) ? "\n" : ", " );
   }
 }
 
@@ -190,107 +180,102 @@ void join_init(){
 
   //initiator management
   memset(&joined_nodes_map, 0, sizeof(joined_nodes_map));
-  memset(&joined_nodes_map_tmp, 0, sizeof(joined_nodes_map_tmp));
+
   if( IS_INITIATOR( ) ){
     chaos_has_node_index = 1;
     chaos_node_index = 0;
     joined_nodes[0] = node_id;
-    joined_nodes_map[0][NODE_IDX]=0;
-    joined_nodes_map[0][NODE_ID]=node_id;
+    joined_nodes_map[0].chaos_index=0;
+    joined_nodes_map[0].node_id=node_id;
     chaos_node_count = 1;
   }
 }
 
-static inline int merge_lists(join_t* join_tx, join_t* join_rx) {
-  uint8_t index_rx = 0;
-  uint8_t index_tx = 0;
+inline int join_merge_lists(node_id_t merge[], uint8_t max, node_id_t ids_a[], uint8_t ca, node_id_t ids_b[], uint8_t cb, uint8_t * delta) {
+
   uint8_t index_merge = 0;
-  uint8_t delta = 0;
+  uint8_t index_a = 0;
+  uint8_t index_b = 0;
 
-  node_id_t merge[NODE_LIST_LEN] = {0};
-  //memset(&merge[0], 0, sizeof(merge));
 
-  while ((index_tx < join_tx->slot_count || index_rx < join_rx->slot_count ) && index_merge < NODE_LIST_LEN) {
-    if (index_tx >= join_tx->slot_count || (index_rx < join_rx->slot_count && join_rx->slot[index_rx] < join_tx->slot[index_tx])) {
-      merge[index_merge] = join_rx->slot[index_rx];
-      index_merge++;
-      index_rx++;
-      delta = 1; //arrays differs, so TX
-    } else if (index_rx >= join_rx->slot_count || (index_tx < join_tx->slot_count && join_rx->slot[index_rx] > join_tx->slot[index_tx])) {
-      merge[index_merge] = join_tx->slot[index_tx];
-      index_merge++;
-      index_tx++;
-      delta = 1; //arrays differs, so TX
-    } else { //(remote.slot[remote_index] == local.slot[local_index]){
-      merge[index_merge] = join_rx->slot[index_rx];
-      index_merge++;
-      index_rx++;
-      index_tx++;
+  // We merge both sorted ids
+  uint8_t equal_count = 0;
+
+  while((index_a < ca || index_b < cb) && index_merge < max) {
+    if (index_a >= ca || (index_b < cb && ids_b[index_b] < ids_a[index_a])) {
+      merge[index_merge] = ids_b[index_b];
+      index_b++;
+    } else if (index_b >= cb || (index_a < ca && ids_a[index_a] < ids_b[index_b])) {
+      merge[index_merge] = ids_a[index_a];
+      index_a++;
+    } else {
+      merge[index_merge] = ids_a[index_a];
+      equal_count++;
+      index_a++;
+      index_b++;
     }
+
+    index_merge++;
+
 #if 0*FAULTY_NODE_ID
-    if( merge[index_merge-1] > FAULTY_NODE_ID && !rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1] ){
-      rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1]=3;
-      memcpy(rx_pkt_crc_err, (uint8_t*)join_rx, sizeof(join_t));
-    }
+    //TODO: Enable me again
+    //if( merge[index_merge-1] > FAULTY_NODE_ID && !rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1] ){
+    //    rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1]=3;
+    //    memcpy(rx_pkt_crc_err, (uint8_t*)join_rx, sizeof(join_t));
+    //  }
 #endif
   }
 
-  /* New overflow? */
-  if (index_merge >= NODE_LIST_LEN && (index_rx < join_rx->slot_count || index_tx < join_tx->slot_count)) {
-    join_tx->overflow = 1;
-    delta = 1; //arrays differs, so TX
+  if (delta) {
+    *delta |= equal_count != index_merge;
   }
-  //index_merge = MIN(index_merge, NODE_LIST_LEN);
-  join_tx->slot_count = index_merge;
 
-  memcpy(join_tx->slot, merge, sizeof(merge));
-  //memcpy(join_tx->slot, merge, index_merge*sizeof(node_id_t));
-  return delta;
+  return index_merge;
 }
 
-//only executed by initiator
-static inline void add_node(join_t* join_tx, uint8_t i, uint8_t chaos_node_count_before_commit) {
-  //search and check if this is node is already added
+// only executed by initiator
+// returns -1 if an overflow occured, else the chaos index
+inline int add_node(node_id_t id, uint8_t chaos_node_count_before_commit) {
+  // search and check if this is node is already added
   LEDS_ON(LEDS_RED);
-//  node_index_t j;
-//  for (j = 0; j < old_chaos_node_count; j++) {
-//    if (join_tx->slot[i] == joined_nodes[j]) {
-//      //index of this node is j
-//      join_tx->index[i] = j;
-//      return;
-//    }
-//  }
-  int j = binary_search(joined_nodes_map, chaos_node_count_before_commit, join_tx->slot[i]);
+
+  int j = join_binary_search(joined_nodes_map, chaos_node_count_before_commit, id);
   LEDS_OFF(LEDS_RED);
+
   if( j > -1 ){
-    //index of this node is j
-    join_tx->index[i] = j;
-    return;
+    // index of this node is j
+    return j;
   }
-  //add only if we have have space for it
+
+  // add only if we have have space for it
   if(chaos_node_count < MAX_NODE_COUNT) {
-    join_tx->index[i] = chaos_node_count;
-    joined_nodes[chaos_node_count] = join_tx->slot[i];
-    //joined_nodes_map will be sorted later
-    joined_nodes_map[chaos_node_count][NODE_ID] = join_tx->slot[i];
-    joined_nodes_map[chaos_node_count][NODE_IDX] = join_tx->index[i];
+    joined_nodes[chaos_node_count] = id;
+
+    // joined_nodes_map will be sorted later
+    joined_nodes_map[chaos_node_count].node_id = id;
+    joined_nodes_map[chaos_node_count].chaos_index = chaos_node_count;
     chaos_node_count++;
+    return chaos_node_count-1;
   } else {
-    join_tx->overflow = 1;
+    return -1;
   }
-  //XXX insert the 2nd bug again
-  //chaos_node_count_before_commit = chaos_node_count;
-  return;
 }
 
 //only executed by initiator
 static inline void commit(join_t* join_tx) {
   COOJA_DEBUG_STR("commit!");
   uint8_t chaos_node_count_before_commit = chaos_node_count;
+
+  join_data_t *join_data_tx = &join_tx->data;
   int i;
-  for (i = 0; i < join_tx->slot_count; i++) {
-    if( !join_tx->index[i] && join_tx->slot[i] ){
-      add_node(join_tx, i, chaos_node_count_before_commit);
+  for (i = 0; i < join_data_tx->slot_count; i++) {
+    if( !join_data_tx->indices[i] && join_data_tx->slots[i] ){
+      int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
+      if (chaos_index >= 0) {
+        join_data_tx->indices[i] = chaos_index;
+      } else {
+        join_data_tx->overflow |= 1;
+      }
     }
   }
   //reset flags
@@ -300,8 +285,8 @@ static inline void commit(join_t* join_tx) {
   unsigned int array_offset = chaos_node_index % 8;
   join_tx->flags[array_index] |= 1 << (array_offset);
   //update phase and node_count
-  join_tx->node_count = chaos_node_count;
-  join_tx->commit = 1;
+  join_data_tx->node_count = chaos_node_count;
+  join_data_tx->commit = 1;
 }
 
 static chaos_state_t process(uint16_t round_count, uint16_t slot,
@@ -309,6 +294,9 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
     uint8_t* rx_payload, uint8_t* tx_payload, uint8_t** app_flags){
   join_t* join_tx = (join_t*) tx_payload;
   join_t* join_rx = (join_t*) rx_payload;
+  
+  join_data_t* join_data_tx = &join_tx->data;
+  join_data_t* join_data_rx = &join_rx->data;
 
   uint8_t delta = 0;
   uint16_t flag_sum = 0;
@@ -317,8 +305,8 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
   int i = 0;
   //check join_rx
   if( current_state == CHAOS_RX && chaos_txrx_success ){
-    for(i=0; i<join_rx->slot_count && !join_debug_var.slot && rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1] != 1; i++){
-      if(join_rx->slot[i] > FAULTY_NODE_ID || join_rx->node_count > FAULTY_NODE_COUNT){
+    for(i=0; i<join_data_rx->slot_count && !join_debug_var.slot && rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1] != 1; i++){
+      if(join_data_rx->slots[i] > FAULTY_NODE_ID || join_data_rx->node_count > FAULTY_NODE_COUNT){
         rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1]=4;
         memcpy(rx_pkt_crc_err, rx_payload, payload_length);
         join_debug_var.debug_pos=__LINE__;
@@ -328,8 +316,8 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
     }
   }
   //check join_tx
-  for(i=0; i<join_tx->slot_count && !join_debug_var.slot && rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1] != 1; i++){
-    if(join_tx->slot[i] > FAULTY_NODE_ID ||  join_tx->node_count > FAULTY_NODE_COUNT){
+  for(i=0; i<join_data_tx->slot_count && !join_debug_var.slot && rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1] != 1; i++){
+    if(join_data_tx->slots[i] > FAULTY_NODE_ID ||  join_data_tx->node_count > FAULTY_NODE_COUNT){
       rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1]=5;
       memcpy(rx_pkt_crc_err, tx_payload, payload_length);
       join_debug_var.debug_pos=__LINE__;
@@ -355,56 +343,69 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
   if( current_state == CHAOS_RX && chaos_txrx_success ){
 
     //process overflow flag
-    delta |= (join_tx->overflow != join_rx->overflow);
-    join_tx->overflow |= join_rx->overflow;
-    join_tx->node_count = MAX(join_rx->node_count, join_tx->node_count);
+    delta |= (join_data_tx->overflow != join_data_rx->overflow);
+    join_data_tx->overflow |= join_data_rx->overflow;
+    join_data_tx->node_count = MAX(join_data_rx->node_count, join_data_tx->node_count);
 
     //not yet committed
-    if (join_tx->commit == 0 && join_rx->commit == 0) {
+    if (join_data_tx->commit == 0 && join_data_rx->commit == 0) {
       if( IS_INITIATOR() || slot < JOIN_MAX_COMMIT_SLOT) {
         // not late and definitely still in collect phase
         //merge flags
         int i;
-        for (i = 0; i < FLAGS_LEN(join_rx->node_count); i++) {
+        for (i = 0; i < FLAGS_LEN(join_data_rx->node_count); i++) {
           delta |= (join_tx->flags[i] != join_rx->flags[i]);
           join_tx->flags[i] |= join_rx->flags[i];
           flag_sum += join_tx->flags[i];
         }
 
         //check if remote and local knowledge differ -> if so: merge
-        uint8_t delta_slots = join_tx->slot_count != join_rx->slot_count;
+        uint8_t delta_slots = join_data_tx->slot_count != join_data_rx->slot_count;
         if(!delta_slots){
-          delta_slots = memcmp(&join_tx->slot[0], &join_rx->slot[0], sizeof(join_rx->slot)) != 0;
+          delta_slots = memcmp(join_data_tx->slots, join_data_rx->slots, sizeof(join_data_rx->slots)) != 0;
         }
         if ( delta_slots ) {
-          delta |= merge_lists(join_tx, join_rx);
+
+          // we will use +1 to detect overflows!
+          node_id_t merge[sizeof(join_data_tx->slots)+1] = {0};
+
+          uint8_t merge_size = join_merge_lists(merge, sizeof(merge), join_data_tx->slots, join_data_tx->slot_count, join_data_rx->slots, join_data_rx->slot_count, &delta);
+
+          /* New overflow? */
+          if (merge_size >= sizeof(join_data_tx->slots)/ sizeof(node_id_t)) {
+            join_data_tx->overflow = 1;
+            delta |= 1; //arrays differs, so TX
+            merge_size = sizeof(join_data_tx->slots)/ sizeof(node_id_t);
+          }
+          join_data_tx->slot_count = merge_size;
+          memcpy(join_data_tx->slots, merge, sizeof(join_data_tx->slots));
         }
       } else {
         //since half of the slots passed, we need to wait for the initiator commit.
         delta = 0;
       }
       //all flags are set?
-      if( flag_sum >= FLAG_SUM(join_rx->node_count) && IS_INITIATOR()){
+      if( flag_sum >= FLAG_SUM(join_data_rx->node_count) && IS_INITIATOR()){
         if(!complete){
           complete_slot = slot;
         }
         //Final flood: transmit result aggressively
-        complete = join_tx->commit;
+        complete = join_data_tx->commit;
       }
-    } else if( join_rx->commit == 1 ){ //commit phase
-      if( join_tx->commit == 0 ){ // we are behind
+    } else if( join_data_rx->commit == 1 ){ //commit phase
+      if( join_data_tx->commit == 0 ){ // we are behind
         commit_slot = slot;
         delta = 1;
         //drop local state
         memcpy(join_tx, join_rx, sizeof(join_t));
-        chaos_node_count = join_rx->node_count;
+        chaos_node_count = join_data_rx->node_count;
 
         //get the index
         if( !chaos_has_node_index ){
           int i;
-          for (i = 0; i < join_rx->slot_count; i++) {
-            if (join_rx->slot[i] == node_id) {
-              chaos_node_index = join_rx->index[i];
+          for (i = 0; i < join_data_rx->slot_count; i++) {
+            if (join_data_rx->slots[i] == node_id) {
+              chaos_node_index = join_data_rx->indices[i];
               chaos_has_node_index = 1;
               LEDS_ON(LEDS_RED);
               break;
@@ -418,19 +419,19 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
           unsigned int array_offset = chaos_node_index % 8;
           join_tx->flags[array_index] |= 1 << (array_offset);
         } else {
-          join_tx->overflow = 1;
+          join_data_tx->overflow = 1;
         }
       } else {
         //merge flags
         int i;
-        for (i = 0; i < FLAGS_LEN(join_rx->node_count); i++) {
+        for (i = 0; i < FLAGS_LEN(join_data_rx->node_count); i++) {
           delta |= (join_tx->flags[i] != join_rx->flags[i]);
           join_tx->flags[i] |= join_rx->flags[i];
           flag_sum += join_tx->flags[i];
         }
       }
       //all flags are set?
-      if( flag_sum >= FLAG_SUM(join_rx->node_count) ){
+      if( flag_sum >= FLAG_SUM(join_data_rx->node_count) ){
         //Final flood: transmit result aggressively
         LEDS_OFF(LEDS_RED);
         if(!complete){
@@ -438,7 +439,7 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
         }
         complete = 1;
       }
-    } else if( join_tx->commit == 1 ){ //join_rx->commit == 0 --> neighbor is behind
+    } else if( join_data_tx->commit == 1 ){ //join_data_rx->commit == 0 --> neighbor is behind
       delta = 1;
     }
   }
@@ -454,14 +455,14 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
     next_state = CHAOS_TX; //for the first tx of the initiator: no increase of tx_count here
     tx_timeout_enabled = 1;
 
-  } else if( IS_INITIATOR() && join_tx->commit == 0 &&
+  } else if( IS_INITIATOR() && join_data_tx->commit == 0 &&
       ( (!delta && slot == delta_at_slot + COMMIT_THRESHOLD) /* no delta for some time */
-          || join_tx->slot_count == NODE_LIST_LEN /* join list is full */
+          || join_data_tx->slot_count == NODE_LIST_LEN /* join list is full */
           || (slot >= JOIN_MAX_COMMIT_SLOT /* time to switch to commit phase */
-              &&  join_tx->slot_count > 0  /* someone is joining */)
+              &&  join_data_tx->slot_count > 0  /* someone is joining */)
           //|| complete
       )){ //commit?
-    if(join_tx->slot_count > 0){
+    if(join_data_tx->slot_count > 0){
       complete = 0;
     }
     commit(join_tx);
@@ -506,8 +507,8 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
 
 #if 0*FAULTY_NODE_ID
   //check join_tx
-  for(i=0; i<join_tx->slot_count && !join_debug_var.slot && rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1] != 1; i++){
-    if(join_tx->slot[i] > FAULTY_NODE_ID ||  join_tx->node_count > FAULTY_NODE_COUNT){
+  for(i=0; i<join_data_tx->slot_count && !join_debug_var.slot && rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1] != 1; i++){
+    if(join_data_tx->slots[i] > FAULTY_NODE_ID ||  join_data_tx->node_count > FAULTY_NODE_COUNT){
       rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1]=6;
       memcpy(rx_pkt_crc_err, tx_payload, payload_length);
       join_debug_var.debug_pos=__LINE__;
@@ -542,12 +543,12 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
     off_slot = slot;
   }
 #if JOIN_LOG_FLAGS
-  chaos_join_commit_log[slot]=join_tx->commit_field;
+  chaos_join_commit_log[slot]=join_data_tx->commit_field;
   //if(current_state == CHAOS_RX && chaos_txrx_success)
   {
     uint8_t i;
     //chaos_join_flags_log[slot]=0;
-    for(i=0; i<FLAGS_LEN(join_tx->node_count); i++){
+    for(i=0; i<FLAGS_LEN(join_data_tx->node_count); i++){
       chaos_join_flags_log[slot] += bit_count(join_tx->flags[i]);
     }
   }
@@ -586,11 +587,11 @@ uint16_t join_get_commit_slot(){
 }
 
 uint8_t join_get_slot_count_from_payload( void* payload ){
-  return ((join_t*)payload)->slot_count;
+  return ((join_t*)payload)->data.slot_count;
 }
 
 uint8_t join_is_committed_from_payload( void* payload ){
-  return ((join_t*)payload)->commit;
+  return ((join_t*)payload)->data.commit;
 }
 
 static void round_begin( const uint16_t round_number, const uint8_t app_id ){
@@ -617,13 +618,13 @@ static void round_begin( const uint16_t round_number, const uint8_t app_id ){
 #endif
 
   if( IS_INITIATOR() ){
-    join_data.node_count = chaos_node_count;
+    join_data.data.node_count = chaos_node_count;
     unsigned int array_index = chaos_node_index / 8;
     unsigned int array_offset = chaos_node_index % 8;
     join_data.flags[array_index] |= 1 << (array_offset);
   } else if( !chaos_has_node_index ){
-    join_data.slot[0] = node_id;
-    join_data.slot_count = 1;
+    join_data.data.slots[0] = node_id;
+    join_data.data.slot_count = 1;
   } else {
     unsigned int array_index = chaos_node_index / 8;
     unsigned int array_offset = chaos_node_index % 8;
@@ -653,54 +654,55 @@ static void round_end_sniffer(const chaos_header_t* header){
 #endif
 }
 
+
+
 ////sort functions
 /* Merge sort code adopted from: http://algs4.cs.princeton.edu/lectures/22Mergesort.pdf */
-static void merge(uint16_t a[][2], uint16_t aux[][2], int lo, int mid, int hi)
-{
-  int i = lo, j = mid+1, k;
-  for (k = lo; k <= hi; k++){
-    if (i > mid){
-      aux[k][0] = a[j][0];
-      aux[k][1] = a[j][1];
+static void join_merge(join_node_map_entry_t a[], join_node_map_entry_t aux[], int lo, int mid, int hi) {
+  int i = lo, j = mid + 1, k;
+  for (k = lo; k <= hi; k++) {
+    if (i > mid) {
+      aux[k].node_id = a[j].node_id;
+      aux[k].chaos_index = a[j].chaos_index;
       j++;
-    } else if(j > hi){
-      aux[k][0] = a[i][0];
-      aux[k][1] = a[i][1];
+    } else if (j > hi) {
+      aux[k].node_id = a[i].node_id;
+      aux[k].chaos_index = a[i].chaos_index;
       i++;
-    } else if (a[j][NODE_ID] <= a[i][NODE_ID]){
-      aux[k][0] = a[j][0];
-      aux[k][1] = a[j][1];
+    } else if (a[j].node_id <= a[i].node_id) {
+      aux[k].node_id = a[j].node_id;
+      aux[k].chaos_index = a[j].chaos_index;
       j++;
-    } else{
-      aux[k][0] = a[i][0];
-      aux[k][1] = a[i][1];
+    } else {
+      aux[k].node_id = a[i].node_id;
+      aux[k].chaos_index = a[i].chaos_index;
       i++;
     }
   }
 }
 
 //recursive version: needs pre-copy in aux, but faster
-static void merge_sort(uint16_t a[][2], uint16_t aux[][2], int lo, int hi)
+static void join_merge_sort(join_node_map_entry_t a[], join_node_map_entry_t aux[], int lo, int hi)
 {
   if (hi <= lo) return;
   int mid = lo + (hi - lo) / 2;
-  merge_sort(aux, a, lo, mid);
-  merge_sort(aux, a, mid+1, hi);
-  merge(aux, a, lo, mid, hi);
+  join_merge_sort(aux, a, lo, mid);
+  join_merge_sort(aux, a, mid+1, hi);
+  join_merge(aux, a, lo, mid, hi);
 }
 
 //binary search
 //http://www.programmingsimplified.com/c/source-code/c-program-binary-search
-static int binary_search( uint16_t array[][2], int size, uint16_t search_id ){
+static int join_binary_search( join_node_map_entry_t array[], int size, node_id_t search_id ){
   int first = 0;
   int last = size - 1;
   int middle = ( first + last ) / 2;
 
   while( first <= last ){
-    if( array[middle][NODE_ID] < search_id ){
+    if( array[middle].node_id < search_id ){
       first = middle + 1;
-    } else if( array[middle][NODE_ID] == search_id ){
-      return array[middle][NODE_IDX];
+    } else if( array[middle].node_id == search_id ){
+      return array[middle].chaos_index;
     } else {
       last = middle - 1;
     }
@@ -709,6 +711,7 @@ static int binary_search( uint16_t array[][2], int size, uint16_t search_id ){
   return -1;
 }
 
-int join_get_index_for_node_id(int node_id) {
-  return binary_search(joined_nodes_map, chaos_node_count, node_id);
+
+int join_get_index_for_node_id(node_id_t node_id) {
+  return join_binary_search(joined_nodes_map, chaos_node_count, node_id);
 }
