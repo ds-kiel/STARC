@@ -88,6 +88,14 @@
 #define ARR_OFFSET ((chaos_node_index)%8)
 
 
+#define MERGE_COMMIT_MAX_COMMIT_SLOT (MERGE_COMMIT_ROUND_MAX_SLOTS / 3)
+
+#ifndef COMMIT_THRESHOLD
+#define COMMIT_THRESHOLD 0
+/*((MERGE_COMMIT_MAX_COMMIT_SLOT)/2)*/
+#endif
+
+
 typedef struct __attribute__((packed)) {
   merge_commit_t mc;
   uint8_t flags[FLAGS_ESTIMATE]; //maximum of 50 * 8 nodes
@@ -122,6 +130,7 @@ static int got_valid_rx = 0;
 static unsigned short restart_threshold;
 static merge_commit_local_t mc_local; /* used only for house keeping and reporting */
 static uint8_t* tx_flags_final = 0;
+static uint8_t delta_at_slot = 0;
 
 int merge_commit_get_flags_length() {
   return FLAGS_ESTIMATE;
@@ -212,8 +221,16 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             // we will use +1 to detect overflows!
             node_id_t merge[sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]) + 1] = {0};
 
+
+            uint8_t delta;
             uint8_t merge_size = join_merge_lists(merge, sizeof(merge)/sizeof(merge[0]), join_data_tx->slots, join_data_tx->slot_count,
-                                                  join_data_rx->slots, join_data_rx->slot_count, &tx);
+                                                  join_data_rx->slots, join_data_rx->slot_count, &delta);
+
+
+            if (delta) {
+              delta_at_slot = slot_count;
+              tx |= 1; //arrays differs, so TX
+            }
 
             /* New overflow? */
             if (merge_size >= sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0])) {
@@ -235,7 +252,10 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
           // Check if we should do the next phase!
           //TODO: Tweak the slot_count here...
-          if (IS_INITIATOR() && flag_sum == FLAG_SUM_X(node_count) && slot_count > MERGE_COMMIT_ROUND_MAX_SLOTS/2) {
+          // TODO: Account the difference from the latest join (the slot_count)
+          if (IS_INITIATOR() && flag_sum == FLAG_SUM_X(node_count)
+            && (slot_count >= MERGE_COMMIT_MAX_COMMIT_SLOT
+                  || (COMMIT_THRESHOLD && delta_at_slot > 0 && slot_count >= delta_at_slot+COMMIT_THRESHOLD))) {
             LEDS_ON(LEDS_RED);
             memset(tx_flags, 0, merge_commit_get_flags_length());
             tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
@@ -401,6 +421,8 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   completion_slot = 0;
   tx_flags_final = 0;
   rx_progress = 0;
+
+  delta_at_slot = 0;
 
   /* init random restart threshold */
   restart_threshold = chaos_random_generator_fast() % (CHAOS_RESTART_MAX - CHAOS_RESTART_MIN) + CHAOS_RESTART_MIN;

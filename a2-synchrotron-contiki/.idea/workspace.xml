@@ -11,7 +11,6 @@
   <component name="ChangeListManager">
     <list default="true" id="2481c688-6bc0-4522-b60e-d964ad7195fa" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/chaos/intersection/project-conf.h" beforeDir="false" afterPath="$PROJECT_DIR$/apps/chaos/intersection/project-conf.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" afterDir="false" />
@@ -39,10 +38,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-3814">
-              <caret line="137" column="4" selection-start-line="137" selection-start-column="4" selection-end-line="137" selection-end-column="4" />
+            <state relative-caret-position="665">
+              <caret line="94" selection-start-line="94" selection-end-line="94" />
               <folding>
                 <element signature="e#2901#2951#0" expanded="true" />
+                <element signature="e#3673#4095#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -87,7 +87,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-3458">
+            <state relative-caret-position="-2066">
               <caret line="295" column="54" selection-start-line="295" selection-start-column="50" selection-end-line="295" selection-end-column="54" />
             </state>
           </provider>
@@ -96,8 +96,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/project-conf.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="445">
-              <caret line="69" column="40" lean-forward="true" selection-start-line="69" selection-start-column="40" selection-end-line="69" selection-end-column="40" />
+            <state relative-caret-position="240">
+              <caret line="47" column="23" selection-start-line="47" selection-start-column="23" selection-end-line="47" selection-end-column="23" />
               <folding>
                 <element signature="e#2670#2761#0" expanded="true" />
               </folding>
@@ -108,8 +108,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/service/joinleave/join.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="197">
-              <caret line="400" column="52" selection-start-line="399" selection-start-column="49" selection-end-line="400" selection-end-column="52" />
+            <state relative-caret-position="152">
+              <caret line="71" selection-start-line="71" selection-end-line="75" selection-end-column="6" />
               <folding>
                 <element signature="e#3558#3670#0" expanded="true" />
                 <element signature="e#6858#7110#0" expanded="true" />
@@ -149,9 +149,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>commit</find>
-      <find>JOIN_APP</find>
-      <find>is_join_round</find>
       <find>JOIN_PROCESSING</find>
       <find>requires_node</find>
       <find>merge_commit_value</find>
@@ -179,6 +176,9 @@
       <find>chaos_slot_timing_log_current</find>
       <find>MERGE_COMMIT_ROUND_MAX_SLOTS</find>
       <find>own_</find>
+      <find>delta_at_slot</find>
+      <find>slot_count</find>
+      <find>COMMIT_THRESHOLD</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -197,8 +197,8 @@
       <replace>join_data_tx-&gt;overflow</replace>
       <replace>-&gt;slots[</replace>
       <replace>(join_data_tx-&gt;slots</replace>
-      <replace>.chaos_id</replace>
       <replace>chaos_has_node_index</replace>
+      <replace>.chaos_id</replace>
       <replace>chaos_index</replace>
     </replaceStrings>
     <dirStrings>
@@ -418,12 +418,12 @@
       <workItem from="1558698394786" duration="21245000" />
       <workItem from="1559029186114" duration="3414000" />
       <workItem from="1559217084401" duration="4683000" />
-      <workItem from="1559637812511" duration="27519000" />
+      <workItem from="1559637812511" duration="28644000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="169490000" />
+    <option name="totallyTimeSpent" value="170615000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1280" height="777" extended-state="6" />
@@ -789,22 +789,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/service/joinleave/join.c">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="197">
-          <caret line="400" column="52" selection-start-line="399" selection-start-column="49" selection-end-line="400" selection-end-column="52" />
-          <folding>
-            <element signature="e#3558#3670#0" expanded="true" />
-            <element signature="e#6858#7110#0" expanded="true" />
-            <element signature="e#9429#10847#0" expanded="true" />
-            <element signature="e#16737#17729#0" expanded="true" />
-            <element signature="e#18042#18342#0" expanded="true" />
-            <element signature="e#19679#19810#0" expanded="true" />
-            <element signature="e#20912#21086#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/chaos-control.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="88">
@@ -832,25 +816,42 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3458">
+        <state relative-caret-position="-2066">
           <caret line="295" column="54" selection-start-line="295" selection-start-column="50" selection-end-line="295" selection-end-column="54" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/service/joinleave/join.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="152">
+          <caret line="71" selection-start-line="71" selection-end-line="75" selection-end-column="6" />
+          <folding>
+            <element signature="e#3558#3670#0" expanded="true" />
+            <element signature="e#6858#7110#0" expanded="true" />
+            <element signature="e#9429#10847#0" expanded="true" />
+            <element signature="e#16737#17729#0" expanded="true" />
+            <element signature="e#18042#18342#0" expanded="true" />
+            <element signature="e#19679#19810#0" expanded="true" />
+            <element signature="e#20912#21086#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3814">
-          <caret line="137" column="4" selection-start-line="137" selection-start-column="4" selection-end-line="137" selection-end-column="4" />
+        <state relative-caret-position="665">
+          <caret line="94" selection-start-line="94" selection-end-line="94" />
           <folding>
             <element signature="e#2901#2951#0" expanded="true" />
+            <element signature="e#3673#4095#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/project-conf.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="445">
-          <caret line="69" column="40" lean-forward="true" selection-start-line="69" selection-start-column="40" selection-end-line="69" selection-end-column="40" />
+        <state relative-caret-position="240">
+          <caret line="47" column="23" selection-start-line="47" selection-start-column="23" selection-end-line="47" selection-end-column="23" />
           <folding>
             <element signature="e#2670#2761#0" expanded="true" />
           </folding>
