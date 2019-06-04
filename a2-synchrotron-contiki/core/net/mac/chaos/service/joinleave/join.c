@@ -142,7 +142,7 @@ static uint8_t bit_count(uint8_t u)
   return  (u -(u>>1)-(u>>2)-(u>>3)-(u>>4)-(u>>5)-(u>>6)-(u>>7));
 }
 
-static void do_sort_joined_nodes_map(){
+void join_do_sort_joined_nodes_map(){
   LEDS_ON(LEDS_RED);
   //need to do a precopy!!
 
@@ -537,7 +537,7 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
   int end = (slot >= JOIN_ROUND_MAX_SLOTS - 2) || (next_state == CHAOS_OFF);
   if(IS_INITIATOR() && end){
     //sort joined_nodes_map to speed up search (to enable the use of binary search) when adding new nodes
-    do_sort_joined_nodes_map();
+    join_do_sort_joined_nodes_map();
   }
   if(end){
     off_slot = slot;

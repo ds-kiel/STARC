@@ -122,4 +122,6 @@ typedef struct __attribute__((packed)) {
 
 inline int join_merge_lists(node_id_t merge[], uint8_t max, node_id_t ids_a[], uint8_t ca, node_id_t ids_b[], uint8_t cb, uint8_t * delta);
 inline int add_node(node_id_t id, uint8_t chaos_node_count_before_commit);
+
+void join_do_sort_joined_nodes_map();
 #endif /* _JOIN_H_ */
