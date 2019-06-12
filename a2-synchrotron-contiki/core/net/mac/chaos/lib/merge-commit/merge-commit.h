@@ -62,8 +62,6 @@
 #define MERGE_COMMIT_ROUND_MAX_SLOTS   (350)
 #endif
 
-
-
 #define MERGE_COMMIT_SLOT_LEN_DCO      (MERGE_COMMIT_SLOT_LEN*CLOCK_PHI)    //TODO needs calibration
 
 
@@ -86,8 +84,15 @@ typedef struct __attribute__((packed)) {
     merge_commit_value_t value;
     join_data_t join_data;
     uint8_t phase;
-    uint8_t flags[];
+    uint8_t flags_and_leaves[];
 } merge_commit_t;
+
+
+
+#define MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE 0
+#define MERGE_COMMIT_WANTED_JOIN_STATE_JOIN 1
+
+extern uint8_t merge_commit_wanted_join_state;
 
 int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, merge_commit_value_t* merge_commit_value, uint8_t* phase, uint8_t** final_flags);
 

@@ -63,16 +63,14 @@ public class TiledMapHandler {
 
         public byte[] getByteIndices() {
 
-            int[] temp = reserved.stream().mapToInt(Integer::intValue).toArray();;
-
-
-            byte[] bytes = new byte[temp.length];
+            int[] temp = reserved.stream().mapToInt(Integer::intValue).toArray();
+            byte[] bytes = new byte[temp.length+1];
 
             // ugly byte arr copying...
-
+            bytes[0] = 'R';
             for(int i = 0; i < temp.length; ++i) {
                 System.out.print((temp[i]&0xFF) + ", ");
-                bytes[i] = (byte) (temp[i]&0xFF);
+                bytes[i+1] = (byte) (temp[i]&0xFF);
             }
             System.out.print("\n");
             return bytes;

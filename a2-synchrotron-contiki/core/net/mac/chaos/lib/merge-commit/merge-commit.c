@@ -72,11 +72,9 @@
 #endif
 
 #define FLAGS_LEN_X(X)   (((X) >> 3) + (((X) & 7) ? 1 : 0))
-#define FLAGS_LEN   (FLAGS_LEN_X(chaos_node_count))
-#define LAST_FLAGS  ((1 << (((chaos_node_count - 1) & 7) + 1)) - 1)
-#define LAST_FLAGS_X(X)  ((1 << ((((X) - 1) % 8) + 1)) - 1)
+#define FLAGS_LEN   (FLAGS_LEN_X(MAX_NODE_COUNT))
+#define LAST_FLAGS  ((1 << (((MAX_NODE_COUNT - 1) & 7) + 1)) - 1)
 #define FLAG_SUM    (((FLAGS_LEN - 1) << 8) - (FLAGS_LEN - 1) + LAST_FLAGS)
-#define FLAG_SUM_X(X)   ((((X) - 1) / 8 * 0xFF) + LAST_FLAGS_X(X))
 
 #if NETSTACK_CONF_WITH_CHAOS_NODE_DYNAMIC
 #define FLAGS_ESTIMATE FLAGS_LEN_X(MAX_NODE_COUNT)
@@ -84,8 +82,12 @@
 #define FLAGS_ESTIMATE FLAGS_LEN_X(CHAOS_NODES)
 #endif
 
-#define ARR_INDEX ((chaos_node_index)/8)
-#define ARR_OFFSET ((chaos_node_index)%8)
+
+#define ARR_INDEX_X(X) ((X)/8)
+#define ARR_OFFSET_X(X) ((X)%8)
+
+#define ARR_INDEX ARR_INDEX_X(chaos_node_index)
+#define ARR_OFFSET ARR_OFFSET_X(chaos_node_index)
 
 
 #define MERGE_COMMIT_MAX_COMMIT_SLOT (MERGE_COMMIT_ROUND_MAX_SLOTS / 3)
@@ -98,7 +100,7 @@
 
 typedef struct __attribute__((packed)) {
   merge_commit_t mc;
-  uint8_t flags[FLAGS_ESTIMATE]; //maximum of 50 * 8 nodes
+  uint8_t flags_and_leaves[FLAGS_ESTIMATE*2];
 } merge_commit_local_t;
 
 
@@ -132,19 +134,31 @@ static merge_commit_local_t mc_local; /* used only for house keeping and reporti
 static uint8_t* tx_flags_final = 0;
 static uint8_t delta_at_slot = 0;
 
+static uint8_t join_masks[FLAGS_LEN];
+uint8_t merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE;
+
 int merge_commit_get_flags_length() {
   return FLAGS_ESTIMATE;
 }
+int merge_commit_get_masks_length() {
+  return FLAGS_ESTIMATE;
+}
+
+int merge_commit_get_flags_and_leaves_overall_length() {
+  return merge_commit_get_flags_length() + merge_commit_get_masks_length();
+}
 
 static inline uint8_t* merge_commit_get_flags(merge_commit_t* mc) {
-  return mc->flags;
+  return mc->flags_and_leaves;
+}
+
+static inline uint8_t* merge_commit_get_leaves(merge_commit_t* mc) {
+  return mc->flags_and_leaves+FLAGS_ESTIMATE;
 }
 
 static chaos_state_t
 process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, int chaos_txrx_success, size_t payload_length, uint8_t* rx_payload, uint8_t* tx_payload, uint8_t** app_flags)
 {
-
-  //int start = RTIMER_NOW();
 
   merge_commit_t* tx_mc = (merge_commit_t*)tx_payload;
   merge_commit_t* rx_mc = (merge_commit_t*)rx_payload;
@@ -174,25 +188,35 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
       //be careful: do not mix the different phases
       if (tx_mc->phase == rx_mc->phase) {
         // same phase
-
-        // calculate sum of flags
-
-        uint16_t flag_sum = 0;
-        uint16_t rx_flag_sum = 0;
-        uint16_t tx_flag_sum = 0;
         int i;
+
+        // first calculate the current leaves
+        uint8_t* tx_leaves = merge_commit_get_leaves(tx_mc);
+        uint8_t* rx_leaves = merge_commit_get_leaves(rx_mc);
+
+        uint8_t rx_complete = 1;
+        uint8_t flags_complete = 1;
+
         uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
         uint8_t* rx_flags = merge_commit_get_flags(rx_mc);
 
-        uint8_t node_count = MAX(join_data_rx->node_count, join_data_tx->node_count);
+        for(i = 0; i < FLAGS_LEN; i++) {
+          tx |= (tx_leaves[i] != rx_leaves[i]) || (tx_flags[i] != rx_flags[i]);
 
-        //merge and tx if flags differ
-        for( i = 0; i < FLAGS_LEN_X(node_count); i++){
-          tx_flag_sum += tx_flags[i];
-          tx |= (rx_flags[i] != tx_flags[i]);
+          tx_leaves[i] &= rx_leaves[i];
+
           tx_flags[i] |= rx_flags[i];
-          flag_sum += tx_flags[i];
-          rx_flag_sum += rx_flags[i];
+
+          // we remove the entries in the join mask that have left the network
+          // but we update our join mask based on live nodes
+          join_masks[i] |= tx_leaves[i] | tx_flags[i];
+
+          if (tx_flags[i] != join_masks[i]) {
+            flags_complete = 0;
+          }
+          if (rx_flags[i] != join_masks[i]) {
+            rx_complete = 0;
+          }
         }
 
         if (tx_mc->phase == PHASE_MERGE) {
@@ -210,7 +234,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
           // Join logic
           tx |= (join_data_tx->overflow != join_data_rx->overflow);
           join_data_tx->overflow |= join_data_rx->overflow;
-          join_data_tx->node_count = node_count;
+          join_data_tx->node_count = 0; // not yet needed
 
           //check if remote and local knowledge differ -> if so: merge
           uint8_t delta_slots = join_data_tx->slot_count != join_data_rx->slot_count;
@@ -220,13 +244,9 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
           if ( delta_slots ) {
             // we will use +1 to detect overflows!
             node_id_t merge[sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]) + 1] = {0};
-
-
             uint8_t delta;
             uint8_t merge_size = join_merge_lists(merge, sizeof(merge)/sizeof(merge[0]), join_data_tx->slots, join_data_tx->slot_count,
                                                   join_data_rx->slots, join_data_rx->slot_count, &delta);
-
-
             if (delta) {
               delta_at_slot = slot_count;
               tx |= 1; //arrays differs, so TX
@@ -251,9 +271,10 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
 
           // Check if we should do the next phase!
-          //TODO: Tweak the slot_count here...
+          // TODO: Tweak the slot_count here...
           // TODO: Account the difference from the latest join (the slot_count)
-          if (IS_INITIATOR() && flag_sum == FLAG_SUM_X(node_count)
+
+          if (IS_INITIATOR() && flags_complete
             && (slot_count >= MERGE_COMMIT_MAX_COMMIT_SLOT
                   || (COMMIT_THRESHOLD && delta_at_slot > 0 && slot_count >= delta_at_slot+COMMIT_THRESHOLD))) {
             LEDS_ON(LEDS_RED);
@@ -267,18 +288,41 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             // join commit
             COOJA_DEBUG_PRINTF("commit! with %d joins", join_data_tx->slot_count);
             uint8_t chaos_node_count_before_commit = chaos_node_count;
-            int i;
+
+            // first add the nodes
             for (i = 0; i < join_data_tx->slot_count; i++) {
               if( !join_data_tx->indices[i] && join_data_tx->slots[i] ){
                 int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
                 if (chaos_index >= 0) {
-                  COOJA_DEBUG_PRINTF("Added node %d at index %d", join_data_tx->slots[i], chaos_index);
+                  printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
                   join_data_tx->indices[i] = chaos_index;
+                  // remove the leave flag
+                  tx_leaves[ARR_INDEX_X(chaos_index)] |= (1 << (ARR_OFFSET_X(chaos_index)));
                 } else {
                   join_data_tx->overflow |= 1;
                 }
               }
             }
+
+            // then remove every node that wants to leave
+            int i = 0;
+            for(i = 0; i < MAX_NODE_COUNT; ++i) {
+              node_id_t nid = joined_nodes[i];
+
+              printf("leaves check  %d %d %d (%d, %d) %d\n", i, nid, (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) != 0, ARR_INDEX_X(i), ARR_OFFSET_X(i), tx_leaves[ARR_INDEX_X(i)]);
+
+              if (nid != 0) {
+                // check if node is still present
+
+                if ((tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) == 0) {
+                  // node has left! -> remove it
+                  printf("Removing node %d with index %d\n", nid, i);
+                  joined_nodes[i] = 0;
+                  chaos_node_count--;
+                }
+              }
+            }
+
 
             //update phase and node_count
             join_data_tx->node_count = chaos_node_count;
@@ -288,20 +332,25 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             leds_on(LEDS_GREEN);
           }
         } else if (tx_mc->phase == PHASE_COMMIT) {
-          if (flag_sum == FLAG_SUM_X(node_count)) {
+          if (flags_complete) {
             tx = 1;
             if(!complete){
               completion_slot = slot_count;
             }
             complete = 1;
-            rx_progress |= (rx_flag_sum == FLAG_SUM_X(node_count)); /* received a complete packet */
+            rx_progress |= rx_complete; /* received a complete packet */
           }
         }
-
       } else if (tx_mc->phase < rx_mc->phase) {
         // received phase is more advanced than local one -> switch to received state (and set own flags)
-        memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_length());
+        memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_and_leaves_overall_length());
         uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
+        uint8_t* tx_leaves = merge_commit_get_leaves(tx_mc);
+        int i;
+        for(i = 0; i < FLAGS_LEN; i++) {
+          // we update the join masks based on the leave masks
+          join_masks[i] = tx_leaves[i];
+        }
 
         chaos_node_count = join_data_rx->node_count;
 
@@ -321,6 +370,11 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
         if (chaos_has_node_index) {
           tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
+          // we now check if we have successfully left
+          if ((tx_leaves[ARR_INDEX] & (1 << (ARR_OFFSET))) == 0) {
+            chaos_has_node_index = 0; // we need to join again!
+            chaos_node_index = 0;
+          }
         } else {
           // OVERFLOW TODO
           join_data_tx->overflow = 1;
@@ -358,19 +412,20 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
     leds_off(LEDS_GREEN);
   }
 
-  *app_flags = tx_mc->flags;
+  *app_flags = tx_mc->flags_and_leaves;
 
   int end = (slot_count >= MERGE_COMMIT_ROUND_MAX_SLOTS - 1) || (next_state == CHAOS_OFF);
 
   if(end){
     memcpy(&mc_local.mc.value, &tx_mc->value, sizeof(merge_commit_value_t));
     mc_local.mc.phase = tx_mc->phase;
-    tx_flags_final = tx_mc->flags;
+    tx_flags_final = tx_mc->flags_and_leaves;
     off_slot = slot_count;
 
     if (IS_INITIATOR()) {
         //sort joined_nodes_map to speed up search (to enable the use of binary search) when adding new nodes
-        join_do_sort_joined_nodes_map();
+      join_reset_nodes_map();
+      join_do_sort_joined_nodes_map();
     }
   }
 
@@ -431,23 +486,62 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   memcpy(&mc_local.mc.value, merge_commit_value, sizeof(merge_commit_value_t));
   mc_local.mc.phase = PHASE_MERGE;
 
+
+  // initialize the masks
+  int i;
+  for(i = 0; i < FLAGS_LEN; ++i) {
+    join_masks[i] = 0;
+  }
+
   // Add join behaviour
   if (chaos_has_node_index) {
     mc_local.mc.join_data.node_count = chaos_node_count;
     /* set my flag */
     uint8_t* flags = merge_commit_get_flags(&mc_local.mc);
     flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
-  } else {
-    // we try to join the network
-    mc_local.mc.join_data.slots[0] = node_id;
-    mc_local.mc.join_data.slot_count = 1;
   }
 
-  chaos_round(round_number, app_id, (const uint8_t const*)&mc_local, sizeof(mc_local.mc) + merge_commit_get_flags_length(), MERGE_COMMIT_SLOT_LEN_DCO, MERGE_COMMIT_ROUND_MAX_SLOTS, merge_commit_get_flags_length(), process);
-  memcpy(&mc_local.mc.flags, tx_flags_final, merge_commit_get_flags_length());
+  uint8_t* leaves = merge_commit_get_leaves(&mc_local.mc);
+
+  if (IS_INITIATOR()) {
+    // Initialize leave_flags for the slots that are
+
+    // we mark every chaos index that is present
+    int i = 0;
+    for(i = 0; i < MAX_NODE_COUNT; ++i) {
+      node_id_t nid = joined_nodes[i];
+      if (nid >  0) {
+        // node is present
+        join_masks[ARR_INDEX_X(i)] |= 1 << (ARR_OFFSET_X(i));
+      }
+    }
+
+    for(i = 0; i < FLAGS_LEN; ++i) {
+      leaves[i] = join_masks[i]; // mark left nodes
+    }
+
+  } else {
+
+    // we think that all nodes are present from the beginning
+    for(i = 0; i < FLAGS_LEN; ++i) {
+      leaves[i] = ~0;
+    }
+
+    if (chaos_has_node_index && merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE) {
+      // we try to leave the network, so we remove us
+      leaves[ARR_INDEX] = ~(1 << (ARR_OFFSET));
+    } else if (!chaos_has_node_index && merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_JOIN){
+      // we try to join the network
+      mc_local.mc.join_data.slots[0] = node_id;
+      mc_local.mc.join_data.slot_count = 1;
+    }
+  }
+
+  chaos_round(round_number, app_id, (const uint8_t const*)&mc_local, sizeof(mc_local.mc) + merge_commit_get_flags_and_leaves_overall_length(), MERGE_COMMIT_SLOT_LEN_DCO, MERGE_COMMIT_ROUND_MAX_SLOTS, merge_commit_get_flags_length(), process);
+  memcpy(&mc_local.mc.flags_and_leaves, tx_flags_final, merge_commit_get_flags_and_leaves_overall_length());
 
   memcpy(merge_commit_value, &mc_local.mc.value, sizeof(merge_commit_value_t));
-  *final_flags = mc_local.flags;
+  *final_flags = mc_local.flags_and_leaves;
   *phase = mc_local.mc.phase;
   return completion_slot;
 }

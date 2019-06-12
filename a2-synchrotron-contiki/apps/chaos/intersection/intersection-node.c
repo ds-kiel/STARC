@@ -339,65 +339,77 @@ PROCESS_THREAD(comm_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message && data != NULL);
 
     int size = decode_data(comm_buf, (const char *) data);
-    printf("decoded %d\n", size);
-
-    //if (size == 0) {
-    //  continue;
-    //}
-
-    // for now we only receive a new reservation...
-    // copy that reservation to our own
-
-    own_reservation.size = size;
-    memcpy(own_reservation.tiles, comm_buf, size);
-
-    uint8_t part_of_current = path_is_reserved(&mc_value, &own_reservation, chaos_node_index+1);
-
-    if (part_of_current) {
-      printf("Got updated reservation with size %d: ", size);
-    } else {
-      printf("Got NEW reservation with size %d: ", size);
-    }
-    int i = 0;
-    for(i = 0; i < size; ++i) {
-      int x;
-      int y;
-      id_to_pos(&x, &y, ((const char *)comm_buf)[i]);
-      printf("%d, ", ((const char *)comm_buf)[i]);
-    }
-    printf("\n");
-
-    // now we check if the new reservation is already part of our current reservation
-    // we distinguish three cases
-    // 1. the reservation is just 0
-    // 2. the reservation is part of the current reservation
-    // 3. the reservation is completely new
-
-
-
-
-    // clean current commit value
-    memset(&mc_value, 0, sizeof(merge_commit_value_t));
 
     if (size == 0) {
-      own_arrival = 0; // reset own arrival since we have no intention for a reservation
-    } else  {
-
-      if (!part_of_current) {
-        // we need to reset our own arrival time
-        own_arrival = 0;
-      }
-
-      if (chaos_has_node_index && (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1))) {
-        reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
-        set_own_arrival(&mc_value);
-        printf("Try to reserve new path with arrival %d: \n", own_arrival);
-        print_tiles(&mc_value);
-      }
+      continue;
     }
 
+    char msg_id = comm_buf[0];
+    int msg_size = size-1;
+    char * msg_data = comm_buf+1;
 
-    send_str("ack"); // ack the new reservation
+    printf("decoded %d\n with id %c\n", msg_size, msg_id);
+
+    if (msg_id == 'J') {
+      merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_JOIN;
+      printf("Trying to join network\n");
+    } else if(msg_id == 'L') {
+      merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE;
+      printf("Trying to leave network\n");
+    }
+    else if (msg_id == 'R') {
+      // copy that reservation to our own
+
+      own_reservation.size = msg_size;
+      memcpy(own_reservation.tiles, msg_data, msg_size);
+
+      uint8_t part_of_current = path_is_reserved(&mc_value, &own_reservation, chaos_node_index+1);
+
+      if (part_of_current) {
+        printf("Got updated reservation with size %d: ", msg_size);
+      } else {
+        printf("Got NEW reservation with size %d: ", msg_size);
+      }
+      int i = 0;
+      for(i = 0; i < msg_size; ++i) {
+        int x;
+        int y;
+        id_to_pos(&x, &y, ((const char *)msg_data)[i]);
+        printf("%d, ", ((const char *)msg_data)[i]);
+      }
+      printf("\n");
+
+      // now we check if the new reservation is already part of our current reservation
+      // we distinguish three cases
+      // 1. the reservation is just 0
+      // 2. the reservation is part of the current reservation
+      // 3. the reservation is completely new
+
+
+
+
+      // clean current commit value
+      memset(&mc_value, 0, sizeof(merge_commit_value_t));
+
+      if (msg_size == 0) {
+        own_arrival = 0; // reset own arrival since we have no intention for a reservation
+      } else  {
+
+        if (!part_of_current) {
+          // we need to reset our own arrival time
+          own_arrival = 0;
+        }
+
+        if (chaos_has_node_index && (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1))) {
+          reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
+          set_own_arrival(&mc_value);
+          printf("Try to reserve new path with arrival %d: \n", own_arrival);
+          print_tiles(&mc_value);
+        }
+      }
+      send_str("ack"); // ack the new reservation
+
+    }
   };
 
   PROCESS_END();
@@ -457,7 +469,7 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
   int size = 0;
   uint32_t chaos_index_with_arrivals[MAX_NODE_COUNT];
 
-  for(i = 0; i < chaos_node_count; ++i) {
+  for(i = 0; i < MAX_NODE_COUNT; ++i) {
     if (ARRIVAL_TIMES) {
       // we can use max value here since either one of them is 0 or both have the same value...
       int arrival = MAX(rx_mc->value.arrivals[i], tx_mc->value.arrivals[i]);

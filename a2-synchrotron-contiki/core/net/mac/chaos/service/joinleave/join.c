@@ -107,6 +107,8 @@ uint8_t chaos_join_flags_log[JOIN_ROUND_MAX_SLOTS]={0};
 uint8_t chaos_join_commit_log[JOIN_ROUND_MAX_SLOTS]={0};
 #endif
 
+
+
 //local state
 static uint8_t complete = 0;
 static uint8_t invalid_rx_count = 0;
@@ -124,15 +126,15 @@ static uint16_t complete_slot = 0;
 
 //initiator management
 static uint8_t is_join_round = 0; // only used on initiator
-static node_id_t joined_nodes[MAX_NODE_COUNT] = { 0 };
 
+node_id_t joined_nodes[MAX_NODE_COUNT] = {0};
 static join_node_map_entry_t joined_nodes_map[MAX_NODE_COUNT];
 
 static void round_begin(const uint16_t round_count, const uint8_t id);
 static int is_pending(const uint16_t round_count);
 static void round_begin_sniffer(chaos_header_t* header);
 static void round_end_sniffer(const chaos_header_t* header);
-static int join_binary_search( join_node_map_entry_t array[], int size, node_id_t search_id );
+static int join_binary_search_chaos_index( join_node_map_entry_t array[], int size, node_id_t search_id );
 static void join_merge_sort(join_node_map_entry_t a[], join_node_map_entry_t aux[], int lo, int hi);
 
 CHAOS_SERVICE(join, JOIN_SLOT_LEN, JOIN_ROUND_MAX_SLOTS, 0, is_pending, round_begin, round_begin_sniffer, round_end_sniffer);
@@ -239,7 +241,7 @@ inline int add_node(node_id_t id, uint8_t chaos_node_count_before_commit) {
   // search and check if this is node is already added
   LEDS_ON(LEDS_RED);
 
-  int j = join_binary_search(joined_nodes_map, chaos_node_count_before_commit, id);
+  int j = join_binary_search_chaos_index(joined_nodes_map, chaos_node_count_before_commit, id);
   LEDS_OFF(LEDS_RED);
 
   if( j > -1 ){
@@ -258,6 +260,26 @@ inline int add_node(node_id_t id, uint8_t chaos_node_count_before_commit) {
     return chaos_node_count-1;
   } else {
     return -1;
+  }
+}
+
+
+void join_reset_nodes_map() {
+
+  int c = 0;
+  int i;
+  for(i= 0; i < MAX_NODE_COUNT; ++i) {
+    node_id_t nid = joined_nodes[i];
+
+    if (nid > 0) {
+      joined_nodes_map[c].node_id = nid;
+      joined_nodes_map[c].chaos_index = i;
+      c++;
+    }
+  }
+
+  if (c != chaos_node_count) {
+    COOJA_DEBUG_STR("ERROR Not matching count");
   }
 }
 
@@ -655,7 +677,6 @@ static void round_end_sniffer(const chaos_header_t* header){
 }
 
 
-
 ////sort functions
 /* Merge sort code adopted from: http://algs4.cs.princeton.edu/lectures/22Mergesort.pdf */
 static void join_merge(join_node_map_entry_t a[], join_node_map_entry_t aux[], int lo, int mid, int hi) {
@@ -693,7 +714,8 @@ static void join_merge_sort(join_node_map_entry_t a[], join_node_map_entry_t aux
 
 //binary search
 //http://www.programmingsimplified.com/c/source-code/c-program-binary-search
-static int join_binary_search( join_node_map_entry_t array[], int size, node_id_t search_id ){
+
+int join_binary_search( join_node_map_entry_t array[], int size, node_id_t search_id ){
   int first = 0;
   int last = size - 1;
   int middle = ( first + last ) / 2;
@@ -702,7 +724,7 @@ static int join_binary_search( join_node_map_entry_t array[], int size, node_id_
     if( array[middle].node_id < search_id ){
       first = middle + 1;
     } else if( array[middle].node_id == search_id ){
-      return array[middle].chaos_index;
+      return middle;
     } else {
       last = middle - 1;
     }
@@ -711,7 +733,18 @@ static int join_binary_search( join_node_map_entry_t array[], int size, node_id_
   return -1;
 }
 
+static int join_binary_search_chaos_index( join_node_map_entry_t array[], int size, node_id_t search_id ){
+
+  int found = join_binary_search(array, size, search_id);
+
+  if (found >= 0) {
+    return array[found].chaos_index;
+  } else {
+    return found;
+  }
+}
+
 
 int join_get_index_for_node_id(node_id_t node_id) {
-  return join_binary_search(joined_nodes_map, chaos_node_count, node_id);
+  return join_binary_search_chaos_index(joined_nodes_map, chaos_node_count, node_id);
 }

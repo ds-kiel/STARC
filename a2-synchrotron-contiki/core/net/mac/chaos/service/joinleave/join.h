@@ -120,8 +120,13 @@ typedef struct __attribute__((packed)) {
     node_index_t indices[NODE_LIST_LEN]; //slots to write node ids into /* assigned indices */
 } join_data_t;
 
+
+extern node_id_t joined_nodes[MAX_NODE_COUNT];
+
 inline int join_merge_lists(node_id_t merge[], uint8_t max, node_id_t ids_a[], uint8_t ca, node_id_t ids_b[], uint8_t cb, uint8_t * delta);
 inline int add_node(node_id_t id, uint8_t chaos_node_count_before_commit);
+int join_binary_search( join_node_map_entry_t array[], int size, node_id_t search_id );
+void join_reset_nodes_map();
 
 void join_do_sort_joined_nodes_map();
 #endif /* _JOIN_H_ */
