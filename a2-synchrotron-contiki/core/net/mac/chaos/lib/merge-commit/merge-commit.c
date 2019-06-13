@@ -124,7 +124,7 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
 }
 #endif
 
-static uint8_t tx = 0, did_tx = 0;
+static uint8_t tx = 0, did_tx = 0, has_initial_join_masks = 0;
 static int complete = 0, off_slot, completion_slot, rx_progress = 0;
 static int tx_count_complete = 0;
 static int invalid_rx_count = 0;
@@ -200,17 +200,24 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
         uint8_t* rx_flags = merge_commit_get_flags(rx_mc);
 
+
+        if (!has_initial_join_masks) {
+          for(i = 0; i < FLAGS_LEN; i++) {
+            join_masks[i] = (~rx_leaves[i]) | tx_flags[i] | rx_flags[i];
+          }
+          has_initial_join_masks = 1;
+        }
+
+
         for(i = 0; i < FLAGS_LEN; i++) {
           tx |= (tx_leaves[i] != rx_leaves[i]) || (tx_flags[i] != rx_flags[i]);
 
-          tx_leaves[i] &= rx_leaves[i];
+          tx_leaves[i] |= rx_leaves[i];
 
           tx_flags[i] |= rx_flags[i];
 
           // we remove the entries in the join mask that have left the network
           // but we update our join mask based on live nodes
-          join_masks[i] |= tx_leaves[i] | tx_flags[i];
-
           if (tx_flags[i] != join_masks[i]) {
             flags_complete = 0;
           }
@@ -294,10 +301,10 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
               if( !join_data_tx->indices[i] && join_data_tx->slots[i] ){
                 int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
                 if (chaos_index >= 0) {
-                  printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
+                  //printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
                   join_data_tx->indices[i] = chaos_index;
                   // remove the leave flag
-                  tx_leaves[ARR_INDEX_X(chaos_index)] |= (1 << (ARR_OFFSET_X(chaos_index)));
+                  tx_leaves[ARR_INDEX_X(chaos_index)] &= ~(1 << (ARR_OFFSET_X(chaos_index)));
                 } else {
                   join_data_tx->overflow |= 1;
                 }
@@ -309,14 +316,14 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             for(i = 0; i < MAX_NODE_COUNT; ++i) {
               node_id_t nid = joined_nodes[i];
 
-              printf("leaves check  %d %d %d (%d, %d) %d\n", i, nid, (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) != 0, ARR_INDEX_X(i), ARR_OFFSET_X(i), tx_leaves[ARR_INDEX_X(i)]);
+              //printf("leaves check  %d %d %d (%d, %d) %d\n", i, nid, (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) == 0, ARR_INDEX_X(i), ARR_OFFSET_X(i), tx_leaves[ARR_INDEX_X(i)]);
 
               if (nid != 0) {
                 // check if node is still present
 
-                if ((tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) == 0) {
+                if (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) {
                   // node has left! -> remove it
-                  printf("Removing node %d with index %d\n", nid, i);
+                  //printf("Removing node %d with index %d\n", nid, i);
                   joined_nodes[i] = 0;
                   chaos_node_count--;
                 }
@@ -346,13 +353,14 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_and_leaves_overall_length());
         uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
         uint8_t* tx_leaves = merge_commit_get_leaves(tx_mc);
-        int i;
-        for(i = 0; i < FLAGS_LEN; i++) {
-          // we update the join masks based on the leave masks
-          join_masks[i] = tx_leaves[i];
-        }
 
         chaos_node_count = join_data_rx->node_count;
+
+        int i;
+        // we also need to update our join masks ;)
+        for(i = 0; i < FLAGS_LEN; i++) {
+          join_masks[i] = ~tx_leaves[i];
+        }
 
         // we are behind, check if we could join the network
         if( !chaos_has_node_index ){
@@ -371,7 +379,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         if (chaos_has_node_index) {
           tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
           // we now check if we have successfully left
-          if ((tx_leaves[ARR_INDEX] & (1 << (ARR_OFFSET))) == 0) {
+          if (tx_leaves[ARR_INDEX] & (1 << (ARR_OFFSET))) {
             chaos_has_node_index = 0; // we need to join again!
             chaos_node_index = 0;
           }
@@ -468,6 +476,7 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
 {
   tx = 0;
   did_tx = 0;
+  has_initial_join_masks = 0;
   got_valid_rx = 0;
   complete = 0;
   tx_count_complete = 0;
@@ -517,19 +526,15 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
     }
 
     for(i = 0; i < FLAGS_LEN; ++i) {
-      leaves[i] = join_masks[i]; // mark left nodes
+      leaves[i] = ~join_masks[i]; // mark left nodes
     }
 
   } else {
 
     // we think that all nodes are present from the beginning
-    for(i = 0; i < FLAGS_LEN; ++i) {
-      leaves[i] = ~0;
-    }
-
     if (chaos_has_node_index && merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE) {
       // we try to leave the network, so we remove us
-      leaves[ARR_INDEX] = ~(1 << (ARR_OFFSET));
+      leaves[ARR_INDEX] = (1 << (ARR_OFFSET));
     } else if (!chaos_has_node_index && merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_JOIN){
       // we try to join the network
       mc_local.mc.join_data.slots[0] = node_id;

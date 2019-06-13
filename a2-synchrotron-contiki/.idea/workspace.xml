@@ -10,16 +10,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2481c688-6bc0-4522-b60e-d964ad7195fa" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c" beforeDir="false" afterPath="$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/chaos/intersection/project-conf.h" beforeDir="false" afterPath="$PROJECT_DIR$/apps/chaos/intersection/project-conf.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.h" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/service/joinleave/join.c" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/service/joinleave/join.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/service/joinleave/join.h" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/service/joinleave/join.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/cooja/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-image-renderer-plugin" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-image-renderer-plugin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-image-renderer-plugin/java/org/contikios/cooja/plugins/skins/ImageVisualizerSkin.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-image-renderer-plugin/java/org/contikios/cooja/plugins/skins/ImageVisualizerSkin.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin" afterDir="false" />
@@ -28,9 +23,6 @@
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/Request.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/Request.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/V2IMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/V2IMessage.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/junction/TiledMapHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/junction/TiledMapHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/lib/vanet.jar" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/lib/vanet.jar" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -47,8 +39,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="561">
-              <caret line="374" column="63" selection-start-line="374" selection-start-column="63" selection-end-line="374" selection-end-column="63" />
+            <state relative-caret-position="933">
+              <caret line="303" column="95" selection-start-line="303" selection-start-column="95" selection-end-line="303" selection-end-column="95" />
               <folding>
                 <element signature="e#3611#4033#0" expanded="true" />
               </folding>
@@ -86,8 +78,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="115">
-              <caret line="281" column="29" selection-start-line="281" selection-start-column="29" selection-end-line="281" selection-end-column="29" />
+            <state relative-caret-position="440">
+              <caret line="412" selection-start-line="412" selection-end-line="412" />
             </state>
           </provider>
         </entry>
@@ -95,8 +87,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/project-conf.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
-              <caret line="70" column="37" selection-start-line="70" selection-start-column="37" selection-end-line="70" selection-end-column="37" />
+            <state relative-caret-position="571">
+              <caret line="209" column="11" selection-start-line="209" selection-start-column="11" selection-end-line="209" selection-end-column="11" />
             </state>
           </provider>
         </entry>
@@ -152,18 +144,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>now remo</find>
-      <find>add_node</find>
-      <find>join_do_sort_joined_nodes_map</find>
-      <find>two_pc_get_flags_length</find>
-      <find>reset_nodes_map</find>
-      <find>join_binar</find>
-      <find>flags</find>
-      <find>join_binary_search</find>
-      <find>size</find>
-      <find>comm_buf</find>
-      <find>JOIN_</find>
-      <find>merge_commit_get_leaves_length</find>
       <find>flags_masks_leaves</find>
       <find>flags_and_masks</find>
       <find>masks</find>
@@ -176,12 +156,24 @@
       <find>joined_nodes</find>
       <find>Added</find>
       <find>Remove</find>
-      <find>join_masks</find>
-      <find>leaves</find>
       <find>tx_leaves</find>
       <find>chaos_has_node_i</find>
-      <find>printf</find>
       <find>commit</find>
+      <find>leaves</find>
+      <find>did_tx</find>
+      <find>tx_flags</find>
+      <find>has_initial_join_mas</find>
+      <find>initial_join_mask</find>
+      <find>has_initial_join_mask</find>
+      <find>join_masks</find>
+      <find>merge</find>
+      <find>chaos_node_index</find>
+      <find>mc_value</find>
+      <find>own_arrival</find>
+      <find>set_own_arrival</find>
+      <find>Commit NOT Compl</find>
+      <find>printf</find>
+      <find>print</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -206,6 +198,7 @@
       <replace>flags_masks_leaves</replace>
       <replace>flags_and_masks</replace>
       <replace>merge_commit_get_flags_masks_leaves_overall_length</replace>
+      <replace>has_initial_join_masks</replace>
     </replaceStrings>
     <dirStrings>
       <dir>$PROJECT_DIR$/../a2-synchrotron-contiki48D2 1A3E 67F1 4DF1 B26E C5D6 D3FB D0E6 1EC8 63A9</dir>
@@ -283,8 +276,9 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="y" value="23" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="1709" />
+    <option name="y" value="-422" />
     <option name="width" value="1280" />
     <option name="height" value="777" />
   </component>
@@ -437,18 +431,18 @@
       <workItem from="1559217084401" duration="4683000" />
       <workItem from="1559637812511" duration="28767000" />
       <workItem from="1560249324305" duration="20875000" />
-      <workItem from="1560363763317" duration="5519000" />
+      <workItem from="1560363763317" duration="8588000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="197132000" />
+    <option name="totallyTimeSpent" value="200201000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1280" height="777" extended-state="6" />
+    <frame x="1280" y="-605" width="1920" height="1177" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.06946688" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.045793395" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -810,24 +804,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
+    <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/project-conf.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="115">
-          <caret line="281" column="29" selection-start-line="281" selection-start-column="29" selection-end-line="281" selection-end-column="29" />
+        <state relative-caret-position="571">
+          <caret line="209" column="11" selection-start-line="209" selection-start-column="11" selection-end-line="209" selection-end-column="11" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/project-conf.h">
+    <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="70" column="37" selection-start-line="70" selection-start-column="37" selection-end-line="70" selection-end-column="37" />
+        <state relative-caret-position="440">
+          <caret line="412" selection-start-line="412" selection-end-line="412" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="561">
-          <caret line="374" column="63" selection-start-line="374" selection-start-column="63" selection-end-line="374" selection-end-column="63" />
+        <state relative-caret-position="933">
+          <caret line="303" column="95" selection-start-line="303" selection-start-column="95" selection-end-line="303" selection-end-column="95" />
           <folding>
             <element signature="e#3611#4033#0" expanded="true" />
           </folding>

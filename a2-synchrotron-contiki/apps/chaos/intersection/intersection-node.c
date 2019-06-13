@@ -264,7 +264,8 @@ static uint16_t mc_round_count_local = 0;
 // TODO: Someone should set the arrival value to 1 in order to keep the reservations until freed
 static void set_own_arrival(merge_commit_value_t *val) {
   if (ARRIVAL_TIMES) {
-    if (!own_arrival) {
+    // we need to check if we have a chaos node id
+    if (!own_arrival && chaos_has_node_index) {
       own_arrival = mc_round_count_local+2; // 0 is no reservation, 1 is for the ones in the intersection
     }
    val->arrivals[chaos_node_index] = own_arrival;
@@ -290,8 +291,6 @@ PROCESS_BEGIN();
 
         // Set latest known commit value
         memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
-
-        // TODO: Send commited value to JAVA
 
         if (path_is_reserved(&mc_commited_value, &own_reservation, chaos_node_index+1)) {
           own_arrival = 1; // we do not want that any other node intercepts our request...
@@ -472,6 +471,7 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
   for(i = 0; i < MAX_NODE_COUNT; ++i) {
     if (ARRIVAL_TIMES) {
       // we can use max value here since either one of them is 0 or both have the same value...
+      // TODO: Bitwise or?
       int arrival = MAX(rx_mc->value.arrivals[i], tx_mc->value.arrivals[i]);
       if (arrival > 0) {
 
