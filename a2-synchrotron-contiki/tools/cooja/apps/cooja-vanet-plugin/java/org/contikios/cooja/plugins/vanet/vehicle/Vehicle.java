@@ -131,7 +131,6 @@ public class Vehicle {
         } else if (state == STATE_QUEUING) {
             if (Vector2D.distance(startPos, body.getCenter()) < 0.2) {
                 messageProxy.send("J".getBytes());
-            System.out.print("Mote " + "Sending join");
                 requestReservation();
                 return STATE_WAITING;
             } else {
@@ -163,7 +162,6 @@ public class Vehicle {
             return STATE_MOVING;
         } else if (state == STATE_LEAVING) {
             messageProxy.send("L".getBytes());
-            System.out.print("Mote " + "Sending leave");
             return STATE_FINISHED;
         } else if (state == STATE_FINISHED) {
 

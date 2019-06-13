@@ -199,7 +199,6 @@ inline int join_merge_lists(node_id_t merge[], uint8_t max, node_id_t ids_a[], u
   uint8_t index_a = 0;
   uint8_t index_b = 0;
 
-
   // We merge both sorted ids
   uint8_t equal_count = 0;
 

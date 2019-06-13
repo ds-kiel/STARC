@@ -111,7 +111,7 @@ public class Vanet extends VisPlugin {
         // then update all the nodes#+
         if (world != null) {
             world.simulate(delta);
-            //VanetVisualizerSkin.saveImage(simulation.getSimulationTimeMillis());
+            VanetVisualizerSkin.saveImage(simulation.getSimulationTimeMillis());
         }
     }
 }

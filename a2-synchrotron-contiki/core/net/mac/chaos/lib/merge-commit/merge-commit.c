@@ -169,6 +169,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
   join_data_t* join_data_tx = &tx_mc->join_data;
   join_data_t* join_data_rx = &rx_mc->join_data;
 
+
   chaos_state_t next_state = CHAOS_RX;
 
   /* the application reports a packet coming from the initiator, so we can synchronize on it;

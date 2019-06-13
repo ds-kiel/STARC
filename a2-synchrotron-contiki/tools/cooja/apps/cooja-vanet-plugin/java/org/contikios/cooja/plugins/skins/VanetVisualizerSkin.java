@@ -263,8 +263,9 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
     public void setActive(Simulation simulation, Visualizer vis) {
         this.visualizer = vis;
-
         this.canvas = vis.getCurrentCanvas();
+
+
 
         this.canvas.addKeyListener(new KeyListener() {
             @Override
@@ -300,16 +301,23 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         return visualizer;
     }
 
-
     public static void saveImage(long ms) {
+
         if (visualizer != null && canvas != null) {
             JPanel paintPane = canvas;
+            visualizer.setSize(512+12,512+54);
             BufferedImage image = new BufferedImage(paintPane.getWidth(), paintPane.getHeight(), BufferedImage.TYPE_INT_RGB);
             Graphics2D g = image.createGraphics();
             paintPane.printAll(g);
             g.dispose();
             try {
-                File f = new File(String.format("export/Visualizer_%08d.png", ms));
+
+                String userHomeFolder = System.getProperty("user.home");
+                File directory = new File(userHomeFolder, "Desktop/export");
+                if (! directory.exists()){
+                    directory.mkdirs();
+                }
+                File f = new File(directory, String.format("img_%06d.png", directory.list().length));
                 ImageIO.write(image, "png", f);
                 System.out.println(f.getAbsoluteFile());
             } catch (IOException exp) {
