@@ -615,7 +615,6 @@ chaos_round(const uint16_t round_number, const uint8_t app_id, const uint8_t* co
 #endif /* CHAOS_HW_SECURITY */
 
         chaos_slot_status = chaos_do_tx();
-      LEDS_ON(LEDS_RED);
 
         chaos_slot_timing_log_current[TX] = t_txrx_end - call_dco;
         chaos_slot_timing_tx_sum += chaos_slot_timing_log_current[TX];
@@ -641,7 +640,6 @@ chaos_round(const uint16_t round_number, const uint8_t app_id, const uint8_t* co
     } else {
 
       chaos_slot_status = chaos_do_rx(app_id);
-      LEDS_ON(LEDS_RED);
       chaos_slot_timing_log_current[RX] = t_txrx_end - call_dco;
       chaos_slot_timing_rx_sum += chaos_slot_timing_log_current[RX];
       if(slot_number > sync_slot){
@@ -734,7 +732,6 @@ chaos_round(const uint16_t round_number, const uint8_t app_id, const uint8_t* co
     }
     /* process app */
     if( !chaos_apps[app_id]->requires_node_index || chaos_has_node_index ){
-      LEDS_OFF(LEDS_RED);
       chaos_state = process(round_number, slot_number, chaos_state, (chaos_slot_status == CHAOS_TXRX_OK), (chaos_slot_status == CHAOS_TXRX_OK) ? CHAOS_PAYLOAD_LENGTH(rx_header) : 0, rx_header->payload, tx_header->payload, &app_flags);
       int app_do_sync = ( chaos_state == CHAOS_RX_SYNC ) || ( chaos_state == CHAOS_TX_SYNC );
       chaos_state = ( chaos_state == CHAOS_RX_SYNC ) ? chaos_state = CHAOS_RX : (( chaos_state == CHAOS_TX_SYNC ) ? chaos_state = CHAOS_TX : chaos_state);

@@ -389,9 +389,9 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
         if ( delta_slots ) {
 
           // we will use +1 to detect overflows!
-          node_id_t merge[sizeof(join_data_tx->slots)+1] = {0};
+          node_id_t merge[sizeof(join_data_tx->slots)/sizeof(join_data_tx->slots[0])+1] = {0};
 
-          uint8_t merge_size = join_merge_lists(merge, sizeof(merge), join_data_tx->slots, join_data_tx->slot_count, join_data_rx->slots, join_data_rx->slot_count, &delta);
+          uint8_t merge_size = join_merge_lists(merge, sizeof(merge)/sizeof(merge[0]), join_data_tx->slots, join_data_tx->slot_count, join_data_rx->slots, join_data_rx->slot_count, &delta);
 
           /* New overflow? */
           if (merge_size >= sizeof(join_data_tx->slots)/ sizeof(node_id_t)) {

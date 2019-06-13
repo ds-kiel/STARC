@@ -259,11 +259,12 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             // we will use +1 to detect overflows!
             node_id_t merge[sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]) + 1] = {0};
             uint8_t delta;
+
             uint8_t merge_size = join_merge_lists(merge, sizeof(merge)/sizeof(merge[0]), join_data_tx->slots, join_data_tx->slot_count,
                                                   join_data_rx->slots, join_data_rx->slot_count, &delta);
             if (delta) {
               delta_at_slot = slot_count;
-              tx |= 1; //arrays differs, so TX
+              tx |= 1; //arrays differ, so TX
             }
 
             /* New overflow? */
@@ -339,7 +340,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
             // we also need to update our join masks ;)
             for(i = 0; i < FLAGS_LEN; i++) {
-              join_masks[i] = ~tx_leaves[i];
+              join_masks[i] |= ~tx_leaves[i];
             }
 
             //update phase and node_count
@@ -370,7 +371,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         int i;
         // we also need to update our join masks ;)
         for(i = 0; i < FLAGS_LEN; i++) {
-          join_masks[i] = ~tx_leaves[i];
+          join_masks[i] |= ~tx_leaves[i];
         }
 
         // we are behind, check if we could join the network
