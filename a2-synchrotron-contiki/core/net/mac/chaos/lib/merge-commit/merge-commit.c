@@ -160,6 +160,9 @@ static chaos_state_t
 process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, int chaos_txrx_success, size_t payload_length, uint8_t* rx_payload, uint8_t* tx_payload, uint8_t** app_flags)
 {
 
+
+
+  //int start = RTIMER_NOW();
   merge_commit_t* tx_mc = (merge_commit_t*)tx_payload;
   merge_commit_t* rx_mc = (merge_commit_t*)rx_payload;
 
@@ -229,7 +232,10 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         if (tx_mc->phase == PHASE_MERGE) {
 
           if (chaos_has_node_index) {
+            //leds_on(LEDS_RED);
             merge_commit_merge_callback(rx_mc, tx_mc);
+            //leds_off(LEDS_RED);
+
           } else {
             // we compare the new commit value
             if (memcmp(&tx_mc->value, &rx_mc->value, sizeof(merge_commit_value_t)) != 0) {
@@ -249,6 +255,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             delta_slots = memcmp(join_data_tx->slots, join_data_rx->slots, sizeof(join_data_rx->slots)) != 0;
           }
           if ( delta_slots ) {
+
             // we will use +1 to detect overflows!
             node_id_t merge[sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]) + 1] = {0};
             uint8_t delta;
@@ -270,6 +277,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             if (merge_size > 0) {
               COOJA_DEBUG_PRINTF("MERGED LISTS with %d", merge[0]);
             }
+
           }
 
           if (!chaos_has_node_index) {
@@ -284,7 +292,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
           if (IS_INITIATOR() && flags_complete
             && (slot_count >= MERGE_COMMIT_MAX_COMMIT_SLOT
                   || (COMMIT_THRESHOLD && delta_at_slot > 0 && slot_count >= delta_at_slot+COMMIT_THRESHOLD))) {
-            LEDS_ON(LEDS_RED);
+            //LEDS_ON(LEDS_RED);
             memset(tx_flags, 0, merge_commit_get_flags_length());
             tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
 
@@ -312,7 +320,6 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             }
 
             // then remove every node that wants to leave
-            int i = 0;
             for(i = 0; i < MAX_NODE_COUNT; ++i) {
               node_id_t nid = joined_nodes[i];
 
@@ -330,6 +337,10 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
               }
             }
 
+            // we also need to update our join masks ;)
+            for(i = 0; i < FLAGS_LEN; i++) {
+              join_masks[i] = ~tx_leaves[i];
+            }
 
             //update phase and node_count
             join_data_tx->node_count = chaos_node_count;
@@ -369,7 +380,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             if (join_data_rx->slots[i] == node_id) {
               chaos_node_index = join_data_rx->indices[i];
               chaos_has_node_index = 1;
-              LEDS_ON(LEDS_RED);
+              //LEDS_ON(LEDS_RED);
               COOJA_DEBUG_PRINTF("JOINED");
               break;
             }
@@ -389,7 +400,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         }
 
         tx = 1;
-        leds_on(LEDS_BLUE);
+        //leds_on(LEDS_BLUE);
         request_sync = 1;
       } else {//tx_mc_pc->phase > rx_mc_pc->phase
         //local phase is more advanced. Drop received one and just transmit to allow others to catch up
@@ -449,8 +460,9 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
     }
   }*/
 
+  /*
 
-  /*static int time_diff = 0;
+  static int time_diff = 0;
   int endTime = RTIMER_NOW();
   if (time_diff < endTime-start) {
     printf("New Merge-Commit diff %d ms\n", 1000*time_diff/RTIMER_SECOND);
@@ -524,6 +536,7 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
         join_masks[ARR_INDEX_X(i)] |= 1 << (ARR_OFFSET_X(i));
       }
     }
+    has_initial_join_masks = 1;
 
     for(i = 0; i < FLAGS_LEN; ++i) {
       leaves[i] = ~join_masks[i]; // mark left nodes

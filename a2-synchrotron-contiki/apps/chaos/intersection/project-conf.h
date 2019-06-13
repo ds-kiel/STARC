@@ -67,9 +67,9 @@
 #undef  CHAOS_INTERVAL
 
 
-#define MERGE_COMMIT_ROUND_MAX_SLOTS (200)
+#define MERGE_COMMIT_ROUND_MAX_SLOTS (150)
 #define MERGE_COMMIT_SLOT_LEN_MSEC 6
-#define CHAOS_INTERVAL (2*(RTIMER_SECOND))
+#define CHAOS_INTERVAL (2*RTIMER_SECOND)
 
 
 #if COOJA
@@ -82,8 +82,12 @@
 #define JOIN_ROUNDS_AFTER_BOOTUP (5)
 #endif
 
+
+
+
+// Keep this enabled, because the nodes were starting to fail
 #undef LLSEC802154_CONF_SECURITY_LEVEL
-#define LLSEC802154_CONF_SECURITY_LEVEL _param_sec //MIC
+#define LLSEC802154_CONF_SECURITY_LEVEL 1 //MIC
 
 #define JOIN_STRESS_TEST (_param_join == 2)
 

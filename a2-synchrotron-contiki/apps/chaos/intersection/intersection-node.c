@@ -459,7 +459,6 @@ int comp_node_with_arrival (const void * a, const void * b)
 void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
 
   static int time_diff = 0;
-  int start = RTIMER_NOW();
   int i = 0;
   int c = 0;
   merge_commit_value_t new;
