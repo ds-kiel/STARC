@@ -81,8 +81,9 @@ typedef struct __attribute__((packed)) {
 
 
 typedef struct __attribute__((packed)) {
-    merge_commit_value_t value;
+    char gap_0[1];
     join_data_t join_data;
+    merge_commit_value_t value;
     uint8_t phase;
     uint8_t flags_and_leaves[];
 } merge_commit_t;
