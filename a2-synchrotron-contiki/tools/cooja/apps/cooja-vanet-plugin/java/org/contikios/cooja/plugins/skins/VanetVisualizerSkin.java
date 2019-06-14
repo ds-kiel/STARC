@@ -46,6 +46,9 @@ import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.Position;
+import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.UnknownVariableException;
+import org.contikios.cooja.mote.memory.VarMemory;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.Visualizer;
 import org.contikios.cooja.plugins.VisualizerSkin;
@@ -265,8 +268,6 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         this.visualizer = vis;
         this.canvas = vis.getCurrentCanvas();
 
-
-
         this.canvas.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
@@ -291,7 +292,21 @@ public class VanetVisualizerSkin implements VisualizerSkin {
     }
 
     public Color[] getColorOf(Mote mote) {
-        return null;
+        Color[] colors = null;
+
+        VarMemory moteMemory = new VarMemory(mote.getMemory());
+
+        try {
+            byte hasNodeIndex = moteMemory.getByteValueOf("chaos_has_node_index");
+
+            if (hasNodeIndex != 0) {
+                colors = new Color[1];
+                colors[0] = Color.LIGHT_GRAY;
+            }
+        } catch (UnknownVariableException e) {
+            e.printStackTrace();
+        }
+        return colors;
     }
 
     public void paintAfterMotes(Graphics g) {

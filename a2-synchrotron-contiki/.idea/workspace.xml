@@ -10,9 +10,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2481c688-6bc0-4522-b60e-d964ad7195fa" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/service/joinleave/join.c" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/service/joinleave/join.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/.idea/workspace.xml" afterDir="false" />
@@ -24,6 +21,8 @@
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/Request.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/Request.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/V2IMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/V2IMessage.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/lib/vanet.jar" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/lib/vanet.jar" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -40,8 +39,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="119">
-              <caret line="319" column="17" selection-start-line="319" selection-start-column="17" selection-end-line="319" selection-end-column="17" />
+            <state relative-caret-position="330">
+              <caret line="378" column="33" selection-start-line="378" selection-start-column="13" selection-end-line="378" selection-end-column="33" />
               <folding>
                 <element signature="e#3611#4033#0" expanded="true" />
               </folding>
@@ -286,10 +285,10 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1709" />
-    <option name="y" value="-422" />
-    <option name="width" value="1280" />
-    <option name="height" value="777" />
+    <option name="x" value="1280" />
+    <option name="y" value="-605" />
+    <option name="width" value="1920" />
+    <option name="height" value="1177" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -440,12 +439,12 @@
       <workItem from="1559217084401" duration="4683000" />
       <workItem from="1559637812511" duration="28767000" />
       <workItem from="1560249324305" duration="20875000" />
-      <workItem from="1560363763317" duration="18942000" />
+      <workItem from="1560363763317" duration="19091000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="210555000" />
+    <option name="totallyTimeSpent" value="210704000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="-605" width="1920" height="1177" extended-state="6" />
@@ -840,8 +839,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="319" column="17" selection-start-line="319" selection-start-column="17" selection-end-line="319" selection-end-column="17" />
+        <state relative-caret-position="330">
+          <caret line="378" column="33" selection-start-line="378" selection-start-column="13" selection-end-line="378" selection-end-column="33" />
           <folding>
             <element signature="e#3611#4033#0" expanded="true" />
           </folding>

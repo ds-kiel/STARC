@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5a4379da-c354-499e-a105-038048a2b773" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../core/net/mac/chaos/lib/merge-commit/merge-commit.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../core/net/mac/chaos/lib/merge-commit/merge-commit.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../core/net/mac/chaos/service/joinleave/join.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../core/net/mac/chaos/service/joinleave/join.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../examples/contiki-intersection-mote" beforeDir="false" afterPath="$PROJECT_DIR$/../../examples/contiki-intersection-mote" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-image-renderer-plugin" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-image-renderer-plugin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-image-renderer-plugin/java/org/contikios/cooja/plugins/skins/ImageVisualizerSkin.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-image-renderer-plugin/java/org/contikios/cooja/plugins/skins/ImageVisualizerSkin.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin" afterDir="false" />
@@ -15,9 +11,7 @@
       <change beforePath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/Request.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/Request.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/V2IMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/java/org/contikios/cooja/plugins/intersection_manager/msg/v2i/V2IMessage.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/Vanet.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/cooja-vanet-plugin/lib/vanet.jar" beforeDir="false" afterPath="$PROJECT_DIR$/apps/cooja-vanet-plugin/lib/vanet.jar" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -43,39 +37,35 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/junction/TiledMapHandler.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="735">
-              <caret line="65" column="81" selection-start-line="65" selection-start-column="81" selection-end-line="65" selection-end-column="81" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/util/Random.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1365">
-              <caret line="126" column="42" selection-start-line="126" selection-start-column="36" selection-end-line="126" selection-end-column="42" />
-              <folding>
-                <element signature="e#3504#3505#0" expanded="true" />
-                <element signature="e#3562#3563#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="656">
-              <caret line="308" column="41" selection-start-line="308" selection-start-column="41" selection-end-line="308" selection-end-column="41" />
+            <state relative-caret-position="492">
+              <caret line="307" column="9" lean-forward="true" selection-start-line="307" selection-start-column="9" selection-end-line="307" selection-end-column="9" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#4195#4196#0" expanded="true" />
+                <element signature="e#4239#4240#0" expanded="true" />
+                <element signature="e#10464#10465#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/awt/Color.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1219">
+              <caret line="202" column="30" selection-start-line="202" selection-start-column="30" selection-end-line="202" selection-end-column="30" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/plugins/VariableWatcher.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="335">
+              <caret line="218" column="55" selection-start-line="218" selection-start-column="17" selection-end-line="218" selection-end-column="55" />
             </state>
           </provider>
         </entry>
@@ -108,7 +98,7 @@
         <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/plugins/Visualizer.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="335">
-              <caret line="685" column="16" selection-start-line="685" selection-start-column="9" selection-end-line="685" selection-end-column="16" />
+              <caret line="1266" column="22" selection-start-line="1266" selection-start-column="12" selection-end-line="1266" selection-end-column="22" />
               <folding>
                 <element signature="e#46532#46533#0" expanded="true" />
                 <element signature="e#46555#46556#0" expanded="true" />
@@ -163,12 +153,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>acc</find>
-      <find>acceleration</find>
-      <find>maxSpeed</find>
-      <find>mayMove</find>
-      <find>startPos</find>
-      <find>STATE_LEAVING</find>
       <find>wayPoints</find>
       <find>waypoints</find>
       <find>STATE_REQUEST_INIT</find>
@@ -190,9 +174,15 @@
       <find>resetViewport</find>
       <find>visualizer</find>
       <find>paintPane</find>
-      <find>canvas</find>
       <find>reset</find>
       <find>setSize</find>
+      <find>canvas</find>
+      <find>VarMemory</find>
+      <find>copy</find>
+      <find>Color(Color</find>
+      <find>moteColors</find>
+      <find>simulation</find>
+      <find>moteMemory =</find>
     </findStrings>
     <replaceStrings>
       <replace>Vanet</replace>
@@ -268,10 +258,10 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1859" />
-    <option name="y" value="-309" />
-    <option name="width" value="960" />
-    <option name="height" value="583" />
+    <option name="x" value="1280" />
+    <option name="y" value="-605" />
+    <option name="width" value="1920" />
+    <option name="height" value="1177" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -404,6 +394,27 @@
               <item name="cooja" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="cooja" type="b2602c69:ProjectViewProjectNode" />
+              <item name="cooja" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="cooja" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="cooja" type="b2602c69:ProjectViewProjectNode" />
+              <item name="cooja" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="cooja" type="462c0819:PsiDirectoryNode" />
+              <item name="plugins" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="cooja" type="b2602c69:ProjectViewProjectNode" />
+              <item name="cooja" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="cooja" type="462c0819:PsiDirectoryNode" />
+              <item name="plugins" type="462c0819:PsiDirectoryNode" />
+              <item name="VariableWatcher.java" type="529ef68f:ClassesTreeStructureProvider$PsiClassOwnerTreeNode" />
+            </path>
           </expand>
           <select />
         </subPane>
@@ -511,12 +522,12 @@
       <workItem from="1559656353974" duration="1596000" />
       <workItem from="1560263535790" duration="1873000" />
       <workItem from="1560363792966" duration="635000" />
-      <workItem from="1560435654184" duration="2022000" />
+      <workItem from="1560435654184" duration="3459000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="99119000" />
+    <option name="totallyTimeSpent" value="100556000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -531,7 +542,7 @@
     <frame x="1280" y="-605" width="1920" height="1177" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.37326944" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24068157" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -565,20 +576,6 @@
     <option name="version" value="1" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/motes/AbstractApplicationMote.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="59" column="22" selection-start-line="59" selection-start-column="22" selection-end-line="59" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/motes/DisturberMoteType.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="561">
-          <caret line="87" column="22" selection-start-line="87" selection-start-column="22" selection-end-line="87" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/Mote.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="202">
@@ -1028,10 +1025,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_92.jdk/Contents/Home/src.zip!/java/awt/Color.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1219">
+          <caret line="202" column="30" selection-start-line="202" selection-start-column="30" selection-end-line="202" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/plugins/Visualizer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="335">
-          <caret line="685" column="16" selection-start-line="685" selection-start-column="9" selection-end-line="685" selection-end-column="16" />
+          <caret line="1266" column="22" selection-start-line="1266" selection-start-column="12" selection-end-line="1266" selection-end-column="22" />
           <folding>
             <element signature="e#46532#46533#0" expanded="true" />
             <element signature="e#46555#46556#0" expanded="true" />
@@ -1039,12 +1043,22 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/java/org/contikios/cooja/plugins/VariableWatcher.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="335">
+          <caret line="218" column="55" selection-start-line="218" selection-start-column="17" selection-end-line="218" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="656">
-          <caret line="308" column="41" selection-start-line="308" selection-start-column="41" selection-end-line="308" selection-end-column="41" />
+        <state relative-caret-position="492">
+          <caret line="307" column="9" lean-forward="true" selection-start-line="307" selection-start-column="9" selection-end-line="307" selection-end-column="9" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#4195#4196#0" expanded="true" />
+            <element signature="e#4239#4240#0" expanded="true" />
+            <element signature="e#10464#10465#0" expanded="true" />
           </folding>
         </state>
       </provider>
