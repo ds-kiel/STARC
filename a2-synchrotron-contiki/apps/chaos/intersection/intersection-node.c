@@ -287,7 +287,7 @@ PROCESS_BEGIN();
 
         printf("own reserv.size %d\n", own_reservation.size);
 
-        print_tiles(&mc_commited_value);
+        //print_tiles(&mc_commited_value);
 
         // Set latest known commit value
         memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
@@ -304,7 +304,7 @@ PROCESS_BEGIN();
             reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
             set_own_arrival(&mc_value);
             printf("Try to reserve path with arrival %d: \n", own_arrival);
-            print_tiles(&mc_value);
+            //print_tiles(&mc_value);
           }
         }
       } else {
@@ -403,7 +403,7 @@ PROCESS_THREAD(comm_process, ev, data)
           reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
           set_own_arrival(&mc_value);
           printf("Try to reserve new path with arrival %d: \n", own_arrival);
-          print_tiles(&mc_value);
+          //print_tiles(&mc_value);
         }
       }
       send_str("ack"); // ack the new reservation

@@ -318,7 +318,8 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
     public static void saveImage(long ms) {
 
-        if (visualizer != null && canvas != null) {
+
+        if (false && visualizer != null && canvas != null) {
             JPanel paintPane = canvas;
             visualizer.setSize(512+12,512+54);
             BufferedImage image = new BufferedImage(paintPane.getWidth(), paintPane.getHeight(), BufferedImage.TYPE_INT_RGB);

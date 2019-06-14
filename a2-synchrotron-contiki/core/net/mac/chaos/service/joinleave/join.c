@@ -127,6 +127,8 @@ static uint16_t complete_slot = 0;
 //initiator management
 static uint8_t is_join_round = 0; // only used on initiator
 
+
+node_index_t free_slots[MAX_NODE_COUNT] = {0};
 node_id_t joined_nodes[MAX_NODE_COUNT] = {0};
 static join_node_map_entry_t joined_nodes_map[MAX_NODE_COUNT];
 
@@ -190,6 +192,7 @@ void join_init(){
     joined_nodes_map[0].chaos_index=0;
     joined_nodes_map[0].node_id=node_id;
     chaos_node_count = 1;
+    join_init_free_slots();
   }
 }
 
@@ -250,36 +253,68 @@ inline int add_node(node_id_t id, uint8_t chaos_node_count_before_commit) {
 
   // add only if we have have space for it
   if(chaos_node_count < MAX_NODE_COUNT) {
-    joined_nodes[chaos_node_count] = id;
+    node_index_t chaos_index = free_slots[MAX_NODE_COUNT-1-chaos_node_count];
+    joined_nodes[chaos_index] = id;
 
     // joined_nodes_map will be sorted later
     joined_nodes_map[chaos_node_count].node_id = id;
-    joined_nodes_map[chaos_node_count].chaos_index = chaos_node_count;
+    joined_nodes_map[chaos_node_count].chaos_index = chaos_index;
     chaos_node_count++;
-    return chaos_node_count-1;
+    return chaos_index;
   } else {
     return -1;
   }
 }
 
 
+void join_init_free_slots() {
+  // we can calculate the number of free slots:
+  uint8_t num_free = 0;
+
+  int i;
+  // the free slots are used in reverse
+  for(i= MAX_NODE_COUNT-1; i >= 0; --i) {
+    node_id_t nid = joined_nodes[i];
+    if (nid == 0) {
+      // this slot is free!
+      free_slots[num_free] = i;
+      num_free++;
+    }
+  }
+
+  if (num_free != MAX_NODE_COUNT-chaos_node_count) {
+      printf("leaves Num free not matching!\n");
+  }
+
+
+  /*i = chaos_node_count;
+  while(i < MAX_NODE_COUNT) {
+    node_index_t chaos_index = free_slots[MAX_NODE_COUNT-1-i];
+    printf("Free Slots: %d, %d\n", chaos_index, MAX_NODE_COUNT-1-i);
+    ++i;
+  }*/
+}
+
+
 void join_reset_nodes_map() {
 
-  int c = 0;
+  uint8_t map_count = 0;
+
   int i;
   for(i= 0; i < MAX_NODE_COUNT; ++i) {
     node_id_t nid = joined_nodes[i];
 
     if (nid > 0) {
-      joined_nodes_map[c].node_id = nid;
-      joined_nodes_map[c].chaos_index = i;
-      c++;
+      joined_nodes_map[map_count].node_id = nid;
+      joined_nodes_map[map_count].chaos_index = i;
+      map_count++;
     }
   }
 
-  if (c != chaos_node_count) {
-    COOJA_DEBUG_STR("ERROR Not matching count");
+  if (map_count != chaos_node_count) {
+    printf("leaves Not matching count");
   }
+  join_do_sort_joined_nodes_map();
 }
 
 //only executed by initiator
@@ -558,7 +593,8 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
   int end = (slot >= JOIN_ROUND_MAX_SLOTS - 2) || (next_state == CHAOS_OFF);
   if(IS_INITIATOR() && end){
     //sort joined_nodes_map to speed up search (to enable the use of binary search) when adding new nodes
-    join_do_sort_joined_nodes_map();
+    join_reset_nodes_map();
+    join_init_free_slots();
   }
   if(end){
     off_slot = slot;
