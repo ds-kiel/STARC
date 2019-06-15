@@ -312,7 +312,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
               if( /*!join_data_tx->indices[i] &&*/ join_data_tx->slots[i] ){
                 int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
                 if (chaos_index >= 0) {
-                  printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
+                  //printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
                   join_data_tx->indices[i] = chaos_index;
                   // remove the leave flag
                   tx_leaves[ARR_INDEX_X(chaos_index)] &= ~(1 << (ARR_OFFSET_X(chaos_index)));
@@ -327,14 +327,14 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             for(i = 0; i < MAX_NODE_COUNT; ++i) {
               node_id_t nid = joined_nodes[i];
 
-              printf("leaves check  %d %d %d (%d, %d) %d\n", i, nid, (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) == 0, ARR_INDEX_X(i), ARR_OFFSET_X(i), tx_leaves[ARR_INDEX_X(i)]);
+              //printf("leaves check  %d %d %d (%d, %d) %d\n", i, nid, (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) == 0, ARR_INDEX_X(i), ARR_OFFSET_X(i), tx_leaves[ARR_INDEX_X(i)]);
 
               if (nid != 0) {
                 // check if node wants to leave
 
                 if (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) {
                   // node has left! -> remove it
-                  printf("Removing node %d with index %d\n", nid, i);
+                  //printf("Removing node %d with index %d\n", nid, i);
                   joined_nodes[i] = 0;
                   chaos_node_count--;
                 }
@@ -384,6 +384,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
             if (join_data_rx->slots[i] == node_id) {
               chaos_node_index = join_data_rx->indices[i];
               chaos_has_node_index = 1;
+              //printf("Joined with index %d\n", chaos_node_index);
               //LEDS_ON(LEDS_RED);
               COOJA_DEBUG_PRINTF("JOINED");
               break;
