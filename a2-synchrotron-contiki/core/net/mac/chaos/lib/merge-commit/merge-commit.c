@@ -308,7 +308,8 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
             // first add the nodes
             for (i = 0; i < join_data_tx->slot_count; i++) {
-              if( !join_data_tx->indices[i] && join_data_tx->slots[i] ){
+              // TODO: We dont need to check for the indices, because, they all want to join right?
+              if( /*!join_data_tx->indices[i] &&*/ join_data_tx->slots[i] ){
                 int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
                 if (chaos_index >= 0) {
                   printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
@@ -317,6 +318,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
                   tx_leaves[ARR_INDEX_X(chaos_index)] &= ~(1 << (ARR_OFFSET_X(chaos_index)));
                 } else {
                   join_data_tx->overflow |= 1;
+                  join_data_tx->slots[i] = 0; // reset the nodes will use index 0!
                 }
               }
             }

@@ -325,12 +325,14 @@ static inline void commit(join_t* join_tx) {
   join_data_t *join_data_tx = &join_tx->data;
   int i;
   for (i = 0; i < join_data_tx->slot_count; i++) {
+    // TODO: We dont need to check for the indices, because, they all want to join right?
     if( !join_data_tx->indices[i] && join_data_tx->slots[i] ){
       int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
       if (chaos_index >= 0) {
         join_data_tx->indices[i] = chaos_index;
       } else {
         join_data_tx->overflow |= 1;
+        //TODO: we should reset the slot so that the nodes wont use index 0 as chaos index?
       }
     }
   }
