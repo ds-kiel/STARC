@@ -12,7 +12,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Vehicle {
+public class Vehicle implements VehicleInterface {
     private Mote mote; // unique identifier
     private MessageProxy messageProxy; // used for communication with cooja motes
     private VehicleBody body; // our physics model
@@ -22,31 +22,14 @@ public class Vehicle {
     static final boolean OTHER_DIRECTIONS = true;
     static final boolean TILE_FREEDOM = true;
 
-    static private final int STATE_INIT = 0;
-    static private final int STATE_INITIALIZED = 1;
-    static private final int STATE_QUEUING = 2;
-    static private final int STATE_WAITING = 3;
-    static private final int STATE_MOVING = 4;
-    static private final int STATE_LEAVING = 5;
-    static private final int STATE_FINISHED = 6;
-
-    private int state = STATE_INIT;
-
-
-    static private final int STATE_REQUEST_INIT = 0;
-    static private final int STATE_REQUEST_SENT = 1;
-    static private final int STATE_REQUEST_ACKNOWLEDGED = 2;
-    static private final int STATE_REQUEST_ACCEPTED = 3;
-
 
     byte[] wantedRequest = new byte[0];
     byte[] currentRequest = new byte[0];
 
-    private int requestState = STATE_REQUEST_INIT;
+    private int state = STATE_INIT;
+    private int requestState = REQUEST_STATE_INIT;
 
     private Lane lane;
-
-
     private World world;
 
     public Vehicle(Mote mote, MessageProxy messageProxy, World world, VehicleBody body, DirectionalDistanceSensor distanceSensor) {
@@ -77,6 +60,11 @@ public class Vehicle {
         return body;
     }
 
+    @Override
+    public int getState() {
+        return state;
+    }
+
 
     public void step(double delta) {
         // handle messages first
@@ -87,7 +75,6 @@ public class Vehicle {
             handleMessage(msg);
             msg = messageProxy.receive();
         }
-
 
         state = handleStates(state);
 
@@ -138,7 +125,7 @@ public class Vehicle {
             }
         } else if (state == STATE_WAITING) {
 
-            if (requestState == STATE_REQUEST_ACCEPTED) {
+            if (requestState == REQUEST_STATE_ACCEPTED) {
                 return STATE_MOVING;
             } else {
                 return STATE_WAITING;
@@ -175,11 +162,11 @@ public class Vehicle {
     private void handleReservation() {
         if (!Arrays.equals(wantedRequest, currentRequest)) {
             // we need to update our request
-            if (requestState != STATE_REQUEST_SENT) {
+            if (requestState != REQUEST_STATE_SENT) {
                 // we can send our new request
                 currentRequest = wantedRequest;
                 messageProxy.send(currentRequest);
-                requestState = STATE_REQUEST_SENT;
+                requestState = REQUEST_STATE_SENT;
             }
         }
     }
@@ -194,8 +181,8 @@ public class Vehicle {
 
         if (!Arrays.equals(wantedRequest, currentRequest)) {
             // we need to update our request
-            if (requestState == STATE_REQUEST_ACCEPTED) {
-                requestState = STATE_REQUEST_INIT;
+            if (requestState == REQUEST_STATE_ACCEPTED) {
+                requestState = REQUEST_STATE_INIT;
             }
         }
     }
@@ -208,13 +195,13 @@ public class Vehicle {
         }
 
         // handle request states
-        if (requestState == STATE_REQUEST_SENT && new String(msg).equals("ack")) {
-            requestState = STATE_REQUEST_ACKNOWLEDGED;
-        } else if (requestState == STATE_REQUEST_ACKNOWLEDGED && new String(msg).equals("accepted")) {
+        if (requestState == REQUEST_STATE_SENT && new String(msg).equals("ack")) {
+            requestState = REQUEST_STATE_ACKNOWLEDGED;
+        } else if (requestState == REQUEST_STATE_ACKNOWLEDGED && new String(msg).equals("accepted")) {
             if (Arrays.equals(wantedRequest, currentRequest)) {
-                requestState = STATE_REQUEST_ACCEPTED;
+                requestState = REQUEST_STATE_ACCEPTED;
             } else {
-                requestState = STATE_REQUEST_INIT;
+                requestState = REQUEST_STATE_INIT;
             }
         }
     }
@@ -345,4 +332,6 @@ public class Vehicle {
         curWayPointIndex = 0;
         curWayPoint = null;
     }
+
+
 }

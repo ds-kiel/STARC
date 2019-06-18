@@ -52,7 +52,8 @@ import org.contikios.cooja.mote.memory.VarMemory;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.Visualizer;
 import org.contikios.cooja.plugins.VisualizerSkin;
-import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
+import org.contikios.cooja.plugins.vanet.vehicle.LogAwareVehicleDecorator;
+import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.world.World;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
@@ -189,7 +190,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
     private void drawWaypointsForSelection(Graphics g, World world) {
         if (visualizer.getSelectedMotes().size() > 0) {
             for (Mote mote: visualizer.getSelectedMotes()) {
-                Vehicle v = world.getVehicle(mote);
+                VehicleInterface v = world.getVehicle(mote);
 
                 ArrayList<Vector2D> wps = v.getWaypoints();
 
@@ -228,7 +229,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
         if (visualizer.getSelectedMotes().size() > 0) {
             for (Mote mote: visualizer.getSelectedMotes()) {
-                Vehicle v = world.getVehicle(mote);
+                VehicleInterface v = world.getVehicle(mote);
 
                 Vector2D p = v.getBody().getCenter();
 

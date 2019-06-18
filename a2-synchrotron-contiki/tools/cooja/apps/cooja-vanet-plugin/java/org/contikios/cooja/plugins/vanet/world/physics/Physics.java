@@ -26,9 +26,6 @@ public class Physics {
             body.getCenter().translate(vel);
         }
 
-        if(false) {
-
-        }
         int size = bodies.size();
 
         for (int i = 0; i < size; i++) {
@@ -40,7 +37,7 @@ public class Physics {
 
                 // else we check collisions!
                 if (collides(bodyA, bodyB)) {
-                   //Logger.event("collision", bodyA.getName() + " with " + bodyB.getName());
+                   Logger.event("collision", 0, bodyA.getName() + " with " + bodyB.getName(), null);
                 }
             }
         }

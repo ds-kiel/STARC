@@ -4,8 +4,10 @@ import org.apache.log4j.Logger;
 import org.contikios.cooja.*;
 
 import org.contikios.cooja.plugins.skins.VanetVisualizerSkin;
+import org.contikios.cooja.plugins.vanet.vehicle.LogAwareVehicleDecorator;
 import org.contikios.cooja.plugins.vanet.vehicle.MessageProxy;
 import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
+import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
 import org.contikios.cooja.plugins.vanet.world.World;
@@ -60,7 +62,7 @@ public class Vanet extends VisPlugin {
             @Override
             public void update(Observable o, Object arg) {
                 if (simulation.getSimulationTimeMillis() >= nextUpdate) {
-                    Vanet.this.update(TICK_MS / 1000.0); // one s
+                    Vanet.this.update(TICK_MS); // one s
                     nextUpdate += TICK_MS;
                 }
             }
@@ -98,7 +100,8 @@ public class Vanet extends VisPlugin {
                     )
                 );
 
-                Vehicle v = new Vehicle(m, mp, world, body, new DirectionalDistanceSensor(body));
+                VehicleInterface v = new Vehicle(m, mp, world, body, new DirectionalDistanceSensor(body));
+                v = new LogAwareVehicleDecorator(v); // check if we want to log!
                 world.addVehicle(v);
             }
         } catch (Exception e) {
@@ -106,11 +109,11 @@ public class Vanet extends VisPlugin {
         }
     }
 
-    private void update(double delta) {
+    private void update(long deltaMS) {
         // first update the world with the physics!
         // then update all the nodes#+
         if (world != null) {
-            world.simulate(delta);
+            world.simulate(deltaMS);
             VanetVisualizerSkin.saveImage(simulation.getSimulationTimeMillis());
         }
     }

@@ -2,10 +2,13 @@ package org.contikios.cooja.plugins.vanet.world;
 
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.interfaces.Position;
+import org.contikios.cooja.plugins.vanet.log.Logger;
 import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
 import org.contikios.cooja.plugins.vanet.transport_network.junction.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.junction.TiledMapHandler;
+import org.contikios.cooja.plugins.vanet.vehicle.LogAwareVehicleDecorator;
 import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
+import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.world.physics.Computation.Intersection;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Sensor;
@@ -17,12 +20,14 @@ public class World {
 
     private Physics physics;
 
-    private HashMap<Integer, Vehicle> vehicles = new HashMap<>();
+    private HashMap<Integer, VehicleInterface> vehicles = new HashMap<>();
     private Collection<Sensor> sensors = new ArrayList<>();
 
     private TransportNetwork transportNetwork;
 
     private TiledMapHandler mapHandler;
+
+    private long currentMS = 0;
 
     public static Random RAND;
 
@@ -35,12 +40,19 @@ public class World {
         return this.transportNetwork.getJunction().getMapHandler();
     }
 
-    public void simulate(double delta) {
+    public long getCurrentMS() {
+        return currentMS;
+    }
+
+    public void simulate(long deltaMS) {
+
+        currentMS += deltaMS;
+        double delta = deltaMS / 1000.0;
 
         // read the position back from the simulation
 
         // step through every vehicle and update the position in the simulation
-        Collection<Vehicle> vehicleCollection = vehicles.values();
+        Collection<VehicleInterface> vehicleCollection = vehicles.values();
         vehicleCollection.forEach(this::readPosition);
 
         // simulate components for each step
@@ -56,14 +68,14 @@ public class World {
         vehicleCollection.forEach(this::writeBackPosition);
     }
 
-    private void writeBackPosition(Vehicle v) {
+    private void writeBackPosition(VehicleInterface v) {
         Mote mote = v.getMote();
         Position pos = mote.getInterfaces().getPosition();
         Vector2D center = v.getBody().getCenter();
         pos.setCoordinates(center.getX(), center.getY(), 0);
     }
 
-    private void readPosition(Vehicle v) {
+    private void readPosition(VehicleInterface v) {
         Mote mote = v.getMote();
         Vector2D center = v.getBody().getCenter();
         Position pos = mote.getInterfaces().getPosition();
@@ -71,21 +83,24 @@ public class World {
         center.setY(pos.getYCoordinate());
     }
 
-    public Vehicle getVehicle(int ID) {
+    public VehicleInterface getVehicle(int ID) {
         return this.vehicles.get(ID);
     }
 
-    public Vehicle getVehicle(Mote m) {
+    public VehicleInterface getVehicle(Mote m) {
         return this.vehicles.get(m.getID());
     }
 
-    public void addVehicle(Vehicle v) {
+    public void addVehicle(VehicleInterface v) {
+
         this.vehicles.put(v.getMote().getID(), v);
         this.sensors.add(v.getDistanceSensor());
         // we also add the vehicle body to the physics
         this.physics.addBody(v.getBody());
         writeBackPosition(v); // support initial position setting
     }
+
+
 
     public AbstractMap.SimpleImmutableEntry<Lane, Vector2D> getFreePosition() {
        Lane l = this.transportNetwork.getRandomStartLane();
