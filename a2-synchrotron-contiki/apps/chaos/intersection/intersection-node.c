@@ -469,12 +469,11 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
 
   for(i = 0; i < MAX_NODE_COUNT; ++i) {
     if (ARRIVAL_TIMES) {
-      // we can use max value here since either one of them is 0 or both have the same value...
-      // TODO: Bitwise or?
-      int arrival = MAX(rx_mc->value.arrivals[i], tx_mc->value.arrivals[i]);
+      // we can use bitwise or here since either one of them is 0 or both have the same value...
+      uint32_t arrival = rx_mc->value.arrivals[i] | tx_mc->value.arrivals[i];
       if (arrival > 0) {
 
-        chaos_index_with_arrivals[size] = (arrival << 8) | (i&255);
+        chaos_index_with_arrivals[size] = (arrival << 16) | (i&0xFFFF);
         size++;
         // Do insertion sort with the array
         // TODO: Use Merge Sort for better performance
@@ -489,7 +488,7 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
       }
     } else {
       // No need to sort since we are adding the ids in the correct order...
-      chaos_index_with_arrivals[size] =  (i&255);
+      chaos_index_with_arrivals[size] =  (i&0xFFFF);
       size++;
     }
   }
@@ -498,7 +497,7 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
   for(i = 0; i < size; ++i) {
 
     // mask the id
-    int index = (chaos_index_with_arrivals[i] & 255);
+    uint32_t index = (chaos_index_with_arrivals[i] & 0xFFFF);
 
     //printf("%d, ", index);
 
@@ -519,7 +518,7 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
 
         if (ARRIVAL_TIMES) {
           // we need to add the arrival time of this request!
-          new.arrivals[index] = chaos_index_with_arrivals[i] >> 8;
+          new.arrivals[index] = chaos_index_with_arrivals[i] >> 16;
         }
 
         break; // We could reserve the path ;)
