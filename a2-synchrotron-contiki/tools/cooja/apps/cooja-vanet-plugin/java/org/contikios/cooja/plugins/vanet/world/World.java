@@ -1,39 +1,47 @@
 package org.contikios.cooja.plugins.vanet.world;
 
 import org.contikios.cooja.Mote;
+import org.contikios.cooja.MoteType;
+import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.Position;
-import org.contikios.cooja.plugins.vanet.log.Logger;
 import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
 import org.contikios.cooja.plugins.vanet.transport_network.junction.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.junction.TiledMapHandler;
-import org.contikios.cooja.plugins.vanet.vehicle.LogAwareVehicleDecorator;
-import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
+import org.contikios.cooja.plugins.vanet.vehicle.VehicleManager;
 import org.contikios.cooja.plugins.vanet.world.physics.Computation.Intersection;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
-import org.contikios.cooja.plugins.vanet.world.physics.Sensor;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class World {
 
     private Physics physics;
-
-    private HashMap<Integer, VehicleInterface> vehicles = new HashMap<>();
-    private Collection<Sensor> sensors = new ArrayList<>();
+    private VehicleManager vehicleManager;
 
     private TransportNetwork transportNetwork;
-
-    private TiledMapHandler mapHandler;
 
     private long currentMS = 0;
 
     public static Random RAND;
 
-    public World() {
+    private Simulation simulation;
+
+    private Map<VehicleInterface, Mote> moteMap = new HashMap<>();
+
+    private MoteType vehicleMoteType;
+
+    private IDGenerator idGenerator;
+
+    public World(Simulation simulation) {
+        this.simulation = simulation;
+        this.vehicleMoteType = simulation.getMoteType("vehicle");
         this.physics = new Physics();
         this.transportNetwork = new TransportNetwork(1,1);
+        this.vehicleManager = new VehicleManager(this);
+        this.idGenerator = new IDGenerator(2, 255);
     }
 
     public TiledMapHandler getMapHandler() {
@@ -44,63 +52,99 @@ public class World {
         return currentMS;
     }
 
+
+    public Physics getPhysics() {
+        return physics;
+    }
+
     public void simulate(long deltaMS) {
 
+        // TODO: we should not need to manually addd this here...
         currentMS += deltaMS;
         double delta = deltaMS / 1000.0;
 
-        // read the position back from the simulation
+        spawnVehicles();
 
         // step through every vehicle and update the position in the simulation
-        Collection<VehicleInterface> vehicleCollection = vehicles.values();
+        Collection<VehicleInterface> vehicleCollection = vehicleManager.getVehicleCollection();
+
+        // read the position back from the simulation
         vehicleCollection.forEach(this::readPosition);
 
         // simulate components for each step
+        // update sensors etc...
         this.physics.simulate(delta);
-
-        // update other components here like sensors etc...
-        sensors.forEach( s -> s.update(this.physics, delta));
 
         // step through every vehicle logic and execute it
         vehicleCollection.forEach(v -> v.step(delta));
 
         // step through every vehicle and update the position in the simulation
         vehicleCollection.forEach(this::writeBackPosition);
+
+        // remove unwanted vehicles
+        vehicleCollection.stream()
+                .filter(v -> v.getState() == VehicleInterface.STATE_FINISHED)
+                .collect(Collectors.toList())
+                .forEach(this::removeVehicle);
     }
 
     private void writeBackPosition(VehicleInterface v) {
-        Mote mote = v.getMote();
+        Mote mote = moteMap.get(v);
         Position pos = mote.getInterfaces().getPosition();
         Vector2D center = v.getBody().getCenter();
         pos.setCoordinates(center.getX(), center.getY(), 0);
     }
 
     private void readPosition(VehicleInterface v) {
-        Mote mote = v.getMote();
+        Mote mote = moteMap.get(v);
         Vector2D center = v.getBody().getCenter();
         Position pos = mote.getInterfaces().getPosition();
         center.setX(pos.getXCoordinate());
         center.setY(pos.getYCoordinate());
     }
 
-    public VehicleInterface getVehicle(int ID) {
-        return this.vehicles.get(ID);
+    private void spawnVehicles() {
+
+        if (vehicleMoteType == null) {
+            return;
+        }
+
+        float perSecond = 3.0f;
+        int wanted = (int) ((currentMS/1000.0f)*perSecond) - vehicleManager.getTotal();
+
+        for(int i  = 0; i < wanted; ++i) {
+            Mote m = vehicleMoteType.generateMote(simulation);
+            Integer id = idGenerator.next();
+            if (id != null) {
+                m.getInterfaces().getMoteID().setMoteID(id);
+                initVehicle(m);
+                simulation.addMote(m);
+            }
+        }
     }
 
     public VehicleInterface getVehicle(Mote m) {
-        return this.vehicles.get(m.getID());
+        for (Map.Entry<VehicleInterface, Mote> entry : moteMap.entrySet()) {
+            if (Objects.equals(m, entry.getValue())) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
-    public void addVehicle(VehicleInterface v) {
-
-        this.vehicles.put(v.getMote().getID(), v);
-        this.sensors.add(v.getDistanceSensor());
-        // we also add the vehicle body to the physics
-        this.physics.addBody(v.getBody());
+    public void initVehicle(Mote m) {
+        VehicleInterface v = vehicleManager.createVehicle(m);
+        moteMap.put(v, m);
         writeBackPosition(v); // support initial position setting
     }
 
-
+    public void removeVehicle(VehicleInterface v) {
+        Mote m = moteMap.get(v);
+        moteMap.remove(v);
+        vehicleManager.removeVehicle(v.getID());
+        idGenerator.free(m.getID());
+        simulation.removeMote(m);
+    }
 
     public AbstractMap.SimpleImmutableEntry<Lane, Vector2D> getFreePosition() {
        Lane l = this.transportNetwork.getRandomStartLane();

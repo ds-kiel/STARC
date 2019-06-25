@@ -1,6 +1,5 @@
 package org.contikios.cooja.plugins.vanet.vehicle;
 
-import org.contikios.cooja.Mote;
 import org.contikios.cooja.plugins.vanet.log.Logger;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
@@ -16,13 +15,18 @@ public class LogAwareVehicleDecorator implements VehicleInterface {
 
     protected Map<Integer, String> stateMap = new HashMap<Integer, String>() {{
         put(STATE_INIT, "init");
-        put(STATE_INITIALIZED, "initalized");
+        put(STATE_INITIALIZED, "initialized");
         put(STATE_QUEUING, "queuing");
         put(STATE_WAITING, "waiting");
         put(STATE_MOVING, "moving");
         put(STATE_LEAVING, "leaving");
         put(STATE_FINISHED, "finished");
     }};
+
+    @Override
+    public int getID() {
+        return impl.getID();
+    }
 
     public LogAwareVehicleDecorator(VehicleInterface impl) {
         this.impl = impl;
@@ -36,11 +40,6 @@ public class LogAwareVehicleDecorator implements VehicleInterface {
     @Override
     public DirectionalDistanceSensor getDistanceSensor() {
         return impl.getDistanceSensor();
-    }
-
-    @Override
-    public Mote getMote() {
-        return impl.getMote();
     }
 
     @Override
@@ -71,7 +70,16 @@ public class LogAwareVehicleDecorator implements VehicleInterface {
     public void step(double delta) {
         impl.step(delta);
         int state = impl.getState();
-        Logger.event("state", impl.getWorld().getCurrentMS(), getStateName(state), impl.getMote().getID());
-        Logger.event("speed", impl.getWorld().getCurrentMS(), String.valueOf(impl.getBody().getVel().length()), impl.getMote().getID());
+
+        // we do not want to capture the init state!
+        if (state != STATE_INIT) {
+            Logger.event("state", impl.getWorld().getCurrentMS(), getStateName(state), impl.getID());
+            Logger.event("speed", impl.getWorld().getCurrentMS(), String.valueOf(impl.getBody().getVel().length()), impl.getID());
+        }
+    }
+
+    @Override
+    public void destroy() {
+        this.impl.destroy();
     }
 }

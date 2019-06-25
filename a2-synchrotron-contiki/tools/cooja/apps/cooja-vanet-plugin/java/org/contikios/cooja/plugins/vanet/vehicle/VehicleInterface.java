@@ -16,7 +16,8 @@ public interface VehicleInterface {
     int STATE_WAITING = 3;
     int STATE_MOVING = 4;
     int STATE_LEAVING = 5;
-    int STATE_FINISHED = 6;
+    int STATE_LEFT = 6;
+    int STATE_FINISHED = 7;
 
     int REQUEST_STATE_INIT = 0;
     int REQUEST_STATE_SENT = 1;
@@ -25,10 +26,13 @@ public interface VehicleInterface {
     
     World getWorld();
     DirectionalDistanceSensor getDistanceSensor();
-    Mote getMote();
     VehicleBody getBody();
     int getState();
     void step(double delta);
+
+    void destroy();
+
+    int getID();
 
     ArrayList<Vector2D> getWaypoints();
     int getCurWayPointIndex();

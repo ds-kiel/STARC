@@ -278,8 +278,16 @@ PROCESS_BEGIN();
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
 
-    if(chaos_has_node_index){
-      if (mc_phase == PHASE_COMMIT) {
+    if (mc_phase == PHASE_COMMIT) {
+
+      if (merge_commit_has_left()) {
+        send_str("left");
+      } else if (merge_commit_has_joined()) {
+        send_str("joined");
+      }
+
+
+      if(chaos_has_node_index){
         printf("Commit completed\n");
         printf("OFFSLOT: %d\n", mc_off_slot);
 
@@ -306,10 +314,11 @@ PROCESS_BEGIN();
           }
         }
       } else {
-        printf("Commit NOT completed\n");
+        // we are not part of the network
+        printf("{rd %u res} mc: waiting to join, n: %u\n", mc_round_count_local, chaos_node_count);
       }
     } else {
-      printf("{rd %u res} mc: waiting to join, n: %u\n", mc_round_count_local, chaos_node_count);
+        printf("Commit NOT completed\n");
     }
     // COMMIT HAS FINISHED!
     // CHECK IF IT WAS SUCCESSFUL!

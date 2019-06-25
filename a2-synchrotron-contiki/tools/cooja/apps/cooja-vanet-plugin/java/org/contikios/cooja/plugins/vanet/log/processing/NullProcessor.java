@@ -14,7 +14,7 @@ public class NullProcessor implements LogEventProcessorInterface {
     }
 
     @Override
-    public void finish() {
+    public void flush() {
 
     }
 }

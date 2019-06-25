@@ -31,31 +31,30 @@ public class CsvExporter implements LogEventProcessorInterface {
 
             Writer writer = null;
 
-            if (!writerCache.containsKey(fileName)) {
+            if (writerCache.containsKey(fileName)) {
+                writer = writerCache.get(fileName);
+            } else {
                 File file = new File(basePath, fileName);
                 writer = new BufferedWriter(new FileWriter(file, true));
                 writerCache.put(fileName, writer);
-            } else {
-                writer = writerCache.get(fileName);
             }
 
-            if(writer != null) {
-                String line = String.format("%d, %s\n", logEvent.getSimulationTime(), logEvent.getData());
-                writer.write(line);
-                writer.flush(); //TODO: This is a slow down!
-            }
+            String line = String.format("%d, %s\n", logEvent.getSimulationTime(), logEvent.getData());
+            writer.write(line);
+            writer.flush(); //TODO: This is a slow down!
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
+
     @Override
-    public void finish() {
+    public void flush() {
         writerCache.values().forEach(
                 w -> {
-                        try {
-                            w.close();
-                        } catch (IOException e) {}
+                    try {
+                        w.flush();
+                    } catch (IOException e) {}
                 }
         );
     }

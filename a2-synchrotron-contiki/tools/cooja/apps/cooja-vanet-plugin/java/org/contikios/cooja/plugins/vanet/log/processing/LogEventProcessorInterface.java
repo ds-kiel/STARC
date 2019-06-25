@@ -5,5 +5,5 @@ import org.contikios.cooja.plugins.vanet.log.LogEvent;
 public interface LogEventProcessorInterface {
     boolean supports(LogEvent logEvent);
     void process(LogEvent logEvent);
-    void finish();
+    void flush();
 }

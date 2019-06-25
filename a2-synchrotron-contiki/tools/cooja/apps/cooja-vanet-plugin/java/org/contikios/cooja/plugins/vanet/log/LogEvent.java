@@ -5,13 +5,13 @@ public class LogEvent {
     private String name;
     private long simulationTime;
     private String data;
-    private Integer modeID;
+    private Integer id;
 
-    public LogEvent(String name, long simulationTime, String data, Integer modeID) {
+    public LogEvent(String name, long simulationTime, String data, Integer id) {
         this.name = name;
         this.simulationTime = simulationTime;
         this.data = data;
-        this.modeID = modeID;
+        this.id = id;
     }
 
     public LogEvent(String name, long simulationTime, String data) {
@@ -34,7 +34,7 @@ public class LogEvent {
         return data;
     }
 
-    public Integer getModeID() {
-        return modeID;
+    public Integer getID() {
+        return id;
     }
 }

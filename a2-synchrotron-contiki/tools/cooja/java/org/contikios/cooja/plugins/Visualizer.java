@@ -399,7 +399,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
           SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-              resetViewport = 1;
+              //resetViewport = 1;
               repaint();
             }
           });

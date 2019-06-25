@@ -133,6 +133,7 @@ static unsigned short restart_threshold;
 static merge_commit_local_t mc_local; /* used only for house keeping and reporting */
 static uint8_t* tx_flags_final = 0;
 static uint8_t delta_at_slot = 0;
+static uint8_t joined, left = 0;
 
 static uint8_t join_masks[FLAGS_LEN];
 uint8_t merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE;
@@ -143,6 +144,9 @@ int merge_commit_get_flags_length() {
 int merge_commit_get_masks_length() {
   return FLAGS_ESTIMATE;
 }
+
+int merge_commit_has_joined() { return  joined;}
+int merge_commit_has_left() { return left;}
 
 int merge_commit_get_flags_and_leaves_overall_length() {
   return merge_commit_get_flags_length() + merge_commit_get_masks_length();
@@ -387,6 +391,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
               //printf("Joined with index %d\n", chaos_node_index);
               //LEDS_ON(LEDS_RED);
               COOJA_DEBUG_PRINTF("JOINED");
+              joined = 1;
               break;
             }
           }
@@ -398,6 +403,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
           if (tx_leaves[ARR_INDEX] & (1 << (ARR_OFFSET))) {
             chaos_has_node_index = 0; // we need to join again!
             chaos_node_index = 0;
+            left = 1;
           }
         } else {
           // OVERFLOW TODO
@@ -502,6 +508,8 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   completion_slot = 0;
   tx_flags_final = 0;
   rx_progress = 0;
+  joined = 0;
+  left = 0;
 
   delta_at_slot = 0;
 
@@ -568,4 +576,6 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   *phase = mc_local.mc.phase;
   return completion_slot;
 }
+
+
 

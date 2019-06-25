@@ -81,7 +81,6 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         img = loadFromFile("img/intersection-big.png");
     }
 
-
     private BufferedImage loadFromFile(String path) {
         try {
             InputStream inp = getClass().getClassLoader().getResourceAsStream(path);
@@ -192,6 +191,10 @@ public class VanetVisualizerSkin implements VisualizerSkin {
             for (Mote mote: visualizer.getSelectedMotes()) {
                 VehicleInterface v = world.getVehicle(mote);
 
+                if (v == null) {
+                    continue;
+                }
+
                 ArrayList<Vector2D> wps = v.getWaypoints();
 
                 for (int i = 0; i < wps.size(); ++i) {
@@ -230,6 +233,10 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         if (visualizer.getSelectedMotes().size() > 0) {
             for (Mote mote: visualizer.getSelectedMotes()) {
                 VehicleInterface v = world.getVehicle(mote);
+
+                if (v == null) {
+                    continue;
+                }
 
                 Vector2D p = v.getBody().getCenter();
 
@@ -293,20 +300,39 @@ public class VanetVisualizerSkin implements VisualizerSkin {
     }
 
     public Color[] getColorOf(Mote mote) {
+
         Color[] colors = null;
 
-        VarMemory moteMemory = new VarMemory(mote.getMemory());
+        World world = Vanet.world;
 
-        try {
-            byte hasNodeIndex = moteMemory.getByteValueOf("chaos_has_node_index");
+        if (world != null) {
+            VehicleInterface v = world.getVehicle(mote);
 
-            if (hasNodeIndex != 0) {
-                colors = new Color[1];
-                colors[0] = Color.LIGHT_GRAY;
+            if (v != null) {
+
+                if (v.getState() != VehicleInterface.STATE_INIT) {
+                    VarMemory moteMemory = new VarMemory(mote.getMemory());
+
+                    try {
+                        byte hasNodeIndex = moteMemory.getByteValueOf("chaos_has_node_index");
+
+                        if (hasNodeIndex != 0) {
+                            colors = new Color[1];
+                            colors[0] = Color.LIGHT_GRAY;
+                        }
+                    } catch (UnknownVariableException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    // Set color of unitinialized nodes
+                    //Color transparent = new Color(0,0,0,0);
+                    //colors = new Color[2];
+                    //colors[0] = transparent;
+                    //colors[1] = transparent;
+                }
             }
-        } catch (UnknownVariableException e) {
-            e.printStackTrace();
         }
+
         return colors;
     }
 

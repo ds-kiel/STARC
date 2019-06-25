@@ -103,6 +103,9 @@ int merge_commit_get_flags_length(void);
 
 uint16_t merge_commit_get_off_slot();
 
+int merge_commit_has_joined();
+int merge_commit_has_left();
+
 int merge_commit_agreed();
 
 int merge_commit_did_tx();

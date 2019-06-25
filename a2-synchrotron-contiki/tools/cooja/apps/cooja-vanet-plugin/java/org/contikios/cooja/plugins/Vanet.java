@@ -56,8 +56,6 @@ public class Vanet extends VisPlugin {
             }
         );
 
-        // TODO: Each millisecond is a little bit excessive isn't it? ;)
-        // maybe we should do like 50 Ticks per second?
         millisecondObserver = new Observer() {
             @Override
             public void update(Observable o, Object arg) {
@@ -84,26 +82,7 @@ public class Vanet extends VisPlugin {
 
         try {
             World.RAND = new Random(simulation.getRandomSeed()+124);
-            world = new World();
-            Mote[] motes = simulation.getMotes();
-
-            // for each mote add a new vehicle
-            for (Mote m : motes) {
-
-                MessageProxy mp = new MessageProxy(m);
-                VehicleBody body = new VehicleBody(String.valueOf(m.getID()));
-
-                body.setCenter(
-                    new Vector2D(
-                        m.getInterfaces().getPosition().getXCoordinate(),
-                        m.getInterfaces().getPosition().getYCoordinate()
-                    )
-                );
-
-                VehicleInterface v = new Vehicle(m, mp, world, body, new DirectionalDistanceSensor(body));
-                v = new LogAwareVehicleDecorator(v); // check if we want to log!
-                world.addVehicle(v);
-            }
+            world = new World(simulation);
         } catch (Exception e) {
             e.printStackTrace();
         }

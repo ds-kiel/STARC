@@ -69,10 +69,10 @@ public class TiledMapHandler {
             // ugly byte arr copying...
             bytes[0] = 'R';
             for(int i = 0; i < temp.length; ++i) {
-                System.out.print((temp[i]&0xFF) + ", ");
+                //System.out.print((temp[i]&0xFF) + ", ");
                 bytes[i+1] = (byte) (temp[i]&0xFF);
             }
-            System.out.print("\n");
+            //System.out.print("\n");
             return bytes;
         }
     }

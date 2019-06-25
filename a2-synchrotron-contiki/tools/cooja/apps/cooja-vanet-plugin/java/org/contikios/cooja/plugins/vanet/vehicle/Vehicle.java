@@ -6,6 +6,7 @@ import org.contikios.cooja.plugins.vanet.transport_network.junction.TiledMapHand
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
 import org.contikios.cooja.plugins.vanet.world.World;
+import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import java.util.AbstractMap;
@@ -13,12 +14,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Vehicle implements VehicleInterface {
-    private Mote mote; // unique identifier
     private MessageProxy messageProxy; // used for communication with cooja motes
     private VehicleBody body; // our physics model
     private TiledMapHandler mapHandler;
     private DirectionalDistanceSensor distanceSensor;
 
+    private int id;
     static final boolean OTHER_DIRECTIONS = true;
     static final boolean TILE_FREEDOM = true;
 
@@ -29,19 +30,42 @@ public class Vehicle implements VehicleInterface {
     private int state = STATE_INIT;
     private int requestState = REQUEST_STATE_INIT;
 
-    private Lane lane;
+
     private World world;
 
-    public Vehicle(Mote mote, MessageProxy messageProxy, World world, VehicleBody body, DirectionalDistanceSensor distanceSensor) {
-        this.mote = mote;
-        this.messageProxy = messageProxy;
-        this.body = body;
-        this.distanceSensor = distanceSensor;
+
+    public Vehicle(World world, Mote m, int id) {
 
         this.world = world;
-        this.mapHandler = world.getMapHandler();
+        this.id = id;
 
+        messageProxy = new MessageProxy(m);
+        body = new VehicleBody(String.valueOf(id));
+
+        body.setCenter(
+                new Vector2D(
+                        m.getInterfaces().getPosition().getXCoordinate(),
+                        m.getInterfaces().getPosition().getYCoordinate()
+                )
+        );
+
+        distanceSensor = new DirectionalDistanceSensor(body);
+
+        this.mapHandler = world.getMapHandler();
+    }
+
+
+    void init() {
         initRandomPos();
+
+        world.getPhysics().addBody(body);
+        world.getPhysics().addSensor(distanceSensor);
+    }
+
+    public void destroy() {
+        // remove stuff
+        world.getPhysics().removeBody(body);
+        world.getPhysics().removeSensor(distanceSensor);
     }
 
     public World getWorld() {
@@ -50,10 +74,6 @@ public class Vehicle implements VehicleInterface {
 
     public DirectionalDistanceSensor getDistanceSensor() {
         return distanceSensor;
-    }
-
-    public Mote getMote() {
-        return mote;
     }
 
     public VehicleBody getBody() {
@@ -65,6 +85,9 @@ public class Vehicle implements VehicleInterface {
         return state;
     }
 
+    public int getID() {
+        return id;
+    }
 
     public void step(double delta) {
         // handle messages first
@@ -96,7 +119,7 @@ public class Vehicle implements VehicleInterface {
             if (sensedDist > 1.0+velDist*2 || sensedDist == -1.0) { // we start moving, if there is enough space
                 wantedPos = startPos;
             }
-        } else if (state == STATE_MOVING) {
+        } else if (state == STATE_MOVING || state == STATE_LEAVING || state == STATE_LEFT) {
             wantedPos = curWayPoint;
         }
 
@@ -140,21 +163,29 @@ public class Vehicle implements VehicleInterface {
                 requestReservation();
             }
 
-            if (curWayPointIndex >= waypoints.size()) {
+            if (curWayPointIndex >= waypoints.size() - 3) {
                 requestReservation();
-
+                // Try to leave the network
+                messageProxy.send("L".getBytes());
                 return STATE_LEAVING;
+            } else {
+                return STATE_MOVING;
+            }
+        } else if (state == STATE_LEAVING) {
+            updateWaypoints();
+            return STATE_LEAVING;
+        }
+        else if (state == STATE_LEFT)  {
+            updateWaypoints();
+            if (curWayPointIndex >= waypoints.size()) {
+                return STATE_FINISHED;
+            } else {
+                return STATE_LEFT;
             }
 
-            return STATE_MOVING;
-        } else if (state == STATE_LEAVING) {
-            messageProxy.send("L".getBytes());
-            return STATE_FINISHED;
         } else if (state == STATE_FINISHED) {
-
             // we reset to some other lane
-            initRandomPos();
-            return STATE_INITIALIZED;
+            return STATE_FINISHED;
         }
         return state;
     }
@@ -176,7 +207,7 @@ public class Vehicle implements VehicleInterface {
         for(int i = curWayPointIndex; i < waypoints.size(); ++i) {
             pathHandler.reservePos(waypoints.get(i));
         }
-        System.out.print("Mote " + mote.getID() + " TILES: ");
+        //System.out.print("Vehicle " + id + " TILES: ");
         wantedRequest = pathHandler.getByteIndices();
 
         if (!Arrays.equals(wantedRequest, currentRequest)) {
@@ -191,7 +222,11 @@ public class Vehicle implements VehicleInterface {
         //System.out.println(new String(msg));
 
         if (state == STATE_INIT && new String(msg).equals("init")) {
+            init();
             state = STATE_INITIALIZED;
+        } else if (state == STATE_LEAVING && new String(msg).equals("left")) {
+            // TODO: Introduce a separate join state just as with the requests
+            state = STATE_LEFT;
         }
 
         // handle request states
@@ -263,7 +298,6 @@ public class Vehicle implements VehicleInterface {
             Vector2D wantedDir = Vector2D.diff(wantedPos, pos);
 
             double a = Vector2D.angle(dir, wantedDir);
-            //System.out.println("Mote " + mote.getID() + " wants to turn " + (a/(Math.PI) * 180));
 
             // check our steering
             double turn = delta*maxTurn;
@@ -280,7 +314,6 @@ public class Vehicle implements VehicleInterface {
             // check if we want to accelerate or decelerate
             if (Math.abs(a) < Math.PI/4 && Vector2D.distance(wantedPos, pos) > threshold) {
 
-                //System.out.println("Mote " + mote.getID() + " is accelerating");
                 // we start to accelerate
                 double x = maxSpeed-vel.length();
                 if (x > 0.1*delta) {
@@ -288,7 +321,6 @@ public class Vehicle implements VehicleInterface {
                     acceleration.scale(acc);
                 }
             } else {
-                //System.out.println("Mote " + mote.getID() + " is decelerating");
                 // we start to decelerate
                 // TODO: a bit more realistic?
                 if (vel.length() > 0.1*delta) {
@@ -298,7 +330,6 @@ public class Vehicle implements VehicleInterface {
             }
         } else {
             // just stop
-            // System.out.println("Mote " + mote.getID() + " is stopping");
             // we start to decelerate
             if (vel.length() > 0.1*delta) {
                 acceleration = new Vector2D(dir);
@@ -320,18 +351,15 @@ public class Vehicle implements VehicleInterface {
         // init the wanted position
 
         AbstractMap.SimpleImmutableEntry<Lane, Vector2D> res = this.world.getFreePosition();
-
-        this.lane = res.getKey();
-        this.waypoints = this.lane.getWayPoints(this.mapHandler);
+        Lane lane = res.getKey();
+        this.waypoints = lane.getWayPoints(this.mapHandler);
 
         this.body.setCenter(res.getValue()); // move to center of tile
-        this.body.setDir(new Vector2D(this.lane.getDirection()));
+        this.body.setDir(new Vector2D(lane.getDirection()));
         this.body.setVel(new Vector2D()); // reset vel
 
-        startPos = this.lane.getEndPos();
+        startPos = lane.getEndPos();
         curWayPointIndex = 0;
         curWayPoint = null;
     }
-
-
 }

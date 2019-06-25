@@ -2,7 +2,7 @@ package org.contikios.cooja.plugins.vanet.log;
 
 import org.contikios.cooja.plugins.vanet.log.processing.CsvExporter;
 import org.contikios.cooja.plugins.vanet.log.processing.LogEventProcessorInterface;
-import org.contikios.cooja.plugins.vanet.log.processing.MoteAwareProcessorDecorator;
+import org.contikios.cooja.plugins.vanet.log.processing.IdAwareProcessorDecorator;
 
 public class Logger {
 
@@ -16,7 +16,9 @@ public class Logger {
         loggerInstance = this;
 
         logEventProcessors = new LogEventProcessorInterface[1];
-        logEventProcessors[0] = new MoteAwareProcessorDecorator(new CsvExporter("/Users/rathje/Desktop/export/stats"));
+        // TODO: Use other path here. Maybe make it configurable?
+        // TODO: Add the processors at some other place...
+        logEventProcessors[0] = new IdAwareProcessorDecorator(new CsvExporter("/Users/rathje/Desktop/export/stats"));
     }
 
     public static Logger getInstance() {
@@ -26,8 +28,8 @@ public class Logger {
         return loggerInstance;
     }
 
-    public static void event(String name, long ms, String data, Integer moteId) {
-        log(new LogEvent(name, ms, data, moteId));
+    public static void event(String name, long ms, String data, Integer id) {
+        log(new LogEvent(name, ms, data, id));
     }
 
     public static void log(LogEvent logEvent) {
@@ -42,7 +44,7 @@ public class Logger {
     public void flush() {
         Logger logger = getInstance();
         for (LogEventProcessorInterface logEventProcessor: logger.logEventProcessors) {
-            logEventProcessor.finish();
+            logEventProcessor.flush();
         }
     }
 }

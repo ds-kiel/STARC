@@ -11,7 +11,8 @@ import java.util.stream.Collectors;
 
 public class Physics {
 
-    private ArrayList<Body> bodies = new ArrayList<Body>();
+    private ArrayList<Body> bodies = new ArrayList<>();
+    private Collection<Sensor> sensors = new ArrayList<>();
 
     public Physics() {
 
@@ -41,12 +42,29 @@ public class Physics {
                 }
             }
         }
+
+        sensors.forEach( s -> s.update(this, delta));
     }
 
     public void addBody(Body b) {
         if (!this.bodies.contains(b)) {
             this.bodies.add(b);
         }
+    }
+
+    public void removeBody(Body b) {
+        this.bodies.remove(b);
+    }
+
+
+    public void addSensor(Sensor s) {
+        if (!this.sensors.contains(s)) {
+            this.sensors.add(s);
+        }
+    }
+
+    public void removeSensor(Sensor s) {
+        this.sensors.remove(s);
     }
 
     private boolean collides(Body a, Body b) {
