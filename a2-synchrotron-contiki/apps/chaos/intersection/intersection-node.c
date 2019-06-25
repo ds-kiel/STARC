@@ -263,13 +263,11 @@ static uint16_t mc_round_count_local = 0;
 
 // TODO: Someone should set the arrival value to 1 in order to keep the reservations until freed
 static void set_own_arrival(merge_commit_value_t *val) {
-  if (ARRIVAL_TIMES) {
     // we need to check if we have a chaos node id
-    if (!own_arrival && chaos_has_node_index) {
-      own_arrival = mc_round_count_local+2; // 0 is no reservation, 1 is for the ones in the intersection
-    }
-   val->arrivals[chaos_node_index] = own_arrival;
+  if (!own_arrival && chaos_has_node_index) {
+    own_arrival = mc_round_count_local+2; // 0 is no reservation, 1 is for the ones in the intersection
   }
+ val->arrivals[chaos_node_index] = own_arrival;
 }
 
 PROCESS(mc_process, "Merge-Commit process");
@@ -468,28 +466,22 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
   uint32_t chaos_index_with_arrivals[MAX_NODE_COUNT];
 
   for(i = 0; i < MAX_NODE_COUNT; ++i) {
-    if (ARRIVAL_TIMES) {
-      // we can use bitwise or here since either one of them is 0 or both have the same value...
-      uint32_t arrival = rx_mc->value.arrivals[i] | tx_mc->value.arrivals[i];
-      if (arrival > 0) {
+    // we can use bitwise or here since either one of them is 0 or both have the same value...
+    uint32_t arrival = rx_mc->value.arrivals[i] | tx_mc->value.arrivals[i];
+    if (arrival > 0) {
 
-        chaos_index_with_arrivals[size] = (arrival << 16) | (i&0xFFFF);
-        size++;
-        // Do insertion sort with the array
-        // TODO: Use Merge Sort for better performance
-        int j = size-1;
-        while(j > 0 && chaos_index_with_arrivals[j-1] > chaos_index_with_arrivals[j]) {
-          // we need to swap these elements
-          uint32_t swap = chaos_index_with_arrivals[j];
-          chaos_index_with_arrivals[j] = chaos_index_with_arrivals[j-1];
-          chaos_index_with_arrivals[j-1] = swap;
-          j--;
-        }
-      }
-    } else {
-      // No need to sort since we are adding the ids in the correct order...
-      chaos_index_with_arrivals[size] =  (i&0xFFFF);
+      chaos_index_with_arrivals[size] = (arrival << 16) | (i&0xFFFF);
       size++;
+      // Do insertion sort with the array
+      // TODO: Use Merge Sort for better performance
+      int j = size-1;
+      while(j > 0 && chaos_index_with_arrivals[j-1] > chaos_index_with_arrivals[j]) {
+        // we need to swap these elements
+        uint32_t swap = chaos_index_with_arrivals[j];
+        chaos_index_with_arrivals[j] = chaos_index_with_arrivals[j-1];
+        chaos_index_with_arrivals[j-1] = swap;
+        j--;
+      }
     }
   }
 
@@ -516,10 +508,8 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
       if (path.size > 0 && path_available(&new, &path, index+1)) {
         reserve_path(&new, &path, index+1);
 
-        if (ARRIVAL_TIMES) {
-          // we need to add the arrival time of this request!
-          new.arrivals[index] = chaos_index_with_arrivals[i] >> 16;
-        }
+        // we need to add the arrival time of this request!
+        new.arrivals[index] = chaos_index_with_arrivals[i] >> 16;
 
         break; // We could reserve the path ;)
       }
