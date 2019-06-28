@@ -76,6 +76,8 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
     private boolean showTileReservations = false;
 
+    private static String screenExportDir;
+
 
     public VanetVisualizerSkin() {
         img = loadFromFile("img/intersection-big.png");
@@ -96,7 +98,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         render1mBackgroundGrid(g);
 
         /* 100px equals 1m */
-        double scale = 1.0 / 100.0;
+        double scale = Vanet.SCALE * 1.0 / 100.0;
 
         double width = img.getWidth() * scale;
         double height = img.getHeight() * scale;
@@ -107,8 +109,8 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         double centerY = height/2.0;
 
         // and add an offset
-        double offsetX = 3.0;
-        double offsetY = 3.0;
+        double offsetX = 3.0*Vanet.SCALE;
+        double offsetY = 3.0*Vanet.SCALE;
 
 
         Point tl = visualizer.transformPositionToPixel(-centerX+offsetX, -centerY+offsetY, 0.0);
@@ -134,9 +136,9 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
 
     private void render1mBackgroundGrid(Graphics g) {
-        /* Background grid every 1 meters */
+        /* Background grid every X meters */
 
-        double meters = 1.0;
+        double meters = Vanet.SCALE;
 
         Position upperLeft =
                 visualizer.transformPixelToPosition(-(int)meters, -(int)meters);
@@ -210,7 +212,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                         c = Color.GRAY;
                     }
 
-                    float r = 0.075f;
+                    float r = 0.075f* (float) Vanet.SCALE;
                     drawCircle(g, p, r, c);
                 }
             }
@@ -343,10 +345,13 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         return visualizer;
     }
 
+
+    public static void setScreenExportDir(String screenExportDir) {
+        VanetVisualizerSkin.screenExportDir = screenExportDir;
+    }
+
     public static void saveImage(long ms) {
-
-
-        if (false && visualizer != null && canvas != null) {
+        if (VanetVisualizerSkin.screenExportDir != null && VanetVisualizerSkin.screenExportDir.length() > 0 && visualizer != null && canvas != null) {
             JPanel paintPane = canvas;
             visualizer.setSize(512+12,512+54);
             BufferedImage image = new BufferedImage(paintPane.getWidth(), paintPane.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -354,10 +359,8 @@ public class VanetVisualizerSkin implements VisualizerSkin {
             paintPane.printAll(g);
             g.dispose();
             try {
-
-                String userHomeFolder = System.getProperty("user.home");
-                File directory = new File(userHomeFolder, "Desktop/export");
-                if (! directory.exists()){
+                File directory = new File(VanetVisualizerSkin.screenExportDir);
+                if (!directory.exists()){
                     directory.mkdirs();
                 }
                 File f = new File(directory, String.format("img_%06d.png", directory.list().length));

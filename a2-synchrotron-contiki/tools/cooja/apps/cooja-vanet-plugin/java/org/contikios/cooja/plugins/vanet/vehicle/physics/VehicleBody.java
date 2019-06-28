@@ -5,7 +5,7 @@ import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 public class VehicleBody extends CircleBody {
     public VehicleBody(String name) {
-        super(name, 0.33);
+        super(name, 1);
     }
 
     private Vector2D dir = new Vector2D();

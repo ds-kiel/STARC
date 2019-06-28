@@ -742,6 +742,11 @@
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Vanet
+    <plugin_config>
+      <log_dir>/Users/rathje/Desktop/export</log_dir>
+      <vehicles_per_second>0.5</vehicles_per_second>
+      <screen_export_dir>/Users/rathje/Desktop/export</screen_export_dir>
+    </plugin_config>
     <width>150</width>
     <z>2</z>
     <height>300</height>

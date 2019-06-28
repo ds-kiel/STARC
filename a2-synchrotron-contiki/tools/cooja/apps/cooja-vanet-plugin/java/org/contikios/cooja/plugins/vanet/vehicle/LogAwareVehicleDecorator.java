@@ -14,12 +14,12 @@ public class LogAwareVehicleDecorator implements VehicleInterface {
     protected VehicleInterface impl;
 
     protected Map<Integer, String> stateMap = new HashMap<Integer, String>() {{
-        put(STATE_INIT, "init");
         put(STATE_INITIALIZED, "initialized");
         put(STATE_QUEUING, "queuing");
         put(STATE_WAITING, "waiting");
         put(STATE_MOVING, "moving");
         put(STATE_LEAVING, "leaving");
+        put(STATE_LEFT, "left");
         put(STATE_FINISHED, "finished");
     }};
 

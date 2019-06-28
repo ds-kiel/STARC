@@ -110,8 +110,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="783">
-              <caret line="317" column="8" selection-start-line="317" selection-start-column="8" selection-end-line="317" selection-end-column="8" />
+            <state relative-caret-position="193">
+              <caret line="323" column="34" lean-forward="true" selection-start-line="323" selection-start-column="34" selection-end-line="323" selection-end-column="34" />
             </state>
           </provider>
         </entry>
@@ -299,11 +299,11 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds">
     <option name="x" value="1280" />
-    <option name="y" value="-748" />
-    <option name="width" value="1920" />
-    <option name="height" value="1177" />
+    <option name="y" value="-216" />
+    <option name="width" value="1280" />
+    <option name="height" value="777" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -417,18 +417,17 @@
       <workItem from="1560249324305" duration="20875000" />
       <workItem from="1560363763317" duration="26706000" />
       <workItem from="1560980141692" duration="163000" />
-      <workItem from="1561460496800" duration="4204000" />
+      <workItem from="1561460496800" duration="4567000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="223029000" />
+    <option name="totallyTimeSpent" value="223392000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1280" y="-748" width="1920" height="1177" extended-state="6" />
-    <editor active="true" />
+    <frame x="1280" y="-216" width="1280" height="777" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22310969" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.33844912" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -796,8 +795,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="783">
-          <caret line="317" column="8" selection-start-line="317" selection-start-column="8" selection-end-line="317" selection-end-column="8" />
+        <state relative-caret-position="193">
+          <caret line="323" column="34" lean-forward="true" selection-start-line="323" selection-start-column="34" selection-end-line="323" selection-end-column="34" />
         </state>
       </provider>
     </entry>

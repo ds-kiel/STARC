@@ -1,6 +1,7 @@
 package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.Mote;
+import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.junction.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.junction.TiledMapHandler;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
@@ -103,7 +104,7 @@ public class Vehicle implements VehicleInterface {
 
         Vector2D wantedPos = null;
 
-        double threshold = 0.1; // we only move if the distance to the waypoint is more than this value...
+        double threshold = 0.1 * Vanet.SCALE; // we only move if the distance to the waypoint is more than this value...
 
         if (state == STATE_QUEUING) {
             // and the distance to front
@@ -116,7 +117,7 @@ public class Vehicle implements VehicleInterface {
 
             threshold += velDist*2; // increase the threshold since we do not want to move over the position!
 
-            if (sensedDist > 1.0+velDist*2 || sensedDist == -1.0) { // we start moving, if there is enough space
+            if (sensedDist > 1.0 * Vanet.SCALE+velDist*2 || sensedDist == -1.0) { // we start moving, if there is enough space
                 wantedPos = startPos;
             }
         } else if (state == STATE_MOVING || state == STATE_LEAVING || state == STATE_LEFT) {
@@ -139,7 +140,7 @@ public class Vehicle implements VehicleInterface {
         if (state == STATE_INITIALIZED) {
             return STATE_QUEUING;
         } else if (state == STATE_QUEUING) {
-            if (Vector2D.distance(startPos, body.getCenter()) < 0.2) {
+            if (Vector2D.distance(startPos, body.getCenter()) < 0.2 * Vanet.SCALE) {
                 messageProxy.send("J".getBytes());
                 requestReservation();
                 return STATE_WAITING;
@@ -163,7 +164,7 @@ public class Vehicle implements VehicleInterface {
                 requestReservation();
             }
 
-            if (curWayPointIndex >= waypoints.size() - 3) {
+            if (curWayPointIndex >= waypoints.size() - 1) {
                 requestReservation();
                 // Try to leave the network
                 messageProxy.send("L".getBytes());
@@ -258,7 +259,7 @@ public class Vehicle implements VehicleInterface {
 
         Vector2D pos = body.getCenter();
         // we now check the distance to our current wayPoint
-        if (Vector2D.distance(curWayPoint, pos) - 0.5 < 0.001) {
+        if (Vector2D.distance(curWayPoint, pos) - 0.5 * Vanet.SCALE < 0.001) {
             curWayPointIndex++;
             // we use the next waypoint if available...
             if (curWayPointIndex < waypoints.size()) {
@@ -279,9 +280,9 @@ public class Vehicle implements VehicleInterface {
 
     private void handleVehicle(double delta, Vector2D wantedPos, double threshold) {
 
-        double acc = 7;
-        double dec = 10;
-        double maxSpeed = 1.0;
+        double acc = 4; // m/s*s
+        double dec = 8; // m/s*s
+        double maxSpeed = 13.8889; // m/s, 50 km/h
         double maxTurn = (Math.PI*2)/4; //(360/4 = 90 degrees per second)
 
         Vector2D vel = body.getVel();
@@ -289,7 +290,6 @@ public class Vehicle implements VehicleInterface {
         Vector2D dir = body.getDir();
 
         Vector2D acceleration = new Vector2D();
-
 
         // we check our waypoints
         if (wantedPos != null) {

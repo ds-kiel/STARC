@@ -1,26 +1,21 @@
 package org.contikios.cooja.plugins;
 
-import org.apache.log4j.Logger;
 import org.contikios.cooja.*;
 
 import org.contikios.cooja.plugins.skins.VanetVisualizerSkin;
-import org.contikios.cooja.plugins.vanet.vehicle.LogAwareVehicleDecorator;
-import org.contikios.cooja.plugins.vanet.vehicle.MessageProxy;
-import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
-import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
-import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
-import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
+import org.contikios.cooja.plugins.vanet.config.VanetConfig;
+import org.contikios.cooja.plugins.vanet.log.Logger;
 import org.contikios.cooja.plugins.vanet.world.World;
-import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Random;
+import org.jdom.Element;
+import java.util.Collection;
 
 @ClassDescription("Vanet")
 @PluginType(PluginType.SIM_PLUGIN)
 public class Vanet extends VisPlugin {
-    private static Logger logger = Logger.getLogger(Vanet.class);
 
     private static final boolean QUIET = false;
     private static final long TICKS = 50;
@@ -31,30 +26,35 @@ public class Vanet extends VisPlugin {
     private Observer millisecondObserver;
 
     public static World world;
-
-
     private long nextUpdate = 0;
+
+
+    public static final double SCALE = 3.0;
+
+    private VanetConfig vanetConfig = new VanetConfig();
 
     public Vanet(Simulation simulation, final Cooja Cooja) {
         super("Vanet", Cooja, false);
+
         this.simulation = simulation;
 
-        if (!QUIET) {
-            logger.info("Vanet plugin started at (ms): " + simulation.getSimulationTimeMillis());
-        }
+
+        Vanet.this.initConnections();
+
+        vanetConfig.addSettingsObserver(new Observer() {
+            @Override
+            public void update(Observable o, Object arg) {
+                double vps = vanetConfig.getParameterDoubleValue(VanetConfig.Parameter.vehicles_per_hour);
+                world.setVehiclesPerSecond(vps);
+                Logger.setLogDir(((String) vanetConfig.getParameterValue(VanetConfig.Parameter.log_dir)));
+                VanetVisualizerSkin.setScreenExportDir(((String) vanetConfig.getParameterValue(VanetConfig.Parameter.screen_export_dir)));
+            }
+        });
     }
 
     public void startPlugin() {
         super.startPlugin();
 
-        simulation.invokeSimulationThread(
-            new Runnable() {
-                @Override
-                public void run() {
-                    Vanet.this.initConnections();
-                }
-            }
-        );
 
         millisecondObserver = new Observer() {
             @Override
@@ -62,6 +62,10 @@ public class Vanet extends VisPlugin {
                 if (simulation.getSimulationTimeMillis() >= nextUpdate) {
                     Vanet.this.update(TICK_MS); // one s
                     nextUpdate += TICK_MS;
+                }
+
+                if (simulation.getSimulationTimeMillis() % TICK_MS == 0) {
+                    Logger.flush();
                 }
             }
         };
@@ -75,10 +79,6 @@ public class Vanet extends VisPlugin {
     // Initialize the connections to each Mote
     private void initConnections() {
         // first we try to get a connection to all nodes
-
-        if (!QUIET) {
-            logger.info("Vanet init connections at (ms): " + simulation.getSimulationTimeMillis());
-        }
 
         try {
             World.RAND = new Random(simulation.getRandomSeed()+124);
@@ -95,5 +95,14 @@ public class Vanet extends VisPlugin {
             world.simulate(deltaMS);
             VanetVisualizerSkin.saveImage(simulation.getSimulationTimeMillis());
         }
+    }
+
+    public Collection<Element> getConfigXML() {
+        return vanetConfig.getConfigXML();
+    }
+
+    public boolean setConfigXML(Collection<Element> configXML,
+                                boolean visAvailable) {
+        return vanetConfig.setConfigXML(configXML);
     }
 }

@@ -12,13 +12,25 @@ public class Logger {
 
     private static Logger loggerInstance;
 
+    private static String logDir;
+
+
+    public static void setLogDir(String logDir) {
+        Logger.logDir = logDir;
+        loggerInstance = null; // reset logger! TODO: This is not the nices way
+    }
+
     public Logger() {
         loggerInstance = this;
 
-        logEventProcessors = new LogEventProcessorInterface[1];
-        // TODO: Use other path here. Maybe make it configurable?
-        // TODO: Add the processors at some other place...
-        logEventProcessors[0] = new IdAwareProcessorDecorator(new CsvExporter("/Users/rathje/Desktop/export/stats"));
+        if (Logger.logDir != null) {
+            logEventProcessors = new LogEventProcessorInterface[1];
+            logEventProcessors[0] = new IdAwareProcessorDecorator(new CsvExporter(Logger.logDir));
+            // TODO: Add the processors at some other place...
+        } else {
+            logEventProcessors = new LogEventProcessorInterface[0];
+            //"/Users/rathje/Desktop/export/stats"
+        }
     }
 
     public static Logger getInstance() {
@@ -41,7 +53,7 @@ public class Logger {
         }
     }
 
-    public void flush() {
+    public static void flush() {
         Logger logger = getInstance();
         for (LogEventProcessorInterface logEventProcessor: logger.logEventProcessors) {
             logEventProcessor.flush();

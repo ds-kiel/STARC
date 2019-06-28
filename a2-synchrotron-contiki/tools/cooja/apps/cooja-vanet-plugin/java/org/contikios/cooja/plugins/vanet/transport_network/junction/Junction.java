@@ -1,5 +1,6 @@
 package org.contikios.cooja.plugins.vanet.transport_network.junction;
 
+import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import java.util.ArrayList;
@@ -11,7 +12,8 @@ public class Junction {
 
     public Junction() {
         this.offset = new Vector2D();
-        this.mapHandler = new TiledMapHandler(6,6,1,1, this.offset);
+        // TODO: We might want to scale the offset later
+        this.mapHandler = new TiledMapHandler(6,6, this.offset);
 
 
         Vector2D up = new Vector2D(0, -1);
@@ -53,18 +55,23 @@ public class Junction {
         this.addStartLane( new Vector2D(3.5, 6.5), up, Lane.TURN_LEFT);
         this.addStartLane( new Vector2D(4.5, 6.5), up, Lane.STRAIGHT);
         this.addStartLane( new Vector2D(5.5, 6.5), up, Lane.TURN_RIGHT);
+
     }
 
     public ArrayList<Lane> getLanes() {
         return lanes;
     }
-
+/*
+    TODO: The scaling should happen before!
+ */
     private void addStartLane(Vector2D endPos, Vector2D direction, int possDir) {
+        endPos.scale(Vanet.SCALE);
         Lane l = new Lane(null, null, this, endPos, direction, possDir);
         this.lanes.add(l);
     }
 
     private void addEndLane(Vector2D startPos, Vector2D direction) {
+        startPos.scale(Vanet.SCALE);
         Lane l = new Lane(this, startPos, null, null, direction, Lane.NONE);
         this.lanes.add(l);
     }

@@ -4,6 +4,7 @@ import org.contikios.cooja.Mote;
 import org.contikios.cooja.MoteType;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.Position;
+import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
 import org.contikios.cooja.plugins.vanet.transport_network.junction.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.junction.TiledMapHandler;
@@ -34,6 +35,8 @@ public class World {
     private MoteType vehicleMoteType;
 
     private IDGenerator idGenerator;
+
+    private double vehiclesPerHour = 0.0f;
 
     public World(Simulation simulation) {
         this.simulation = simulation;
@@ -109,8 +112,8 @@ public class World {
             return;
         }
 
-        float perSecond = 3.0f;
-        int wanted = (int) ((currentMS/1000.0f)*perSecond) - vehicleManager.getTotal();
+        double vehiclesPerHourPerLane = (vehiclesPerHour/3600.0)*12.0;
+        int wanted = (int) ((currentMS/1000.0f)*vehiclesPerHourPerLane) - vehicleManager.getTotal();
 
         for(int i  = 0; i < wanted; ++i) {
             Mote m = vehicleMoteType.generateMote(simulation);
@@ -154,7 +157,7 @@ public class World {
 
        // we translate the endpos a bit such that we check right from the beginning
        Vector2D endPos = new Vector2D(l.getDirection());
-       endPos.scale(0.5);
+       endPos.scale(0.5 * Vanet.SCALE);
        endPos.add(l.getEndPos());
 
 
@@ -168,8 +171,15 @@ public class World {
                             orElse(0.0);
 
         Vector2D freePos = new Vector2D(d);
-        freePos.scale(maxDist+0.5+1.0);
+        freePos.scale(maxDist + 1.5 * Vanet.SCALE);
         freePos.add(endPos);
         return new AbstractMap.SimpleImmutableEntry<>(l, freePos);
+    }
+
+    public void setVehiclesPerSecond(double vehiclesPerHour) {
+        if (vehiclesPerHour != this.vehiclesPerHour) {
+            this.vehiclesPerHour = vehiclesPerHour;
+            // TODO: if we want to manually change the value, we would need to save the last changed num and time
+        }
     }
 }

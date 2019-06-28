@@ -67,7 +67,6 @@ public class Lane {
 
     public ArrayList<Vector2D> getWayPoints(TiledMapHandler mapHandler) {
 
-
         Vector2D dirStep = new Vector2D(direction);
         dirStep.scale(mapHandler.getTileScaling());
 

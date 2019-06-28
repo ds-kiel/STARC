@@ -13,7 +13,7 @@
     <motedelay_us>0</motedelay_us>
     <radiomedium>
       org.contikios.mrm.MRM
-      <rx_sensitivity value="-85.0" />
+      <rx_sensitivity value="-100.0" />
       <obstacles />
     </radiomedium>
     <events>
@@ -46,8 +46,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>3.0000000823708612</x>
-        <y>3.0000000381092553</y>
+        <x>9.0</x>
+        <y>9.0</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -126,6 +126,11 @@
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Vanet
+    <plugin_config>
+      <log_dir>/Users/rathje/Desktop/export</log_dir>
+      <vehicles_per_hour>50</vehicles_per_hour>
+      <screen_export_dir></screen_export_dir>
+    </plugin_config>
     <width>150</width>
     <z>3</z>
     <height>300</height>
