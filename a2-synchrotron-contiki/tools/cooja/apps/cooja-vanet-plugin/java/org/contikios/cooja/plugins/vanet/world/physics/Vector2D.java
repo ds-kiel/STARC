@@ -38,6 +38,15 @@ public class Vector2D {
         y *= l;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Vector2D) {
+            return x == ((Vector2D) obj).getX() && y == ((Vector2D) obj).getY();
+        } else {
+            return false;
+        }
+    }
+
     public double length() {
         return Math.sqrt(x*x+y*y);
     }
@@ -70,7 +79,6 @@ public class Vector2D {
         x = x1;
         y = y1;
     }
-
 
     public static Vector2D diff(Vector2D a, Vector2D b) {
         Vector2D r = new Vector2D(a);

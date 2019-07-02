@@ -1,4 +1,4 @@
-package org.contikios.cooja.plugins.vanet.transport_network.junction;
+package org.contikios.cooja.plugins.vanet.transport_network.intersection;
 
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;

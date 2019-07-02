@@ -52,6 +52,8 @@ import org.contikios.cooja.mote.memory.VarMemory;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.Visualizer;
 import org.contikios.cooja.plugins.VisualizerSkin;
+import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
 import org.contikios.cooja.plugins.vanet.vehicle.LogAwareVehicleDecorator;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.world.World;
@@ -97,8 +99,30 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
         render1mBackgroundGrid(g);
 
-        /* 100px equals 1m */
-        double scale = Vanet.SCALE * 1.0 / 100.0;
+        World world = Vanet.world;
+
+        if (world != null) {
+
+            TransportNetwork transportNetwork = world.getTransportNetwork();
+
+            int width = transportNetwork.getWidth();
+            int height = transportNetwork.getHeight();
+            for(int y = 0; y < height; ++y) {
+                for(int x = 0; x < width; ++x) {
+                    Intersection intersection = transportNetwork.getIntersection(x, y);
+                    renderIntersection(g, intersection);
+                }
+            }
+
+            drawCollisionBoundaries(g, world);
+            drawWaypointsForSelection(g, world);
+        }
+    }
+
+
+    private void renderIntersection(Graphics g, Intersection intersection) {
+        /* 100px equals Vanet.SCALE meters */
+        double scale = Vanet.SCALE / 100.0;
 
         double width = img.getWidth() * scale;
         double height = img.getHeight() * scale;
@@ -109,9 +133,8 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         double centerY = height/2.0;
 
         // and add an offset
-        double offsetX = 3.0*Vanet.SCALE;
-        double offsetY = 3.0*Vanet.SCALE;
-
+        double offsetX = 3.0*Vanet.SCALE + intersection.getOffset().getX();
+        double offsetY = 3.0*Vanet.SCALE + intersection.getOffset().getY();
 
         Point tl = visualizer.transformPositionToPixel(-centerX+offsetX, -centerY+offsetY, 0.0);
         Point br = visualizer.transformPositionToPixel(centerX+offsetX, centerY+offsetY, 0.0);
@@ -123,15 +146,16 @@ public class VanetVisualizerSkin implements VisualizerSkin {
             }
         });
 
-        // TODO: Use the static world of our Vanet plugin
+        intersection.getLanes().forEach(
+                l -> {
+                    Vector2D sp = l.getStartPos();
+                    Vector2D ep = l.getEndPos();
 
-        World world = Vanet.world;
-
-        if (world != null) {
-            drawCollisionBoundaries(g, world);
-            drawWaypointsForSelection(g, world);
-        }
-
+                    float r = 0.075f* (float) Vanet.SCALE;
+                    drawCircle(g, sp, r, Color.RED);
+                    drawCircle(g, ep, r*2, Color.BLUE);
+                }
+        );
     }
 
 

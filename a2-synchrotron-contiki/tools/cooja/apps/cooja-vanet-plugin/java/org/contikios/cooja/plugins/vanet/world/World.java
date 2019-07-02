@@ -6,11 +6,11 @@ import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.Position;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
-import org.contikios.cooja.plugins.vanet.transport_network.junction.Lane;
-import org.contikios.cooja.plugins.vanet.transport_network.junction.TiledMapHandler;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.TiledMapHandler;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleManager;
-import org.contikios.cooja.plugins.vanet.world.physics.Computation.Intersection;
+import org.contikios.cooja.plugins.vanet.world.physics.Computation.LaneIntersection;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
@@ -38,17 +38,21 @@ public class World {
 
     private double vehiclesPerHour = 0.0f;
 
-    public World(Simulation simulation) {
+    public World(Simulation simulation, int networkWidth, int networkHeight) {
         this.simulation = simulation;
         this.vehicleMoteType = simulation.getMoteType("vehicle");
         this.physics = new Physics();
-        this.transportNetwork = new TransportNetwork(1,1);
+        this.transportNetwork = new TransportNetwork(networkWidth,networkHeight);
         this.vehicleManager = new VehicleManager(this);
         this.idGenerator = new IDGenerator(2, 255);
     }
 
     public TiledMapHandler getMapHandler() {
-        return this.transportNetwork.getJunction().getMapHandler();
+        return this.transportNetwork.getIntersection(0,0).getMapHandler();
+    }
+
+    public TransportNetwork getTransportNetwork() {
+        return this.transportNetwork;
     }
 
     public long getCurrentMS() {
@@ -152,19 +156,19 @@ public class World {
     public AbstractMap.SimpleImmutableEntry<Lane, Vector2D> getFreePosition() {
        Lane l = this.transportNetwork.getRandomStartLane();
 
-       Vector2D d = new Vector2D(l.getDirection());
+       Vector2D d = new Vector2D(l.getDirectionVector());
        d.scale(-1);
 
        // we translate the endpos a bit such that we check right from the beginning
-       Vector2D endPos = new Vector2D(l.getDirection());
+       Vector2D endPos = new Vector2D(l.getDirectionVector());
        endPos.scale(0.5 * Vanet.SCALE);
        endPos.add(l.getEndPos());
 
 
        // we need to check the collision
-        Collection<Intersection> intersections = this.physics.computeLineIntersections(endPos,d);
+        Collection<LaneIntersection> laneIntersections = this.physics.computeLineIntersections(endPos,d);
 
-        double maxDist = intersections.stream().
+        double maxDist = laneIntersections.stream().
                             map(i -> i.distance).
                             filter(x -> x >= 0.0).
                             max(Double::compareTo).

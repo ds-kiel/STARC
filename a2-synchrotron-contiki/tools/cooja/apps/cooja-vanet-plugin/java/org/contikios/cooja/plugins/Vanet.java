@@ -38,13 +38,15 @@ public class Vanet extends VisPlugin {
 
         this.simulation = simulation;
 
-
-        Vanet.this.initConnections();
+        World.RAND = new Random(simulation.getRandomSeed()+124);
 
         vanetConfig.addSettingsObserver(new Observer() {
             @Override
             public void update(Observable o, Object arg) {
                 double vps = vanetConfig.getParameterDoubleValue(VanetConfig.Parameter.vehicles_per_hour);
+                int networkWidth = vanetConfig.getParameterIntegerValue(VanetConfig.Parameter.network_width);
+                int networkHeight = vanetConfig.getParameterIntegerValue(VanetConfig.Parameter.network_height);
+                world = new World(Vanet.this.simulation, networkWidth, networkHeight);
                 world.setVehiclesPerSecond(vps);
                 Logger.setLogDir(((String) vanetConfig.getParameterValue(VanetConfig.Parameter.log_dir)));
                 VanetVisualizerSkin.setScreenExportDir(((String) vanetConfig.getParameterValue(VanetConfig.Parameter.screen_export_dir)));
@@ -55,18 +57,14 @@ public class Vanet extends VisPlugin {
     public void startPlugin() {
         super.startPlugin();
 
+        millisecondObserver = (Observable o, Object arg) -> {
+            if (simulation.getSimulationTimeMillis() >= nextUpdate) {
+                Vanet.this.update(TICK_MS); // one s
+                nextUpdate += TICK_MS;
+            }
 
-        millisecondObserver = new Observer() {
-            @Override
-            public void update(Observable o, Object arg) {
-                if (simulation.getSimulationTimeMillis() >= nextUpdate) {
-                    Vanet.this.update(TICK_MS); // one s
-                    nextUpdate += TICK_MS;
-                }
-
-                if (simulation.getSimulationTimeMillis() % TICK_MS == 0) {
-                    Logger.flush();
-                }
+            if (simulation.getSimulationTimeMillis() % TICK_MS == 0) {
+                Logger.flush();
             }
         };
         simulation.addMillisecondObserver(millisecondObserver);
@@ -74,18 +72,6 @@ public class Vanet extends VisPlugin {
 
     public void closePlugin() {
         simulation.deleteMillisecondObserver(millisecondObserver);
-    }
-
-    // Initialize the connections to each Mote
-    private void initConnections() {
-        // first we try to get a connection to all nodes
-
-        try {
-            World.RAND = new Random(simulation.getRandomSeed()+124);
-            world = new World(simulation);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private void update(long deltaMS) {
@@ -100,7 +86,6 @@ public class Vanet extends VisPlugin {
     public Collection<Element> getConfigXML() {
         return vanetConfig.getConfigXML();
     }
-
     public boolean setConfigXML(Collection<Element> configXML,
                                 boolean visAvailable) {
         return vanetConfig.setConfigXML(configXML);

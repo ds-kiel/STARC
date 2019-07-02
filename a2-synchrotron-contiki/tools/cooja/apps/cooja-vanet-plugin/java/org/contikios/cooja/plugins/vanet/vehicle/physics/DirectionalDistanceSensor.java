@@ -1,6 +1,6 @@
 package org.contikios.cooja.plugins.vanet.vehicle.physics;
 
-import org.contikios.cooja.plugins.vanet.world.physics.Computation.Intersection;
+import org.contikios.cooja.plugins.vanet.world.physics.Computation.LaneIntersection;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Sensor;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
@@ -24,13 +24,13 @@ public class DirectionalDistanceSensor implements Sensor  {
         Vector2D dir = ownBody.getDir();
         Vector2D pos = ownBody.getCenter();
 
-        Collection<Intersection> intersectedBodies = physics.computeLineIntersections(pos, dir);
+        Collection<LaneIntersection> intersectedBodies = physics.computeLineIntersections(pos, dir);
 
         val = -1.0;
 
-        for (Intersection i: intersectedBodies) {
+        for (LaneIntersection i: intersectedBodies) {
             if (i.body == ownBody) {
-                continue; // no junction with ourself ;)
+                continue; // no intersection with ourself ;)
             }
 
             double v = i.distance;

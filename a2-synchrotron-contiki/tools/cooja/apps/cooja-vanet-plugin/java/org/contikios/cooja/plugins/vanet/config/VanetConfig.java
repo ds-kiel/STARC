@@ -30,29 +30,12 @@
 
 package org.contikios.cooja.plugins.vanet.config;
 
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Observable;
-import java.util.Observer;
-import java.util.Properties;
-import java.util.Random;
-import java.util.Vector;
+import java.util.*;
 
-import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import org.contikios.cooja.Simulation;
-import org.contikios.cooja.interfaces.DirectionalAntennaRadio;
-import org.contikios.cooja.interfaces.Radio;
-import org.contikios.cooja.radiomediums.AbstractRadioMedium;
 import org.contikios.cooja.util.ScnObservable;
 
 /**
@@ -73,16 +56,22 @@ public class VanetConfig {
   public enum Parameter {
     log_dir,
     screen_export_dir,
-    vehicles_per_hour;
+    vehicles_per_hour,
+    network_width,
+    network_height;
 
     public static Object getDefaultValue(Parameter p) {
       switch (p) {
-      case log_dir:
-        return new String("vanet");
-      case vehicles_per_hour:
-        return new Double(200.0);
-          case screen_export_dir:
-          return new String(); // empty
+        case log_dir:
+          return new String("vanet");
+        case vehicles_per_hour:
+          return 200.0;
+            case screen_export_dir:
+            return ""; // empty
+          case network_width:
+            return 2;
+          case network_height:
+            return 2;
       }
       throw new RuntimeException("Unknown default value: " + p);
     }

@@ -2,12 +2,11 @@ package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.plugins.Vanet;
-import org.contikios.cooja.plugins.vanet.transport_network.junction.Lane;
-import org.contikios.cooja.plugins.vanet.transport_network.junction.TiledMapHandler;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.TiledMapHandler;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
 import org.contikios.cooja.plugins.vanet.world.World;
-import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import java.util.AbstractMap;
@@ -352,10 +351,10 @@ public class Vehicle implements VehicleInterface {
 
         AbstractMap.SimpleImmutableEntry<Lane, Vector2D> res = this.world.getFreePosition();
         Lane lane = res.getKey();
-        this.waypoints = lane.getWayPoints(this.mapHandler);
+        this.waypoints = new ArrayList<>(); //lane.getWayPoints(this.mapHandler);
 
         this.body.setCenter(res.getValue()); // move to center of tile
-        this.body.setDir(new Vector2D(lane.getDirection()));
+        this.body.setDir(new Vector2D(lane.getDirectionVector()));
         this.body.setVel(new Vector2D()); // reset vel
 
         startPos = lane.getEndPos();
