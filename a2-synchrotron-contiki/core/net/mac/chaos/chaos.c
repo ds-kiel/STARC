@@ -928,14 +928,14 @@ uint8_t chaos_associate(rtimer_clock_t* t_sfd_actual_rtimer_ptr, uint16_t *round
         associated += (rx_status == CHAOS_TXRX_OK);
         watchdog_periodic(); /* association could take a long time */
         /* hop channel after a number of slots without a successful association */
-        if(++association_counter > CHAOS_ASSOCIATION_HOP_CHANNEL_THERSHOLD) {
+        if(++association_counter > CHAOS_ASSOCIATION_HOP_CHANNEL_THRESHOLD) {
           HOP_CHANNEL(round_number, ++slot_number);
           on();
           association_counter = 0;
           round_number++;
           //printf("{rd-%u st-%u ch-%u} ASC %s\n", round_number, slot_number, chaos_multichannel_get_current_channel(), CHAOS_RX_STATE_TO_STRING(rx_status));
         }
-      } while(associated < 1 /*&& association_counter < CHAOS_ASSOCIATION_HOP_CHANNEL_THERSHOLD */); //XXX
+      } while(associated < 1 /*&& association_counter < CHAOS_ASSOCIATION_HOP_CHANNEL_THRESHOLD */); //XXX
         if( associated ){
           *app_id_ptr = rx_header->id;
           if(*app_id_ptr < chaos_app_count){
@@ -949,7 +949,7 @@ uint8_t chaos_associate(rtimer_clock_t* t_sfd_actual_rtimer_ptr, uint16_t *round
         associated = 0;
         COOJA_DEBUG_STR("!associate: app is null");
       }
-    } while(app == NULL /*&& association_counter < CHAOS_ASSOCIATION_HOP_CHANNEL_THERSHOLD */); /* XXX  */
+    } while(app == NULL /*&& association_counter < CHAOS_ASSOCIATION_HOP_CHANNEL_THRESHOLD */); /* XXX  */
     if( associated ){
       round_number = *round_number_ptr = rx_header->round_number;
       sync_round = round_number;
