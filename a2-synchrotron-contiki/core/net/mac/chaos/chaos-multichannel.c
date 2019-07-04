@@ -53,8 +53,8 @@ static unsigned int channel_black_list_committed = 0;
 static uint16_t channel_prr[CHAOS_NUMBER_OF_CHANNELS];
 #endif /* CHAOS_MULTI_CHANNEL_ADAPTIVE */
 uint8_t chaos_channel_hopping_sequence[] = CHAOS_HOPPING_SEQUENCE;
-volatile uint16_t chaos_current_channel = 0;
 #endif /* CHAOS_MULTI_CHANNEL */
+volatile uint16_t chaos_current_channel = 0;
 
 void chaos_multichannel_init(void) {
 #if CHAOS_MULTI_CHANNEL
@@ -69,6 +69,10 @@ void chaos_multichannel_init(void) {
   /* Initialize channels PRR to 100% */
   memset(channel_prr, PRR_SCALE, sizeof(channel_prr));
 #endif /* CHAOS_MULTI_CHANNEL_ADAPTIVE */
+#else
+  if (chaos_current_channel == 0) {
+    chaos_current_channel = CHAOS_RF_CHANNEL;
+  }
 #endif /* CHAOS_MULTI_CHANNEL */
 }
 
@@ -173,7 +177,7 @@ ALWAYS_INLINE uint16_t
 // channel: x % 16 + 11
 //return ((round_number + slot_number) & (CHAOS_HOPPING_SEQUENCE_SIZE-1)) + RF_FIRST_CHANNEL;
 #else
-  return CHAOS_RF_CHANNEL;
+  return chaos_current_channel;
 #endif /* CHAOS_MULTI_CHANNEL */
 }
 
@@ -192,19 +196,16 @@ ALWAYS_INLINE uint16_t
 /* this function has a side effect: updates chaos_current_channel */
 ALWAYS_INLINE uint16_t
     chaos_multichannel_update_current_channel(uint16_t round_number, uint16_t slot_number) {
-#if CHAOS_MULTI_CHANNEL
-  return chaos_current_channel = chaos_multichannel_get_next_channel(round_number, slot_number);
-#else
-  return chaos_multichannel_get_next_channel(round_number, slot_number);
-#endif /* CHAOS_MULTI_CHANNEL */
+    chaos_current_channel = chaos_multichannel_get_next_channel(round_number, slot_number);
+    return chaos_current_channel;
 }
 
 ALWAYS_INLINE uint16_t
     chaos_multichannel_get_current_channel() {
-#if CHAOS_MULTI_CHANNEL
   return chaos_current_channel;
-#else
-  return CHAOS_RF_CHANNEL;
-#endif /* CHAOS_MULTI_CHANNEL */
 }
 
+ALWAYS_INLINE uint16_t
+chaos_multichannel_set_current_channel(uint16_t channel) {
+  chaos_current_channel = channel;
+}

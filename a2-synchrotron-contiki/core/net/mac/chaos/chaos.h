@@ -221,8 +221,8 @@ enum {
 #endif
 
 
-#ifdef CHAOS_IS_INITIATOR
-#define IS_INITIATOR()      (CHAOS_IS_INITIATOR)
+#ifdef CHAOS_INITIATORS
+#define IS_INITIATOR()      (node_id <= CHAOS_INITIATORS)
 #else
 #define IS_INITIATOR()      (node_id == INITIATOR_NODE_ID)
 #endif

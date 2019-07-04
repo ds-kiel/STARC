@@ -16,13 +16,9 @@ CHAOS_NODE_DYNAMIC=1
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
-#$(info initiator is [$(initiator)])
+#$(info initiator is [$(initiators)])
 
-ifeq ($(initiator), 1)
-    CFLAGS += -D CHAOS_IS_INITIATOR=1
-else
-    CFLAGS += -D CHAOS_IS_INITIATOR=0
-endif
+CFLAGS += -D CHAOS_INITIATORS=$(initiators)
 
 CONTIKI = ../../..
 include $(CONTIKI)/Makefile.include

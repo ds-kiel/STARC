@@ -273,10 +273,10 @@ PT_THREAD(chaos_associate_proc(struct pt *pt))
       PRINTF("Assoc: rd-%u st-%u, appid: %u\n", round_number, slot_number, app_id);
     } else {
       app =  NULL;
-//      static struct etimer et;
-//      etimer_set(&et, 1);
-//      NETSTACK_RADIO.off();
-//      PT_WAIT_UNTIL(pt, etimer_expired (&et));
+      static struct etimer et;
+      etimer_set(&et, 1);
+      NETSTACK_RADIO.off();
+      PT_WAIT_UNTIL(pt, etimer_expired (&et));
     }
   } while (app == NULL && !IS_INITIATOR());
 
@@ -374,6 +374,10 @@ PROCESS_THREAD(chaos_process, ev, data)
   chaos_pre_processing(NULL);
   COOJA_DEBUG_LINE();
 
+  // Pausse to give other proceses a chance to run before we initialize chaos
+  PROCESS_PAUSE();
+  printf("IS_INITIATOR %d\n", IS_INITIATOR());
+
     while(1) {
       if( IS_INITIATOR() ){
         PRINTF("Chaos initiator starting with ID %u\n", node_id);
@@ -436,6 +440,8 @@ PROCESS_THREAD(chaos_process, ev, data)
 #endif /* ROUND_DELAY_COMPENSATION */
         failed_rounds = ( (get_round_synced() && success) || IS_INITIATOR() ) ? 0 : failed_rounds + 1;
         COOJA_DEBUG_LINE();
+
+        // TODO: We should add an option here to allow nodes to manually leave the network!
       } while( failed_rounds < CHAOS_FAILED_ROUNDS_RESYNC_THRESHOLD || IS_INITIATOR());
       COOJA_DEBUG_LINE();
     }

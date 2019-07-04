@@ -81,6 +81,8 @@ public class VanetVisualizerSkin implements VisualizerSkin {
     private static String screenExportDir;
 
 
+    private static Simulation simulation;
+
     public VanetVisualizerSkin() {
         img = loadFromFile("img/intersection-big.png");
     }
@@ -118,6 +120,8 @@ public class VanetVisualizerSkin implements VisualizerSkin {
             drawWaypointsForSelection(g, world);
         }
     }
+
+
 
 
     private void renderIntersection(Graphics g, Intersection intersection) {
@@ -245,6 +249,34 @@ public class VanetVisualizerSkin implements VisualizerSkin {
     }
 
 
+    private void drawChannels(Graphics g) {
+        FontMetrics fm = g.getFontMetrics();
+        g.setColor(Color.BLACK);
+
+        /* Paint attributes below motes */
+        Mote[] allMotes = simulation.getMotes();
+        for (Mote mote: allMotes) {
+
+            Position pos = mote.getInterfaces().getPosition();
+            Point pixel = visualizer.transformPositionToPixel(pos);
+
+            int y = pixel.y + 2*Visualizer.MOTE_RADIUS + 3;
+
+            VarMemory moteMemory = new VarMemory(mote.getMemory());
+
+            try {
+                long channel = Integer.toUnsignedLong(moteMemory.getInt16ValueOf("chaos_current_channel"));
+
+                String a = String.valueOf(channel);
+                int msgWidth = fm.stringWidth(a);
+                g.drawString(a, pixel.x - msgWidth/2, y);
+                y += fm.getHeight();
+            } catch (UnknownVariableException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void drawCircle(Graphics g, Vector2D p, double r, Color color) {
         g.setColor(color);
         Point tl = visualizer.transformPositionToPixel(p.getX(), p.getY(), 0);
@@ -301,6 +333,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
     public void setActive(Simulation simulation, Visualizer vis) {
         this.visualizer = vis;
+        this.simulation = simulation;
         this.canvas = vis.getCurrentCanvas();
 
         this.canvas.addKeyListener(new KeyListener() {
@@ -363,6 +396,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
     }
 
     public void paintAfterMotes(Graphics g) {
+        drawChannels(g);
     }
 
     public Visualizer getVisualizer() {

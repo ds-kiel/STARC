@@ -20,33 +20,10 @@
     </events>
     <motetype>
       org.contikios.cooja.mspmote.SkyMoteType
-      <identifier>initiator</identifier>
-      <description />
-      <source EXPORT="discard">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.c</source>
-      <commands EXPORT="discard">make intersection-node.sky TARGET=sky initiator=1</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.sky</firmware>
-      <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
-      <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
-      <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
-      <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
-      <moteinterface>org.contikios.cooja.interfaces.MoteAttributes</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspClock</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspMoteID</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyButton</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyFlash</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspSerial</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyLED</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
-    </motetype>
-    <motetype>
-      org.contikios.cooja.mspmote.SkyMoteType
       <identifier>vehicle</identifier>
       <description />
       <source EXPORT="discard">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.c</source>
-      <commands EXPORT="discard">make intersection-node.sky TARGET=sky initiator=0</commands>
+      <commands EXPORT="discard">make intersection-node.sky TARGET=sky initiators=4</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>

@@ -60,6 +60,8 @@
 
 
 
+uint8_t wanted_channel;
+
 // TODO: We need to really test these functions!!
 int decode_data( char * dest, const char * source) {
 
@@ -242,9 +244,6 @@ void print_tiles(merge_commit_value_t *val) {
   printf("\n");
 }
 
-
-
-
 static void mc_round_begin(const uint16_t round_count, const uint8_t id);
 
 
@@ -362,8 +361,14 @@ PROCESS_THREAD(comm_process, ev, data)
     } else if(msg_id == 'L') {
       merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE;
       printf("Trying to leave network\n");
-    }
-    else if (msg_id == 'R') {
+    } else if(msg_id == 'C' && msg_size == 1) {
+      wanted_channel = msg_data[0];
+      printf("Trying to change channel to %d\n", wanted_channel);
+      if (!get_round_synced()) {
+        // we directly change the channel
+        chaos_multichannel_set_current_channel(wanted_channel);
+      }
+    } else if (msg_id == 'R') {
       // copy that reservation to our own
 
       own_reservation.size = msg_size;
@@ -435,6 +440,13 @@ PROCESS_THREAD(main_process, ev, data)
   random_init(rseed);
   printf("Starting main process with seed: %d\n", rseed);
 
+  // we initialize the chaos channel here!
+
+  if (IS_INITIATOR()) {
+    wanted_channel = 11+node_id-1;
+    chaos_multichannel_set_current_channel(wanted_channel);
+  }
+
   process_start(&comm_process, NULL);
   process_start(&mc_process, NULL);
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
@@ -443,6 +455,10 @@ PROCESS_THREAD(main_process, ev, data)
 
 static void mc_round_begin(const uint16_t round_count, const uint8_t id){
   memcpy(&mc_commited_value, &mc_value, sizeof(merge_commit_value_t));
+
+  if (wanted_channel != chaos_multichannel_get_current_channel()) {
+    chaos_multichannel_set_current_channel(wanted_channel);
+  }
 
   printf("Starting round with arrival %d\n", mc_commited_value.arrivals[chaos_node_index]);
 

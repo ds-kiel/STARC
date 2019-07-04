@@ -11,7 +11,7 @@ public class VehicleManager {
     private HashMap<Integer, VehicleInterface> vehicles = new HashMap<>();
     private World world;
 
-    private int initVal = 0;
+    private int initVal = 1000000;
 
     private int idCounter = 0;
 

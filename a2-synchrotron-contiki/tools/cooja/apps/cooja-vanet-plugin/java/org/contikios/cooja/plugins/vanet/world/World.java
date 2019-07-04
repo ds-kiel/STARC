@@ -46,7 +46,7 @@ public class World {
     public World(Simulation simulation, int networkWidth, int networkHeight) {
         this.simulation = simulation;
         this.vehicleMoteType = simulation.getMoteType("vehicle");
-        this.initiatorMoteType = simulation.getMoteType("initiator");
+        this.initiatorMoteType = simulation.getMoteType("vehicle");
         this.physics = new Physics();
         this.transportNetwork = new TransportNetwork(networkWidth,networkHeight);
         this.vehicleManager = new VehicleManager(this);
@@ -54,6 +54,8 @@ public class World {
 
 
         // TODO: This is implementation specific
+        // we remove all nodes
+        Arrays.stream(simulation.getMotes()).forEach(simulation::removeMote);
         // we place the initial nodes onto the intersections
         placeInitiators();
     }

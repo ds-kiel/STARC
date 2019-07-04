@@ -122,7 +122,7 @@ public class TransportNetwork {
     }
 
     public Lane getRandomStartLane() {
-        Collection<Lane> startLanes = Arrays.stream(intersections).flatMap(i -> i.getLanes().stream()).filter(Lane::isStartLane).collect(Collectors.toList());
+        Collection<Lane> startLanes = Stream.of(intersections[0]).flatMap(i -> i.getLanes().stream()).filter(Lane::isStartLane).collect(Collectors.toList());
         return startLanes.stream().skip((int) (startLanes.size() * World.RAND.nextFloat())).findAny().get();
     }
 }

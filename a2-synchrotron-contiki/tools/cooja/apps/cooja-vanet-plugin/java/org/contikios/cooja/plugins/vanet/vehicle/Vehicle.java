@@ -2,6 +2,7 @@ package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.plugins.Vanet;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TiledMapHandler;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
@@ -32,6 +33,8 @@ public class Vehicle implements VehicleInterface {
 
 
     private World world;
+
+    private Intersection currentIntersection;
 
 
     public Vehicle(World world, Mote m, int id) {
@@ -137,6 +140,12 @@ public class Vehicle implements VehicleInterface {
     private int handleStates(int state) {
 
         if (state == STATE_INITIALIZED) {
+
+            byte[] bytes = new byte[2];
+            bytes[0] = 'C';
+            //TODO: Check that this does not overflow
+            bytes[1] = (byte)((currentIntersection.getId()+11)&0xFF);
+            messageProxy.send(bytes);
             return STATE_QUEUING;
         } else if (state == STATE_QUEUING) {
             if (Vector2D.distance(startPos, body.getCenter()) < 0.2 * Vanet.SCALE) {
@@ -356,6 +365,9 @@ public class Vehicle implements VehicleInterface {
         this.body.setCenter(res.getValue()); // move to center of tile
         this.body.setDir(new Vector2D(lane.getDirectionVector()));
         this.body.setVel(new Vector2D()); // reset vel
+
+
+        this.currentIntersection = lane.getEndIntersection();
 
         startPos = lane.getEndPos();
         curWayPointIndex = 0;
