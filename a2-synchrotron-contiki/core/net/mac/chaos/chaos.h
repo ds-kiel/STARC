@@ -220,7 +220,15 @@ enum {
 #define INITIATOR_NODE_ID ((uint16_t)INITIATOR_NODE)
 #endif
 
-#define IS_INITIATOR()              (node_id == INITIATOR_NODE_ID)
+
+#ifdef CHAOS_IS_INITIATOR
+#define IS_INITIATOR()      (CHAOS_IS_INITIATOR)
+#else
+#define IS_INITIATOR()      (node_id == INITIATOR_NODE_ID)
+#endif
+
+
+
 
 /* For target Sky and Z1 */
 #define RSSI_CORRECTION_CONSTANT (-45)

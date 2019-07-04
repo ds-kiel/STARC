@@ -1,9 +1,13 @@
 package org.contikios.cooja.plugins.vanet.world;
 
+import org.contikios.cooja.Cooja;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.MoteType;
 import org.contikios.cooja.Simulation;
+import org.contikios.cooja.contikimote.ContikiMoteType;
 import org.contikios.cooja.interfaces.Position;
+import org.contikios.cooja.mote.memory.UnknownVariableException;
+import org.contikios.cooja.mote.memory.VarMemory;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
@@ -33,6 +37,7 @@ public class World {
     private Map<VehicleInterface, Mote> moteMap = new HashMap<>();
 
     private MoteType vehicleMoteType;
+    private MoteType initiatorMoteType;
 
     private IDGenerator idGenerator;
 
@@ -41,10 +46,32 @@ public class World {
     public World(Simulation simulation, int networkWidth, int networkHeight) {
         this.simulation = simulation;
         this.vehicleMoteType = simulation.getMoteType("vehicle");
+        this.initiatorMoteType = simulation.getMoteType("initiator");
         this.physics = new Physics();
         this.transportNetwork = new TransportNetwork(networkWidth,networkHeight);
         this.vehicleManager = new VehicleManager(this);
-        this.idGenerator = new IDGenerator(2, 255);
+        this.idGenerator = new IDGenerator(1, 255);
+
+
+        // TODO: This is implementation specific
+        // we place the initial nodes onto the intersections
+        placeInitiators();
+    }
+
+    protected void placeInitiators() {
+
+        this.getTransportNetwork().getIntersections().forEach(
+                i -> {
+                    Mote m = initiatorMoteType.generateMote(simulation);
+                    Integer id = idGenerator.next();
+                    if (id != null) {
+                        Vector2D c = i.getCenter();
+                        m.getInterfaces().getMoteID().setMoteID(id);
+                        m.getInterfaces().getPosition().setCoordinates(c.getX(), c.getY(), 0);
+                        simulation.addMote(m);
+                    }
+                }
+        );
     }
 
     public TiledMapHandler getMapHandler() {

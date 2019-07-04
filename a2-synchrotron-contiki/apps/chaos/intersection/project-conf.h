@@ -56,8 +56,9 @@
 
 #undef COOJA
 #define COOJA 1
+
 #undef INITIATOR_NODE
-#define INITIATOR_NODE 1
+#define INITIATOR_NODE 0
 
 #define N_TX_COMPLETE 9
 #define CHAOS_RESTART_MIN 4

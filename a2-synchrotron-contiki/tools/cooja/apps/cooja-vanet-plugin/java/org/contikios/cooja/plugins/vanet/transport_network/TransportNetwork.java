@@ -5,11 +5,9 @@ import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersec
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.world.World;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
+import org.contikios.cooja.util.ArrayUtils;
 
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,7 +33,8 @@ public class TransportNetwork {
         double size = Vanet.SCALE*(2*Intersection.LANE_LENGTH+6);
         for(int y = 0; y < height;++y) {
             for(int x = 0; x < width; ++x) {
-                Intersection newIntersection = new Intersection(new Vector2D(offsetX, offsetY));
+                int id = y*width+x;
+                Intersection newIntersection = new Intersection(id, new Vector2D(offsetX, offsetY));
                 this.intersections[y*width+x] = newIntersection;
                 this.connectLeft(x, y);
                 this.connectTop(x, y);
@@ -61,6 +60,12 @@ public class TransportNetwork {
         Intersection intersection = getIntersection(x,y);
         Intersection leftIntersection = getIntersection(x-1, y);
         connectLanes(intersection.getLanes(), leftIntersection.getLanes());
+    }
+
+
+
+    public Collection<Intersection> getIntersections() {
+        return Arrays.asList(intersections);
     }
 
     private void connectTop(int x, int y) {
@@ -110,6 +115,10 @@ public class TransportNetwork {
 
     public Intersection getIntersection(int x, int y) {
         return this.intersections[y*width+x];
+    }
+
+    public Intersection getIntersection(int id) {
+        return this.intersections[id];
     }
 
     public Lane getRandomStartLane() {

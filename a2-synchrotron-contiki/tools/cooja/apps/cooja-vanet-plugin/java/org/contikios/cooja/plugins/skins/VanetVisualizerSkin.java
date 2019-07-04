@@ -146,16 +146,16 @@ public class VanetVisualizerSkin implements VisualizerSkin {
             }
         });
 
-        intersection.getLanes().forEach(
-                l -> {
-                    Vector2D sp = l.getStartPos();
-                    Vector2D ep = l.getEndPos();
+        /*intersection.getLanes().forEach(
+            l -> {
+                Vector2D sp = l.getStartPos();
+                Vector2D ep = l.getEndPos();
 
-                    float r = 0.075f* (float) Vanet.SCALE;
-                    drawCircle(g, sp, r, Color.RED);
-                    drawCircle(g, ep, r*2, Color.BLUE);
-                }
-        );
+                float r = 0.075f* (float) Vanet.SCALE;
+                drawCircle(g, sp, r, Color.RED);
+                drawCircle(g, ep, r*2, Color.BLUE);
+            }
+        );*/
     }
 
 
@@ -194,6 +194,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                         visualizer.getHeight()
                 );
             }
+
             /* Y axis */
             for (double y = upperLeft.getYCoordinate(); y <= lowerRight.getYCoordinate(); y += meters) {
                 int pixel = visualizer.transformPositionToPixel(0, y, 0).y;
@@ -358,7 +359,6 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                 }
             }
         }
-
         return colors;
     }
 

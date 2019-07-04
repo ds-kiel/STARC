@@ -18,7 +18,10 @@ public class Intersection {
 
     public static final int LANE_LENGTH = 3;
 
-    public Intersection(Vector2D offset) {
+    protected int id;
+
+    public Intersection(int id, Vector2D offset) {
+        this.id = id;
         this.offset = offset;
         this.mapHandler = new TiledMapHandler(6,6, this.offset);
 
@@ -63,8 +66,19 @@ public class Intersection {
         this.addStartLane( new Vector2D(5.5, 6.5), up, TURN_RIGHT);
     }
 
+    public int getId() {
+        return id;
+    }
+
     public Vector2D getOffset() {
         return offset;
+    }
+
+    public Vector2D getCenter() {
+        Vector2D c = new Vector2D(3, 3);
+        c.scale(Vanet.SCALE);
+        c.add(offset);
+        return c;
     }
 
     public Collection<Lane> getLanes() {
