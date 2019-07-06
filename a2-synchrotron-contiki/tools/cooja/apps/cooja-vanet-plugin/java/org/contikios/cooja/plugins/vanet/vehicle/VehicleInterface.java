@@ -36,4 +36,6 @@ public interface VehicleInterface {
 
     ArrayList<Vector2D> getWaypoints();
     int getCurWayPointIndex();
+
+    Vector2D getNextWaypoint();
 }

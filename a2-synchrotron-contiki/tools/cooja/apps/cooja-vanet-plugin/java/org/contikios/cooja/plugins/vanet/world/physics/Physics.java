@@ -76,7 +76,7 @@ public class Physics {
         }
     }
 
-    private Vector2D closestPointOnLine(Vector2D lineStart, Vector2D lineDir, Vector2D pos) {
+    public static Vector2D closestPointOnLine(Vector2D lineStart, Vector2D lineDir, Vector2D pos) {
 
         Vector2D b = new Vector2D(lineDir);
         b.normalize();

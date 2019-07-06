@@ -3,14 +3,14 @@ package org.contikios.cooja.plugins.vanet.transport_network.intersection;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Intersection {
     private Vector2D offset;
     private TiledMapHandler mapHandler;
     HashMap<Integer, Lane> lanes = new HashMap<>();
+    HashMap<Integer, Collection<Integer>> possibleDirs = new HashMap();
 
     public static final int TURN_LEFT = -1;
     public static final int STRAIGHT = 0;
@@ -30,40 +30,53 @@ public class Intersection {
         Vector2D down = new Vector2D(0, 1);
         Vector2D left = new Vector2D(-1, 0);
 
+
+        final int INDEX_LEFT = 0;
+        final int INDEX_STRAIGHT = 1;
+        final int INDEX_RIGHT= 2;
+
         // End lanes
-        this.addEndLane(new Vector2D(-0.5, 0.5), left);
-        this.addEndLane(new Vector2D(-0.5, 1.5), left);
-        this.addEndLane(new Vector2D(-0.5, 2.5), left);
+        List<Lane> allLeft = Arrays.asList(
+            this.addEndLane(new Vector2D(-0.5, 2.5), left),
+            this.addEndLane(new Vector2D(-0.5, 1.5), left),
+            this.addEndLane(new Vector2D(-0.5, 0.5), left)
+        );
 
-        this.addEndLane(new Vector2D(3.5, -0.5), up);
-        this.addEndLane(new Vector2D(4.5, -0.5), up);
-        this.addEndLane(new Vector2D(5.5, -0.5), up);
+        List<Lane> allUp = Arrays.asList(
+            this.addEndLane(new Vector2D(3.5, -0.5), up),
+            this.addEndLane(new Vector2D(4.5, -0.5), up),
+            this.addEndLane(new Vector2D(5.5, -0.5), up)
+        );
 
-        this.addEndLane(new Vector2D(0.5, 6.5), down);
-        this.addEndLane(new Vector2D(1.5, 6.5), down);
-        this.addEndLane(new Vector2D(2.5, 6.5), down);
+        List<Lane> allDown = Arrays.asList(
+            this.addEndLane(new Vector2D(2.5, 6.5), down),
+            this.addEndLane(new Vector2D(1.5, 6.5), down),
+            this.addEndLane(new Vector2D(0.5, 6.5), down)
+        );
 
-        this.addEndLane(new Vector2D(6.5, 3.5), right);
-        this.addEndLane(new Vector2D(6.5, 4.5), right);
-        this.addEndLane(new Vector2D(6.5, 5.5), right);
 
+        List<Lane> allRight = Arrays.asList(
+            this.addEndLane(new Vector2D(6.5, 3.5), right),
+            this.addEndLane(new Vector2D(6.5, 4.5), right),
+            this.addEndLane(new Vector2D(6.5, 5.5), right)
+        );
 
         // Starting lanes
-        this.addStartLane( new Vector2D(0.5, -0.5), down, TURN_RIGHT);
-        this.addStartLane( new Vector2D(1.5, -0.5), down, STRAIGHT);
-        this.addStartLane( new Vector2D(2.5, -0.5), down, TURN_LEFT);
+        this.addStartLane( new Vector2D(2.5, -0.5), down, allDown.get(INDEX_LEFT), allRight);
+        this.addStartLane( new Vector2D(1.5, -0.5), down, allDown.get(INDEX_STRAIGHT), null);
+        this.addStartLane( new Vector2D(0.5, -0.5), down, allDown.get(INDEX_RIGHT), allLeft);
 
-        this.addStartLane( new Vector2D(6.5, 0.5), left, TURN_RIGHT);
-        this.addStartLane( new Vector2D(6.5, 1.5), left, STRAIGHT);
-        this.addStartLane( new Vector2D(6.5, 2.5), left, TURN_LEFT);
+        this.addStartLane( new Vector2D(6.5, 2.5), left, allLeft.get(INDEX_LEFT), allDown);
+        this.addStartLane( new Vector2D(6.5, 1.5), left, allLeft.get(INDEX_STRAIGHT), null);
+        this.addStartLane( new Vector2D(6.5, 0.5), left, allLeft.get(INDEX_RIGHT), allUp);
 
-        this.addStartLane( new Vector2D(-0.5, 3.5), right, TURN_LEFT);
-        this.addStartLane( new Vector2D(-0.5, 4.5), right, STRAIGHT);
-        this.addStartLane( new Vector2D(-0.5, 5.5), right, TURN_RIGHT);
+        this.addStartLane( new Vector2D(-0.5, 3.5), right, allRight.get(INDEX_LEFT), allUp);
+        this.addStartLane( new Vector2D(-0.5, 4.5), right, allRight.get(INDEX_STRAIGHT), null);
+        this.addStartLane( new Vector2D(-0.5, 5.5), right, allRight.get(INDEX_RIGHT), allDown);
 
-        this.addStartLane( new Vector2D(3.5, 6.5), up, TURN_LEFT);
-        this.addStartLane( new Vector2D(4.5, 6.5), up, STRAIGHT);
-        this.addStartLane( new Vector2D(5.5, 6.5), up, TURN_RIGHT);
+        this.addStartLane( new Vector2D(3.5, 6.5), up, allUp.get(INDEX_LEFT), allLeft);
+        this.addStartLane( new Vector2D(4.5, 6.5), up, allUp.get(INDEX_STRAIGHT), null);
+        this.addStartLane( new Vector2D(5.5, 6.5), up, allUp.get(INDEX_RIGHT), allRight);
     }
 
     public int getId() {
@@ -84,11 +97,10 @@ public class Intersection {
     public Collection<Lane> getLanes() {
         return lanes.values();
     }
-/*
-    TODO: The scaling should happen before!
- */
-    private void addStartLane(Vector2D relativeEndPos, Vector2D direction, int possDir) {
+    private Lane addStartLane(Vector2D relativeEndPos, Vector2D direction, Lane mainDirection, List<Lane> otherDirections) {
 
+
+        // TODO: The scaling should happen before?
         relativeEndPos.scale(Vanet.SCALE);
         relativeEndPos.add(this.offset);
 
@@ -103,9 +115,20 @@ public class Intersection {
         l.setStartPos(startPos);
         l.setEndPos(relativeEndPos);
         this.lanes.put(id, l);
+
+        ArrayList<Integer> dirs = new ArrayList<>();
+        // we update the possible directions here
+        if (mainDirection != null) {
+            dirs.add(mainDirection.getId(this));
+        }
+        if (otherDirections != null) {
+            otherDirections.forEach(od -> dirs.add(od.getId(this)));
+        }
+        possibleDirs.put(id, dirs);
+        return l;
     }
 
-    private void addEndLane(Vector2D relativeStartPos, Vector2D direction) {
+    private Lane addEndLane(Vector2D relativeStartPos, Vector2D direction) {
         relativeStartPos.scale(Vanet.SCALE);
         relativeStartPos.add(this.offset);
 
@@ -120,19 +143,26 @@ public class Intersection {
         l.setStartPos(relativeStartPos);
         l.setEndPos(endPos);
         this.lanes.put(id, l);
+        return l;
     }
 
     public void replaceLane(Lane original, Lane replacement) {
-        int laneId = original.getIntersectionId(this);
+        int laneId = original.getId(this);
 
         if (laneId > 0) {
             this.lanes.put(laneId, replacement);
+        } else {
+            System.out.println("Could not find lane!");
         }
     }
 
-    public Collection<Lane> getPossibleWays(Lane arrivalLane) {
-        // TODO: Filter the possible ways for that specific arrival lane
-        return new ArrayList<>();
+    public Collection<Lane> getPossibleLanes(Lane arrivalLane) {
+        int id = arrivalLane.getId(this);
+        return possibleDirs.get(id)
+                .stream().map(
+                    i -> this.lanes.get(i)
+                )
+                .collect(Collectors.toList());
     }
 
     public TiledMapHandler getMapHandler() {

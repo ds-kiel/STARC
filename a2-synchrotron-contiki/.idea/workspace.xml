@@ -11,14 +11,6 @@
   <component name="ChangeListManager">
     <list default="true" id="2481c688-6bc0-4522-b60e-d964ad7195fa" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/chaos/intersection/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/apps/chaos/intersection/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c" beforeDir="false" afterPath="$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/chaos/intersection/project-conf.h" beforeDir="false" afterPath="$PROJECT_DIR$/apps/chaos/intersection/project-conf.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/chaos-control.c" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/chaos-control.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/chaos-multichannel.c" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/chaos-multichannel.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/chaos-multichannel.h" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/chaos-multichannel.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/chaos.c" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/chaos.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/net/mac/chaos/chaos.h" beforeDir="false" afterPath="$PROJECT_DIR$/core/net/mac/chaos/chaos.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote/project-conf.h" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote/project-conf.h" afterDir="false" />
@@ -27,9 +19,12 @@
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/TransportNetwork.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/TransportNetwork.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/intersection/Intersection.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/intersection/Intersection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/intersection/Lane.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/intersection/Lane.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/VehicleManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/VehicleManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/World.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/physics/DirectionalDistanceSensor.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/physics/DirectionalDistanceSensor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Physics.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Physics.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/lib/vanet.jar" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/lib/vanet.jar" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
@@ -120,8 +115,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="445" column="4" selection-start-line="445" selection-start-column="4" selection-end-line="445" selection-end-column="4" />
+            <state relative-caret-position="42">
+              <caret line="386" column="14" selection-start-line="386" selection-start-column="14" selection-end-line="386" selection-end-column="14" />
             </state>
           </provider>
         </entry>
@@ -168,9 +163,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>process_start(struct process *p, process_data_t data)</find>
-      <find>process_post_synch</find>
-      <find>call_process</find>
       <find>CHAOS_IS_</find>
       <find>current_chann</find>
       <find>CHAOS_HOPPING_SEQUENCE_SIZE</find>
@@ -198,6 +190,9 @@
       <find>CHAOS_ASSOCIATION_HOP_CHANNEL_THRESHOLD</find>
       <find>chaos_associate</find>
       <find>wanted_channel</find>
+      <find>set_own_arrival</find>
+      <find>try to reserve</find>
+      <find>own_arrival</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -313,10 +308,9 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1355" />
-    <option name="y" value="-627" />
-    <option name="width" value="1845" />
-    <option name="height" value="828" />
+    <option name="y" value="23" />
+    <option name="width" value="1280" />
+    <option name="height" value="777" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -342,13 +336,6 @@
               <item name="a2-synchrotron-contiki" type="462c0819:PsiDirectoryNode" />
               <item name="apps" type="462c0819:PsiDirectoryNode" />
               <item name="chaos" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="a2-synchrotron-contiki" type="b2602c69:ProjectViewProjectNode" />
-              <item name="a2-synchrotron-contiki" type="462c0819:PsiDirectoryNode" />
-              <item name="apps" type="462c0819:PsiDirectoryNode" />
-              <item name="chaos" type="462c0819:PsiDirectoryNode" />
-              <item name="intersection" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="a2-synchrotron-contiki" type="b2602c69:ProjectViewProjectNode" />
@@ -431,18 +418,17 @@
       <workItem from="1560363763317" duration="26706000" />
       <workItem from="1560980141692" duration="163000" />
       <workItem from="1561460496800" duration="4567000" />
-      <workItem from="1562238778620" duration="9830000" />
+      <workItem from="1562238778620" duration="11402000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="233222000" />
+    <option name="totallyTimeSpent" value="234794000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1280" y="-748" width="1920" height="1177" extended-state="6" />
-    <editor active="true" />
+    <frame x="0" y="23" width="1280" height="777" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22683705" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.3441034" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -835,8 +821,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="445" column="4" selection-start-line="445" selection-start-column="4" selection-end-line="445" selection-end-column="4" />
+        <state relative-caret-position="42">
+          <caret line="386" column="14" selection-start-line="386" selection-start-column="14" selection-end-line="386" selection-end-column="14" />
         </state>
       </provider>
     </entry>

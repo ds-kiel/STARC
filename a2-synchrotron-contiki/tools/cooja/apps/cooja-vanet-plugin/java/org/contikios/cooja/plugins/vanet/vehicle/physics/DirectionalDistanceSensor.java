@@ -1,5 +1,6 @@
 package org.contikios.cooja.plugins.vanet.vehicle.physics;
 
+import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.world.physics.Computation.LaneIntersection;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Sensor;
@@ -15,7 +16,7 @@ public class DirectionalDistanceSensor implements Sensor  {
 
     public DirectionalDistanceSensor(VehicleBody ownBody) {
         this.ownBody = ownBody;
-        this.maxLength = 500.0f;
+        this.maxLength = 500.0f* Vanet.SCALE;
     }
 
     @Override

@@ -106,8 +106,9 @@
   <plugin>
     org.contikios.cooja.plugins.Vanet
     <plugin_config>
-      <vehicles_per_hour value="50.0" />
+      <vehicles_per_hour value="200.0" />
       <log_dir value="/Users/rathje/Desktop/export" />
+      <screen_export_dir value="/Users/rathje/Desktop/export/screens_200" />
     </plugin_config>
     <width>150</width>
     <z>3</z>

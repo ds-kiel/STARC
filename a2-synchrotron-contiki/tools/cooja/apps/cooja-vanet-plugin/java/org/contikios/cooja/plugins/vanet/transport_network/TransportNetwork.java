@@ -18,6 +18,8 @@ public class TransportNetwork {
 
     private Intersection[] intersections;
 
+    private int numStartLanes;
+
     public TransportNetwork(int width, int height) {
         this.width = width;
         this.height = height;
@@ -43,6 +45,12 @@ public class TransportNetwork {
             offsetX = 0;
             offsetY += size;
         }
+
+        this.numStartLanes = (int) Arrays.stream(intersections).flatMap(i -> i.getLanes().stream()).filter(Lane::isStartLane).count();
+    }
+
+    public int getNumStartLanes() {
+        return numStartLanes;
     }
 
     public int getWidth() {
@@ -88,12 +96,11 @@ public class TransportNetwork {
                 );
 
         // filter the matching positions
-        // TODO: Check that all lanes are being correctly initiated
         possiblePairs = possiblePairs.filter(p -> {
             Vector2D joinPos = new Vector2D(p.getKey().getDirectionVector());
             joinPos.scale(-Vanet.SCALE);
             joinPos.add(p.getKey().getEndPos());
-            return joinPos.equals(p.getValue().getStartPos());
+            return Vector2D.distance(joinPos, p.getValue().getStartPos()) < 0.01*Vanet.SCALE;
         });
 
         // these are the matching pairs
@@ -122,7 +129,7 @@ public class TransportNetwork {
     }
 
     public Lane getRandomStartLane() {
-        Collection<Lane> startLanes = Stream.of(intersections[0]).flatMap(i -> i.getLanes().stream()).filter(Lane::isStartLane).collect(Collectors.toList());
+        Collection<Lane> startLanes = Arrays.stream(intersections).flatMap(i -> i.getLanes().stream()).filter(Lane::isStartLane).collect(Collectors.toList());
         return startLanes.stream().skip((int) (startLanes.size() * World.RAND.nextFloat())).findAny().get();
     }
 }

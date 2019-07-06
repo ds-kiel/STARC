@@ -145,7 +145,7 @@ public class World {
             return;
         }
 
-        double vehiclesPerHourPerLane = (vehiclesPerHour/3600.0)*12.0;
+        double vehiclesPerHourPerLane = (vehiclesPerHour/3600.0)*getTransportNetwork().getNumStartLanes();
         int wanted = (int) ((currentMS/1000.0f)*vehiclesPerHourPerLane) - vehicleManager.getTotal();
 
         for(int i  = 0; i < wanted; ++i) {

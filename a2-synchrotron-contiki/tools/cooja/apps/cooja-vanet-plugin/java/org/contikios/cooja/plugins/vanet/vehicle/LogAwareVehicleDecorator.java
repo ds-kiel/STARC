@@ -82,4 +82,9 @@ public class LogAwareVehicleDecorator implements VehicleInterface {
     public void destroy() {
         this.impl.destroy();
     }
+
+    @Override
+    public Vector2D getNextWaypoint() {
+        return this.impl.getNextWaypoint();
+    }
 }

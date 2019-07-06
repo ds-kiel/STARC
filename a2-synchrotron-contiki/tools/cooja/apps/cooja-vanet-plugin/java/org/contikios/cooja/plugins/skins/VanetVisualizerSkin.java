@@ -150,7 +150,8 @@ public class VanetVisualizerSkin implements VisualizerSkin {
             }
         });
 
-        /*intersection.getLanes().forEach(
+        /*FontMetrics fm = g.getFontMetrics();
+        intersection.getLanes().forEach(
             l -> {
                 Vector2D sp = l.getStartPos();
                 Vector2D ep = l.getEndPos();
@@ -158,6 +159,29 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                 float r = 0.075f* (float) Vanet.SCALE;
                 drawCircle(g, sp, r, Color.RED);
                 drawCircle(g, ep, r*2, Color.BLUE);
+
+                Point pixels = visualizer.transformPositionToPixel(sp.getX(), sp.getY(),0);
+                Point pixele = visualizer.transformPositionToPixel(ep.getX(), ep.getY(),0);
+                {
+                    int y = pixels.y + 2*Visualizer.MOTE_RADIUS + 3;
+                    String a = String.valueOf(l.getStartId());
+                    int msgWidth = fm.stringWidth(a);
+                    g.drawString(a, pixels.x - msgWidth/2, y);
+                }
+
+                {
+                    int y = pixele.y + 2*Visualizer.MOTE_RADIUS + 3;
+                    String a = String.valueOf(l.getEndId());
+                    int msgWidth = fm.stringWidth(a);
+                    g.drawString(a, pixele.x - msgWidth/2, y);
+                }
+
+                Graphics2D g2 = (Graphics2D) g;
+
+                //g2.setStroke(new BasicStroke(10));
+                // draw a line for the current movement direction
+                g2.setColor(Color.BLACK);
+                g2.drawLine(pixels.x, pixels.y, pixele.x, pixele.y);
             }
         );*/
     }
@@ -244,6 +268,18 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                     float r = 0.075f* (float) Vanet.SCALE;
                     drawCircle(g, p, r, c);
                 }
+
+                Graphics2D g2 = (Graphics2D) g;
+
+                Vector2D targetPos = v.getNextWaypoint();
+                if (targetPos != null) {
+                    Point lineStart = visualizer.transformPositionToPixel(v.getBody().getCenter().getX(), v.getBody().getCenter().getY(), 0);
+                    Point lineEnd = visualizer.transformPositionToPixel(targetPos.getX(), targetPos.getY(),0);
+
+                    // draw a line for the target point
+                    g2.setColor(Color.BLACK);
+                    g2.drawLine(lineStart.x, lineStart.y, lineEnd.x, lineEnd.y);
+                }
             }
         }
     }
@@ -270,7 +306,6 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                 String a = String.valueOf(channel);
                 int msgWidth = fm.stringWidth(a);
                 g.drawString(a, pixel.x - msgWidth/2, y);
-                y += fm.getHeight();
             } catch (UnknownVariableException e) {
                 e.printStackTrace();
             }

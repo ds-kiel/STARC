@@ -8,21 +8,19 @@ import org.contikios.cooja.plugins.vanet.transport_network.intersection.TiledMap
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
 import org.contikios.cooja.plugins.vanet.world.World;
+import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 public class Vehicle implements VehicleInterface {
     private MessageProxy messageProxy; // used for communication with cooja motes
     private VehicleBody body; // our physics model
-    private TiledMapHandler mapHandler;
     private DirectionalDistanceSensor distanceSensor;
 
     private int id;
     static final boolean OTHER_DIRECTIONS = true;
-    static final boolean TILE_FREEDOM = true;
+    static final boolean TILE_FREEDOM = false;
 
 
     byte[] wantedRequest = new byte[0];
@@ -31,10 +29,18 @@ public class Vehicle implements VehicleInterface {
     private int state = STATE_INIT;
     private int requestState = REQUEST_STATE_INIT;
 
+    Vector2D startPos;
 
     private World world;
 
     private Intersection currentIntersection;
+    private Lane targetLane;
+
+
+    final double ACCELERATION = 4; // m/s*s
+    final double DECELERATION = 8; // m/s*s
+    final double MAX_SPEED = 13.8889; // m/s, 50 km/h
+    final double MAX_TURN = (Math.PI*2.0)/4.0; //(360/4 = 90 degrees per second)
 
 
     public Vehicle(World world, Mote m, int id) {
@@ -53,8 +59,6 @@ public class Vehicle implements VehicleInterface {
         );
 
         distanceSensor = new DirectionalDistanceSensor(body);
-
-        this.mapHandler = world.getMapHandler();
     }
 
 
@@ -103,38 +107,58 @@ public class Vehicle implements VehicleInterface {
         }
 
         state = handleStates(state);
-
         Vector2D wantedPos = null;
 
-        double threshold = 0.1 * Vanet.SCALE; // we only move if the distance to the waypoint is more than this value...
-
         if (state == STATE_QUEUING) {
-            // and the distance to front
-            double sensedDist = distanceSensor.readValue();
-
-            // TODO: check if sensed dist is higher than the distance to startpos plus vehicle size?
-            double velDist = body.getVel().length(); // we need to increase the sensor distance when moving
-
-            velDist *= velDist; // quadratic
-
-            threshold += velDist*2; // increase the threshold since we do not want to move over the position!
-
-            if (sensedDist > 1.0 * Vanet.SCALE+velDist*2 || sensedDist == -1.0) { // we start moving, if there is enough space
-                wantedPos = startPos;
-            }
+            wantedPos = startPos;
         } else if (state == STATE_MOVING || state == STATE_LEAVING || state == STATE_LEFT) {
-            wantedPos = curWayPoint;
+            updateWaypoints();
+            wantedPos = getNextWaypoint();
         }
 
+        double maxBrakeDist = wantedPos != null ? Vector2D.distance(wantedPos, body.getCenter()) : 0;
+
+        if (state != STATE_MOVING && distanceSensor.readValue() >= 0) {
+            maxBrakeDist = Math.max(0, Math.min(distanceSensor.readValue() - 2.5*body.getRadius(), maxBrakeDist));
+        }
         // now we will handle our movement
         // we are able to turn and to accelerate/decelerate
-        handleVehicle(delta, wantedPos, threshold);
+        drive(delta, wantedPos, maxBrakeDist);
         handleReservation();
     }
 
+    public Vector2D getNextWaypoint() {
+        Vector2D originalWP = null;
+        Vector2D nextWP = null;
 
-    Vector2D startPos;
-    Vector2D endPos;
+        if (curWayPointIndex < waypoints.size()) {
+            originalWP = waypoints.get(curWayPointIndex);
+            nextWP = originalWP;
+
+            Vector2D originDir = Vector2D.diff(body.getCenter(), originalWP);
+
+            if (originDir.length() > 0) {
+                double threshold = 0.1*Vanet.SCALE;
+                originDir.normalize();
+
+                int i = curWayPointIndex+1;
+
+                while(i < waypoints.size()) {
+                    Vector2D possWP = waypoints.get(i);
+                    double dist = Vector2D.distance(Physics.closestPointOnLine(body.getCenter(), originDir, possWP), possWP);
+                    if (dist < threshold) {
+                        nextWP = possWP;
+                        ++i;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        return nextWP;
+    }
+
+
 
     // Update the state, return value will be the next state
     private int handleStates(int state) {
@@ -148,6 +172,7 @@ public class Vehicle implements VehicleInterface {
             messageProxy.send(bytes);
             return STATE_QUEUING;
         } else if (state == STATE_QUEUING) {
+            // TODO: Allow to join before we reach that point!
             if (Vector2D.distance(startPos, body.getCenter()) < 0.2 * Vanet.SCALE) {
                 messageProxy.send("J".getBytes());
                 requestReservation();
@@ -156,7 +181,6 @@ public class Vehicle implements VehicleInterface {
                 return STATE_QUEUING;
             }
         } else if (state == STATE_WAITING) {
-
             if (requestState == REQUEST_STATE_ACCEPTED) {
                 return STATE_MOVING;
             } else {
@@ -164,8 +188,6 @@ public class Vehicle implements VehicleInterface {
             }
         }
         else if (state == STATE_MOVING) {
-            updateWaypoints();
-
 
             if (TILE_FREEDOM) {
                 // free our reservation
@@ -181,19 +203,26 @@ public class Vehicle implements VehicleInterface {
                 return STATE_MOVING;
             }
         } else if (state == STATE_LEAVING) {
-            updateWaypoints();
             return STATE_LEAVING;
         }
         else if (state == STATE_LEFT)  {
-            updateWaypoints();
             if (curWayPointIndex >= waypoints.size()) {
-                return STATE_FINISHED;
+                if (targetLane.isEndLane()) {
+                    return STATE_FINISHED;
+                } else {
+                    initLane(targetLane);
+                    byte[] bytes = new byte[2];
+                    bytes[0] = 'C';
+                    //TODO: Check that this does not overflow
+                    bytes[1] = (byte)((currentIntersection.getId()+11)&0xFF);
+                    messageProxy.send(bytes);
+                    return STATE_QUEUING;
+                }
             } else {
                 return STATE_LEFT;
             }
 
         } else if (state == STATE_FINISHED) {
-            // we reset to some other lane
             return STATE_FINISHED;
         }
         return state;
@@ -212,11 +241,11 @@ public class Vehicle implements VehicleInterface {
     }
 
     private void requestReservation() {
-        TiledMapHandler.PathHelper pathHandler = mapHandler.createPathHelper();
+        TiledMapHandler.PathHelper pathHandler = currentIntersection.getMapHandler().createPathHelper();
         for(int i = curWayPointIndex; i < waypoints.size(); ++i) {
             pathHandler.reservePos(waypoints.get(i));
         }
-        //System.out.print("Vehicle " + id + " TILES: ");
+        //System.out.print("Vehicle " + getID() + " TILES: ");
         wantedRequest = pathHandler.getByteIndices();
 
         if (!Arrays.equals(wantedRequest, currentRequest)) {
@@ -250,31 +279,20 @@ public class Vehicle implements VehicleInterface {
         }
     }
 
-    private ArrayList<Vector2D> waypoints;
-    private Vector2D curWayPoint;
+    private ArrayList<Vector2D> waypoints = new ArrayList<>();
     private int curWayPointIndex = 0;
 
     private void updateWaypoints() {
-
-        if (waypoints.size() == 0 || curWayPointIndex >= waypoints.size()) {
-            return; // cant update if there is no way...
-        }
-
-        if (curWayPoint == null) {
-            curWayPointIndex = 0;
-            curWayPoint = waypoints.get(curWayPointIndex);
+        if (curWayPointIndex >= waypoints.size()) {
+            return;
         }
 
         Vector2D pos = body.getCenter();
-        // we now check the distance to our current wayPoint
-        if (Vector2D.distance(curWayPoint, pos) - 0.5 * Vanet.SCALE < 0.001) {
+        Vector2D curWayPoint = waypoints.get(curWayPointIndex);
+        double dist = Vector2D.distance(curWayPoint, pos);
+
+        if (dist < 0.5 * Vanet.SCALE) {
             curWayPointIndex++;
-            // we use the next waypoint if available...
-            if (curWayPointIndex < waypoints.size()) {
-                curWayPoint = waypoints.get(curWayPointIndex);
-            } else {
-                curWayPoint = null;
-            }
         }
     }
 
@@ -286,62 +304,34 @@ public class Vehicle implements VehicleInterface {
         return curWayPointIndex;
     }
 
-    private void handleVehicle(double delta, Vector2D wantedPos, double threshold) {
 
-        double acc = 4; // m/s*s
-        double dec = 8; // m/s*s
-        double maxSpeed = 13.8889; // m/s, 50 km/h
-        double maxTurn = (Math.PI*2)/4; //(360/4 = 90 degrees per second)
-
+    private void handleVehicle(double delta, Vector2D wantedDir, double wantedVel) {
         Vector2D vel = body.getVel();
-        Vector2D pos = body.getCenter();
         Vector2D dir = body.getDir();
-
         Vector2D acceleration = new Vector2D();
 
-        // we check our waypoints
-        if (wantedPos != null) {
-
-            // compare the wantedDir with the current direction
-            Vector2D wantedDir = Vector2D.diff(wantedPos, pos);
-
+        if (wantedDir != null && wantedDir.length() > 0) {
+            // check if we need to rotate
             double a = Vector2D.angle(dir, wantedDir);
-
             // check our steering
-            double turn = delta*maxTurn;
-            double a2 = Math.abs(a);
-            turn = Math.max(-a2, Math.min(a2, turn));
-            dir.rotate(Math.signum(a)*turn);
-
+            double turn = Math.signum(a)*Math.min(Math.abs(a), delta*MAX_TURN);
+            dir.rotate(turn);
             // rotate the velocity too
-            vel.rotate(Math.signum(a)*turn);
+            vel.rotate(turn);
+            dir.normalize();
+        }
 
-            // compute angle again
-            a = Vector2D.angle(wantedDir, dir);
+        double x = wantedVel-vel.length();
 
-            // check if we want to accelerate or decelerate
-            if (Math.abs(a) < Math.PI/4 && Vector2D.distance(wantedPos, pos) > threshold) {
-
-                // we start to accelerate
-                double x = maxSpeed-vel.length();
-                if (x > 0.1*delta) {
-                    acceleration = new Vector2D(dir);
-                    acceleration.scale(acc);
-                }
-            } else {
-                // we start to decelerate
-                // TODO: a bit more realistic?
-                if (vel.length() > 0.1*delta) {
-                    acceleration = new Vector2D(dir);
-                    acceleration.scale(-dec);
-                }
-            }
-        } else {
-            // just stop
-            // we start to decelerate
-            if (vel.length() > 0.1*delta) {
+        if (x > ACCELERATION*delta) {
+            // we accelerate
+            acceleration = new Vector2D(dir);
+            acceleration.scale(ACCELERATION);
+        } else if (x <= 0.0) {
+            // we decelerate
+            if (vel.length() > DECELERATION*delta) {
                 acceleration = new Vector2D(dir);
-                acceleration.scale(-dec);
+                acceleration.scale(-DECELERATION);
             } else {
                 vel.setX(0);
                 vel.setY(0);
@@ -349,10 +339,42 @@ public class Vehicle implements VehicleInterface {
         }
 
         // per second squared
-        acceleration.scale(delta*delta);
+        acceleration.scale(delta);
 
         // accelerate!
         vel.translate(acceleration);
+    }
+
+    private void drive(double delta, Vector2D wantedPos, double maxBrakeDistance) {
+
+        Vector2D wantedDir = null;
+        double wantedVel = 0;
+
+        Vector2D pos = body.getCenter();
+        Vector2D dir = body.getDir();
+
+        // we check our waypoints
+        if (wantedPos != null) {
+
+            // compare the wantedDir with the current direction
+            wantedDir = Vector2D.diff(wantedPos, pos);
+            double a = Vector2D.angle(dir, wantedDir);
+
+            wantedVel = MAX_SPEED;
+            // we now check if we could brake in the given distance
+            if (maxBrakeDistance >= 0.0) {
+                double maxVel = Math.sqrt(maxBrakeDistance*2*DECELERATION);
+                if (wantedVel > maxVel) {
+                    wantedVel = maxVel;
+                }
+            }
+
+            // we slow down our wantedVelocity based on the angle
+            double turnSlowDown = Math.pow(Math.abs(a) / MAX_TURN, 1.0/3.0);
+            wantedVel *= (1.0 - Math.min(turnSlowDown, 1.0));
+        }
+
+        handleVehicle(delta, wantedDir, wantedVel);
     }
 
     private void initRandomPos() {
@@ -360,17 +382,24 @@ public class Vehicle implements VehicleInterface {
 
         AbstractMap.SimpleImmutableEntry<Lane, Vector2D> res = this.world.getFreePosition();
         Lane lane = res.getKey();
-        this.waypoints = new ArrayList<>(); //lane.getWayPoints(this.mapHandler);
 
         this.body.setCenter(res.getValue()); // move to center of tile
         this.body.setDir(new Vector2D(lane.getDirectionVector()));
         this.body.setVel(new Vector2D()); // reset vel
 
+        initLane(lane);
+    }
 
+    private void initLane(Lane lane) {
+        Collection<Lane> possibleLanes = lane.getEndIntersection().getPossibleLanes(lane);
+        // use random lane for now
+        // TODO: Use some planned path!
+        targetLane = possibleLanes.stream().skip((int) (possibleLanes.size() * World.RAND.nextFloat())).findAny().get();
+
+        this.waypoints = lane.getWayPoints(targetLane);
         this.currentIntersection = lane.getEndIntersection();
 
         startPos = lane.getEndPos();
         curWayPointIndex = 0;
-        curWayPoint = null;
     }
 }
