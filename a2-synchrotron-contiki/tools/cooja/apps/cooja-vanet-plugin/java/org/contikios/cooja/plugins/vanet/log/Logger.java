@@ -1,5 +1,6 @@
 package org.contikios.cooja.plugins.vanet.log;
 
+import org.contikios.cooja.interfaces.Log;
 import org.contikios.cooja.plugins.vanet.log.processing.CsvExporter;
 import org.contikios.cooja.plugins.vanet.log.processing.LogEventProcessorInterface;
 import org.contikios.cooja.plugins.vanet.log.processing.IdAwareProcessorDecorator;
@@ -23,7 +24,7 @@ public class Logger {
     public Logger() {
         loggerInstance = this;
 
-        if (Logger.logDir != null) {
+        if (Logger.logDir != null && Logger.logDir.length() > 0) {
             logEventProcessors = new LogEventProcessorInterface[1];
             logEventProcessors[0] = new IdAwareProcessorDecorator(new CsvExporter(Logger.logDir));
             // TODO: Add the processors at some other place...
@@ -40,7 +41,7 @@ public class Logger {
         return loggerInstance;
     }
 
-    public static void event(String name, long ms, String data, Integer id) {
+    public static void event(String name, long ms, String data, String id) {
         log(new LogEvent(name, ms, data, id));
     }
 

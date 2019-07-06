@@ -37,8 +37,8 @@ public class Vehicle implements VehicleInterface {
     private Lane targetLane;
 
 
-    final double ACCELERATION = 4; // m/s*s
-    final double DECELERATION = 8; // m/s*s
+    final double ACCELERATION = 4*0.5; // m/s*s
+    final double DECELERATION = 8*0.5; // m/s*s
     final double MAX_SPEED = 13.8889; // m/s, 50 km/h
     final double MAX_TURN = (Math.PI*2.0)/4.0; //(360/4 = 90 degrees per second)
 
@@ -88,6 +88,11 @@ public class Vehicle implements VehicleInterface {
     }
 
     @Override
+    public Intersection getCurrentIntersection() {
+        return currentIntersection;
+    }
+
+    @Override
     public int getState() {
         return state;
     }
@@ -118,8 +123,10 @@ public class Vehicle implements VehicleInterface {
 
         double maxBrakeDist = wantedPos != null ? Vector2D.distance(wantedPos, body.getCenter()) : 0;
 
-        if (state != STATE_MOVING && distanceSensor.readValue() >= 0) {
-            maxBrakeDist = Math.max(0, Math.min(distanceSensor.readValue() - 2.5*body.getRadius(), maxBrakeDist));
+        if (distanceSensor.readValue() >= 0) {
+            if (state != STATE_MOVING || curWayPointIndex >= waypoints.size()-3) {
+                maxBrakeDist = Math.max(0, Math.min(distanceSensor.readValue() - 2.5*body.getRadius(), maxBrakeDist));
+            }
         }
         // now we will handle our movement
         // we are able to turn and to accelerate/decelerate
@@ -164,7 +171,6 @@ public class Vehicle implements VehicleInterface {
     private int handleStates(int state) {
 
         if (state == STATE_INITIALIZED) {
-
             byte[] bytes = new byte[2];
             bytes[0] = 'C';
             //TODO: Check that this does not overflow

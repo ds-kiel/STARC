@@ -1,6 +1,7 @@
 package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.Mote;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
 import org.contikios.cooja.plugins.vanet.world.World;
@@ -38,4 +39,5 @@ public interface VehicleInterface {
     int getCurWayPointIndex();
 
     Vector2D getNextWaypoint();
+    Intersection getCurrentIntersection();
 }

@@ -17,7 +17,7 @@ public class IdAwareProcessorDecorator implements LogEventProcessorInterface {
 
     @Override
     public void process(LogEvent logEvent) {
-        String newName = String.format("%s-%03d", logEvent.getName(), logEvent.getID());
+        String newName = String.format("%s-%s", logEvent.getName(), logEvent.getID());
         inner.process(new LogEvent(newName, logEvent.getSimulationTime(), logEvent.getData(), logEvent.getID()));
     }
 

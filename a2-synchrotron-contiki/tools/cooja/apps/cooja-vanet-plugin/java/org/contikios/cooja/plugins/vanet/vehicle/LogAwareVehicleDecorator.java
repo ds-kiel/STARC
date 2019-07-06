@@ -1,6 +1,7 @@
 package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.plugins.vanet.log.Logger;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.VehicleBody;
 import org.contikios.cooja.plugins.vanet.world.World;
@@ -73,8 +74,9 @@ public class LogAwareVehicleDecorator implements VehicleInterface {
 
         // we do not want to capture the init state!
         if (state != STATE_INIT) {
-            Logger.event("state", impl.getWorld().getCurrentMS(), getStateName(state), impl.getID());
-            Logger.event("speed", impl.getWorld().getCurrentMS(), String.valueOf(impl.getBody().getVel().length()), impl.getID());
+            String id = String.format("%03d-%03d", impl.getCurrentIntersection().getId(), impl.getID());
+            Logger.event("state", impl.getWorld().getCurrentMS(), getStateName(state), id);
+            Logger.event("speed", impl.getWorld().getCurrentMS(), String.valueOf(impl.getBody().getVel().length()), id);
         }
     }
 
@@ -86,5 +88,10 @@ public class LogAwareVehicleDecorator implements VehicleInterface {
     @Override
     public Vector2D getNextWaypoint() {
         return this.impl.getNextWaypoint();
+    }
+
+    @Override
+    public Intersection getCurrentIntersection() {
+        return impl.getCurrentIntersection();
     }
 }

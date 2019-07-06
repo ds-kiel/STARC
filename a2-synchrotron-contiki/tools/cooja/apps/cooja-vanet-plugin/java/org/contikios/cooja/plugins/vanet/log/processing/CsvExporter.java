@@ -53,9 +53,10 @@ public class CsvExporter implements LogEventProcessorInterface {
         writerCache.values().forEach(
                 w -> {
                     try {
-                        w.flush();
+                        w.close();
                     } catch (IOException e) {}
                 }
         );
+        writerCache.clear();
     }
 }

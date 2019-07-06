@@ -23,7 +23,9 @@
       <identifier>vehicle</identifier>
       <description />
       <source EXPORT="discard">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.c</source>
-      <commands EXPORT="discard">make intersection-node.sky TARGET=sky initiators=4</commands>
+      <commands EXPORT="discard">
+      	make TARGET=sky clean
+      	make intersection-node.sky TARGET=sky initiators=4</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
@@ -47,8 +49,8 @@
     <width>280</width>
     <z>1</z>
     <height>160</height>
-    <location_x>741</location_x>
-    <location_y>70</location_y>
+    <location_x>856</location_x>
+    <location_y>101</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Visualizer
@@ -56,11 +58,11 @@
       <moterelations>true</moterelations>
       <skin>org.contikios.cooja.plugins.skins.IDVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.VanetVisualizerSkin</skin>
-      <viewport>4.690709410909093 0.0 0.0 4.690709410909093 195.27904036070086 78.13430052029352</viewport>
+      <viewport>11.237958286569397 0.0 0.0 11.237958286569397 83.71401515151514 86.15623737373741</viewport>
     </plugin_config>
-    <width>642</width>
+    <width>780</width>
     <z>0</z>
-    <height>475</height>
+    <height>822</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
   </plugin>
@@ -92,26 +94,13 @@
     <location_y>465</location_y>
   </plugin>
   <plugin>
-    org.contikios.cooja.plugins.Notes
+    org.contikios.cooja.plugins.Vanet
     <plugin_config>
-      <notes>Enter notes here</notes>
-      <decorations>true</decorations>
+      <screen_export_dir value="/Users/rathje/Desktop/export/tmp/screens" />
+      <log_dir value="/Users/rathje/Desktop/export/tmp/logs" />
     </plugin_config>
     <width>150</width>
     <z>4</z>
-    <height>300</height>
-    <location_x>680</location_x>
-    <location_y>0</location_y>
-  </plugin>
-  <plugin>
-    org.contikios.cooja.plugins.Vanet
-    <plugin_config>
-      <vehicles_per_hour value="200.0" />
-      <log_dir value="/Users/rathje/Desktop/export" />
-      <screen_export_dir value="/Users/rathje/Desktop/export/screens_200" />
-    </plugin_config>
-    <width>150</width>
-    <z>3</z>
     <height>300</height>
     <location_x>30</location_x>
     <location_y>495</location_y>
@@ -126,10 +115,18 @@
       <show_shadowing>false</show_shadowing>
     </plugin_config>
     <width>512</width>
-    <z>2</z>
+    <z>3</z>
     <height>424</height>
     <location_x>31</location_x>
     <location_y>31</location_y>
+  </plugin>
+  <plugin>
+    org.contikios.cooja.plugins.SimControl
+    <width>280</width>
+    <z>2</z>
+    <height>160</height>
+    <location_x>400</location_x>
+    <location_y>0</location_y>
   </plugin>
 </simconf>
 

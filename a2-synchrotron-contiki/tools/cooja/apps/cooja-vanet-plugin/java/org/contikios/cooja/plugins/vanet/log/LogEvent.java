@@ -5,9 +5,9 @@ public class LogEvent {
     private String name;
     private long simulationTime;
     private String data;
-    private Integer id;
+    private String id;
 
-    public LogEvent(String name, long simulationTime, String data, Integer id) {
+    public LogEvent(String name, long simulationTime, String data, String id) {
         this.name = name;
         this.simulationTime = simulationTime;
         this.data = data;
@@ -34,7 +34,7 @@ public class LogEvent {
         return data;
     }
 
-    public Integer getID() {
+    public String getID() {
         return id;
     }
 }

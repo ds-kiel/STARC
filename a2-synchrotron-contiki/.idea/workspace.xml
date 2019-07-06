@@ -10,7 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2481c688-6bc0-4522-b60e-d964ad7195fa" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/chaos/intersection/project-conf.h" beforeDir="false" afterPath="$PROJECT_DIR$/apps/chaos/intersection/project-conf.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/contiki-intersection-mote/project-conf.h" beforeDir="false" afterPath="$PROJECT_DIR$/examples/contiki-intersection-mote/project-conf.h" afterDir="false" />
@@ -18,13 +18,13 @@
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-intersection-manager-plugin/lib/intersection-manager.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/skins/VanetVisualizerSkin.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/TransportNetwork.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/TransportNetwork.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/intersection/Intersection.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/intersection/Intersection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/intersection/Lane.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/transport_network/intersection/Lane.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/log/LogEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/log/LogEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/log/Logger.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/log/Logger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/log/processing/CsvExporter.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/log/processing/CsvExporter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/log/processing/IdAwareProcessorDecorator.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/log/processing/IdAwareProcessorDecorator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/LogAwareVehicleDecorator.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/LogAwareVehicleDecorator.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/Vehicle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/VehicleManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/VehicleManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/physics/DirectionalDistanceSensor.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/physics/DirectionalDistanceSensor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Physics.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/world/physics/Physics.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/VehicleInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/java/org/contikios/cooja/plugins/vanet/vehicle/VehicleInterface.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/lib/vanet.jar" beforeDir="false" afterPath="$PROJECT_DIR$/tools/cooja/apps/cooja-vanet-plugin/lib/vanet.jar" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
@@ -89,34 +89,28 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/chaos-multichannel.h">
+        <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="481">
-              <caret line="64" column="45" selection-start-line="64" selection-start-column="45" selection-end-line="64" selection-end-column="45" />
-              <folding>
-                <element signature="e#2058#2387#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="139">
+              <caret line="27" column="16" selection-start-line="27" selection-start-column="16" selection-end-line="27" selection-end-column="16" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/chaos-config.h">
+        <entry file="file://$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="350">
-              <caret line="128" column="8" selection-start-line="128" selection-start-column="8" selection-end-line="128" selection-end-column="8" />
-              <folding>
-                <element signature="e#7130#7510#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="153">
+              <caret line="570" column="76" selection-start-line="570" selection-start-column="76" selection-end-line="570" selection-end-column="76" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
+        <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/project-conf.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="42">
-              <caret line="386" column="14" selection-start-line="386" selection-start-column="14" selection-end-line="386" selection-end-column="14" />
+            <state relative-caret-position="461">
+              <caret line="67" selection-start-line="67" selection-end-line="67" />
             </state>
           </provider>
         </entry>
@@ -163,8 +157,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>CHAOS_IS_</find>
-      <find>current_chann</find>
       <find>CHAOS_HOPPING_SEQUENCE_SIZE</find>
       <find>CHAOS_HOPPING_SEQUENCE</find>
       <find>PROCESS_YI</find>
@@ -193,6 +185,8 @@
       <find>set_own_arrival</find>
       <find>try to reserve</find>
       <find>own_arrival</find>
+      <find>arrivals</find>
+      <find>is_rese</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -275,7 +269,6 @@
         <option value="$PROJECT_DIR$/core/net/mac/chaos/lib/join-leave-piggyback/join-leave-piggyback.c" />
         <option value="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit-dynamic/merge-commit-dynamic.c" />
         <option value="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/dynamic-join.h" />
-        <option value="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" />
         <option value="$PROJECT_DIR$/core/dev/cooja-debug.h" />
         <option value="$PROJECT_DIR$/core/net/mac/chaos/service/joinleave/join.h" />
         <option value="$PROJECT_DIR$/core/net/mac/chaos/service/joinleave/join.c" />
@@ -287,7 +280,6 @@
         <option value="$PROJECT_DIR$/examples/contiki-intersection-mote/project-conf.h" />
         <option value="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.h" />
         <option value="$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/merge-commit.c" />
-        <option value="$PROJECT_DIR$/apps/chaos/intersection/project-conf.h" />
         <option value="$PROJECT_DIR$/apps/chaos/intersection/Makefile" />
         <option value="$PROJECT_DIR$/core/net/mac/chaos/chaos.h" />
         <option value="$PROJECT_DIR$/core/net/mac/chaos/chaos-multichannel.h" />
@@ -295,6 +287,8 @@
         <option value="$PROJECT_DIR$/core/net/mac/chaos/chaos-control.c" />
         <option value="$PROJECT_DIR$/core/net/mac/chaos/chaos.c" />
         <option value="$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c" />
+        <option value="$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c" />
+        <option value="$PROJECT_DIR$/apps/chaos/intersection/project-conf.h" />
       </list>
     </option>
   </component>
@@ -418,17 +412,17 @@
       <workItem from="1560363763317" duration="26706000" />
       <workItem from="1560980141692" duration="163000" />
       <workItem from="1561460496800" duration="4567000" />
-      <workItem from="1562238778620" duration="11402000" />
+      <workItem from="1562238778620" duration="13457000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="234794000" />
+    <option name="totallyTimeSpent" value="236849000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1280" height="777" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.3441034" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.26979" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -529,13 +523,6 @@
     <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit-dynamic/merge-commit-dynamic.h" />
     <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/lib/join-leave-piggyback/join-leave-piggyback.c" />
     <entry file="file://$PROJECT_DIR$/core/net/mac/chaos/lib/merge-commit/dynamic-join.h" />
-    <entry file="file://$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="546">
-          <caret line="491" column="1" lean-forward="true" selection-start-line="491" selection-start-column="1" selection-end-line="491" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/dev/cc2420/cc2420.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="6735">
@@ -698,13 +685,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/project-conf.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="120" column="13" selection-start-line="120" selection-start-column="13" selection-end-line="120" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/sys/process.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="316">
@@ -821,8 +801,22 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/intersection-node.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="42">
-          <caret line="386" column="14" selection-start-line="386" selection-start-column="14" selection-end-line="386" selection-end-column="14" />
+        <state relative-caret-position="139">
+          <caret line="27" column="16" selection-start-line="27" selection-start-column="16" selection-end-line="27" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/contiki-intersection-mote/intersection-node.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="153">
+          <caret line="570" column="76" selection-start-line="570" selection-start-column="76" selection-end-line="570" selection-end-column="76" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/chaos/intersection/project-conf.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="461">
+          <caret line="67" selection-start-line="67" selection-end-line="67" />
         </state>
       </provider>
     </entry>

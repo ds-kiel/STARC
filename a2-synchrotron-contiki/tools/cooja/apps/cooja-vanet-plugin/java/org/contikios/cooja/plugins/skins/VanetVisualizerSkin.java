@@ -286,6 +286,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
 
     private void drawChannels(Graphics g) {
+
         FontMetrics fm = g.getFontMetrics();
         g.setColor(Color.BLACK);
 
@@ -431,7 +432,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
     }
 
     public void paintAfterMotes(Graphics g) {
-        drawChannels(g);
+        //drawChannels(g);
     }
 
     public Visualizer getVisualizer() {
@@ -446,7 +447,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
     public static void saveImage(long ms) {
         if (VanetVisualizerSkin.screenExportDir != null && VanetVisualizerSkin.screenExportDir.length() > 0 && visualizer != null && canvas != null) {
             JPanel paintPane = canvas;
-            visualizer.setSize(512+12,512+54);
+            visualizer.setSize(768+12,768+54);
             BufferedImage image = new BufferedImage(paintPane.getWidth(), paintPane.getHeight(), BufferedImage.TYPE_INT_RGB);
             Graphics2D g = image.createGraphics();
             paintPane.printAll(g);
