@@ -1,6 +1,7 @@
 package org.contikios.cooja.plugins.vanet.transport_network.intersection;
 
 import org.contikios.cooja.plugins.Vanet;
+import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
@@ -16,6 +17,7 @@ public class Lane {
     protected Vector2D endPos;
     protected int endId;
 
+    public static final int STEPS_INTO_LANE = 1;
 
     static final int DIR_UP = 0;
     static final int DIR_DOWN = 1;
@@ -139,8 +141,8 @@ public class Lane {
             }
         }
 
-        // add two more waypoints into the lane
-        for(int i = 0; i < 2; ++i) {
+        // add more waypoints into the lane
+        for(int i = 0; i < STEPS_INTO_LANE-1; ++i) {
             p.add(dirStep);
             waypoints.add(new Vector2D(p));
         }

@@ -169,11 +169,14 @@ static void extract_path(path_t* dest, merge_commit_value_t *src, int node_id) {
     }
   }
 }
-  
+
 static void reserve_path_with_offset(merge_commit_value_t *val, path_t* path, int node_id, int offset) {
   int i;
   for(i = offset; i < path->size; ++i) {
-    val->tile_reservations[path->tiles[i]] = node_id;
+    uint8_t *tile_res = &val->tile_reservations[path->tiles[i]];
+    if (*tile_res == 0) {
+      *tile_res = node_id;
+    }
   }
 }
 
@@ -530,7 +533,7 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
 
       path_t path;
       extract_path(&path, plans[c], index+1);
-      if (path.size > 0 && path_available(&new, &path, index+1)) {
+      if (path.size > 0 /*&& path_available(&new, &path, index+1)* We reserve part of the paths now*/) {
         reserve_path(&new, &path, index+1);
 
         // we need to add the arrival time of this request!

@@ -20,7 +20,7 @@ public class Vehicle implements VehicleInterface {
 
     private int id;
     static final boolean OTHER_DIRECTIONS = true;
-    static final boolean TILE_FREEDOM = false;
+    static final boolean TILE_FREEDOM = true;
 
 
     byte[] wantedRequest = new byte[0];
@@ -124,7 +124,7 @@ public class Vehicle implements VehicleInterface {
         double maxBrakeDist = wantedPos != null ? Vector2D.distance(wantedPos, body.getCenter()) : 0;
 
         if (distanceSensor.readValue() >= 0) {
-            if (state != STATE_MOVING || curWayPointIndex >= waypoints.size()-3) {
+            if (state != STATE_MOVING || curWayPointIndex >= waypoints.size()-Lane.STEPS_INTO_LANE) {
                 maxBrakeDist = Math.max(0, Math.min(distanceSensor.readValue() - 2.5*body.getRadius(), maxBrakeDist));
             }
         }
@@ -150,7 +150,8 @@ public class Vehicle implements VehicleInterface {
 
                 int i = curWayPointIndex+1;
 
-                while(i < waypoints.size()) {
+                // minus 1 since we do not want the endpoint to be our direct target
+                while(i < waypoints.size()-Lane.STEPS_INTO_LANE) {
                     Vector2D possWP = waypoints.get(i);
                     double dist = Vector2D.distance(Physics.closestPointOnLine(body.getCenter(), originDir, possWP), possWP);
                     if (dist < threshold) {
@@ -200,7 +201,7 @@ public class Vehicle implements VehicleInterface {
                 requestReservation();
             }
 
-            if (curWayPointIndex >= waypoints.size() - 1) {
+            if (curWayPointIndex >= waypoints.size()-Lane.STEPS_INTO_LANE+1) {
                 requestReservation();
                 // Try to leave the network
                 messageProxy.send("L".getBytes());
@@ -248,9 +249,10 @@ public class Vehicle implements VehicleInterface {
 
     private void requestReservation() {
         TiledMapHandler.PathHelper pathHandler = currentIntersection.getMapHandler().createPathHelper();
-        for(int i = curWayPointIndex; i < waypoints.size(); ++i) {
+        for(int i = Math.max(0, curWayPointIndex-1); i < waypoints.size(); ++i) {
             pathHandler.reservePos(waypoints.get(i));
         }
+
         //System.out.print("Vehicle " + getID() + " TILES: ");
         wantedRequest = pathHandler.getByteIndices();
 

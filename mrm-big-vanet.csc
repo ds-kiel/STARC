@@ -98,6 +98,7 @@
     <plugin_config>
       <screen_export_dir value="/Users/rathje/Desktop/export/tmp/screens" />
       <log_dir value="/Users/rathje/Desktop/export/tmp/logs" />
+      <vehicles_per_hour value="150.0" />
     </plugin_config>
     <width>150</width>
     <z>4</z>
