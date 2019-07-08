@@ -142,7 +142,7 @@ public class Lane {
         }
 
         // add more waypoints into the lane
-        for(int i = 0; i < STEPS_INTO_LANE-1; ++i) {
+        for(int i = 0; i < STEPS_INTO_LANE-1 ; ++i) {
             p.add(dirStep);
             waypoints.add(new Vector2D(p));
         }
