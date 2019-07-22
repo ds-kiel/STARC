@@ -41,7 +41,7 @@ public class CsvExporter implements LogEventProcessorInterface {
 
             String line = String.format("%d, %s\n", logEvent.getSimulationTime(), logEvent.getData());
             writer.write(line);
-            writer.flush(); //TODO: This is a slow down!
+            //writer.flush(); //TODO: This is a slow down!
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
