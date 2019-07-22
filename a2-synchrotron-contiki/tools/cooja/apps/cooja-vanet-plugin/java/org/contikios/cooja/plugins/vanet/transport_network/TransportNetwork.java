@@ -3,6 +3,7 @@ package org.contikios.cooja.plugins.vanet.transport_network;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.layout.IntersectionLayout;
 import org.contikios.cooja.plugins.vanet.world.World;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 import org.contikios.cooja.util.ArrayUtils;
@@ -32,7 +33,7 @@ public class TransportNetwork {
         double offsetX = 0;
         double offsetY = 0;
 
-        double size = Vanet.SCALE*(2*Intersection.LANE_LENGTH+6);
+        double size = Vanet.SCALE*(2* IntersectionLayout.LANE_LENGTH+6);
         for(int y = 0; y < height;++y) {
             for(int x = 0; x < width; ++x) {
                 int id = y*width+x;
@@ -46,7 +47,7 @@ public class TransportNetwork {
             offsetY += size;
         }
 
-        this.numStartLanes = (int) Arrays.stream(intersections).flatMap(i -> i.getLanes().stream()).filter(Lane::isStartLane).count();
+        this.numStartLanes = (int) Arrays.stream(intersections).flatMap(i -> i.getStartLanes().stream()).filter(Lane::isInitialStart).count();
     }
 
     public int getNumStartLanes() {
@@ -67,10 +68,8 @@ public class TransportNetwork {
         }
         Intersection intersection = getIntersection(x,y);
         Intersection leftIntersection = getIntersection(x-1, y);
-        connectLanes(intersection.getLanes(), leftIntersection.getLanes());
+        connectLanes(intersection, leftIntersection);
     }
-
-
 
     public Collection<Intersection> getIntersections() {
         return Arrays.asList(intersections);
@@ -82,17 +81,17 @@ public class TransportNetwork {
         }
         Intersection intersection = getIntersection(x,y);
         Intersection topIntersection = getIntersection(x, y-1);
-        connectLanes(intersection.getLanes(), topIntersection.getLanes());
+        connectLanes(intersection, topIntersection);
     }
 
-    private void connectLanes(Collection<Lane> lanesA, Collection<Lane> lanesB) {
+    private void connectLanes(Intersection intersectionA, Intersection intersectionB) {
         // we connect the lanes like the following:
         // if a start point of one lane matches the end point of another lane, we connect them
         // we then set the start point
         Stream<Map.Entry<Lane, Lane>> possiblePairs =
                 Stream.concat(
-                        lanesA.stream().filter(Lane::hasNoEnd).flatMap(l1 -> lanesB.stream().filter(Lane::hasNoStart).map(l2 -> new AbstractMap.SimpleImmutableEntry<>(l1,l2))),
-                        lanesB.stream().filter(Lane::hasNoEnd).flatMap(l1 -> lanesA.stream().filter(Lane::hasNoStart).map(l2 -> new AbstractMap.SimpleImmutableEntry<>(l1,l2)))
+                        intersectionA.getEndLanes().stream().filter(Lane::hasNoEnd).flatMap(l1 -> intersectionB.getStartLanes().stream().filter(Lane::hasNoStart).map(l2 -> new AbstractMap.SimpleImmutableEntry<>(l1,l2))),
+                        intersectionB.getEndLanes().stream().filter(Lane::hasNoEnd).flatMap(l1 -> intersectionA.getStartLanes().stream().filter(Lane::hasNoStart).map(l2 -> new AbstractMap.SimpleImmutableEntry<>(l1,l2)))
                 );
 
         // filter the matching positions
@@ -129,7 +128,7 @@ public class TransportNetwork {
     }
 
     public Lane getRandomStartLane() {
-        Collection<Lane> startLanes = Arrays.stream(intersections).flatMap(i -> i.getLanes().stream()).filter(Lane::isStartLane).collect(Collectors.toList());
+        Collection<Lane> startLanes = Arrays.stream(intersections).flatMap(i -> i.getStartLanes().stream()).filter(Lane::isInitialStart).collect(Collectors.toList());
         return startLanes.stream().skip((int) (startLanes.size() * World.RAND.nextFloat())).findAny().get();
     }
 }

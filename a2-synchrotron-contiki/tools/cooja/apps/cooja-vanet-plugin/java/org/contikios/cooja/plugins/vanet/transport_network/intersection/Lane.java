@@ -1,7 +1,6 @@
 package org.contikios.cooja.plugins.vanet.transport_network.intersection;
 
 import org.contikios.cooja.plugins.Vanet;
-import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
@@ -159,11 +158,11 @@ public class Lane {
         return startIntersection == null;
     }
 
-    public boolean isStartLane() {
+    public boolean isInitialStart() {
         return endIntersection != null && startIntersection == null;
     }
 
-    public boolean isEndLane() {
+    public boolean isFinalEndLane() {
         return endIntersection == null && startIntersection != null;
     }
 }

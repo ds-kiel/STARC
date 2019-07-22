@@ -214,7 +214,7 @@ public class Vehicle implements VehicleInterface {
         }
         else if (state == STATE_LEFT)  {
             if (curWayPointIndex >= waypoints.size()) {
-                if (targetLane.isEndLane()) {
+                if (targetLane.isFinalEndLane()) {
                     return STATE_FINISHED;
                 } else {
                     initLane(targetLane);
