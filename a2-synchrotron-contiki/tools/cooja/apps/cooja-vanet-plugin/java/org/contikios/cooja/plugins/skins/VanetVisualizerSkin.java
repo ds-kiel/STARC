@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -54,6 +55,8 @@ import org.contikios.cooja.plugins.Visualizer;
 import org.contikios.cooja.plugins.VisualizerSkin;
 import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.TrafficLightAwareIntersection;
 import org.contikios.cooja.plugins.vanet.vehicle.LogAwareVehicleDecorator;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.world.World;
@@ -149,6 +152,31 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                 return false;
             }
         });
+
+
+        if (intersection instanceof TrafficLightAwareIntersection) {
+
+            Map<Lane, Integer> states = ((TrafficLightAwareIntersection) intersection).getTrafficLightStates(simulation.getSimulationTimeMillis());
+            intersection.getStartLanes().forEach(
+                    l -> {
+                        Vector2D sp = l.getStartPos();
+                        Vector2D ep = l.getEndPos();
+
+                        float r = 0.075f* (float) Vanet.SCALE;
+
+                        Color color = Color.RED;
+                        Integer state = states.get(l);
+
+                        if (state == TrafficLightAwareIntersection.PHASE_GREEN) {
+                            color = Color.GREEN;
+                        } else if (state == TrafficLightAwareIntersection.PHASE_YELLOW) {
+                            color = Color.YELLOW;
+                        }
+
+                        drawCircle(g, ep, r, color);
+                    }
+            );
+        }
 
         /*FontMetrics fm = g.getFontMetrics();
         intersection.getLanes().forEach(

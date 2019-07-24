@@ -14,13 +14,13 @@ import java.util.stream.Collectors;
 
 public class ThreeLaneIntersectionLayout extends IntersectionLayout {
 
-    public ThreeLaneIntersectionLayout() {
+    private boolean restrictedDirections;
 
-        Vector2D up = LANE_DIR_UP;
-        Vector2D right = LANE_DIR_RIGHT;
-        Vector2D down = LANE_DIR_DOWN;
-        Vector2D left = LANE_DIR_LEFT;
+    public ThreeLaneIntersectionLayout(boolean restrictedDirections) {
+        this.restrictedDirections = restrictedDirections;
+    }
 
+    private void initLanes() {
 
         final int INDEX_LEFT = 0;
         final int INDEX_STRAIGHT = 1;
@@ -28,50 +28,72 @@ public class ThreeLaneIntersectionLayout extends IntersectionLayout {
 
         // End lanes
         List<Integer> allLeft = Arrays.asList(
-                this.addEndLane(new Vector2D(-0.5, 2.5), left),
-                this.addEndLane(new Vector2D(-0.5, 1.5), left),
-                this.addEndLane(new Vector2D(-0.5, 0.5), left)
+                this.addEndLane(new Vector2D(-0.5, 2.5), LANE_DIR_LEFT),
+                this.addEndLane(new Vector2D(-0.5, 1.5), LANE_DIR_LEFT),
+                this.addEndLane(new Vector2D(-0.5, 0.5), LANE_DIR_LEFT)
         );
 
         List<Integer> allUp = Arrays.asList(
-                this.addEndLane(new Vector2D(3.5, -0.5), up),
-                this.addEndLane(new Vector2D(4.5, -0.5), up),
-                this.addEndLane(new Vector2D(5.5, -0.5), up)
+                this.addEndLane(new Vector2D(3.5, -0.5), LANE_DIR_UP),
+                this.addEndLane(new Vector2D(4.5, -0.5), LANE_DIR_UP),
+                this.addEndLane(new Vector2D(5.5, -0.5), LANE_DIR_UP)
         );
 
         List<Integer> allDown = Arrays.asList(
-                this.addEndLane(new Vector2D(2.5, 6.5), down),
-                this.addEndLane(new Vector2D(1.5, 6.5), down),
-                this.addEndLane(new Vector2D(0.5, 6.5), down)
+                this.addEndLane(new Vector2D(2.5, 6.5), LANE_DIR_DOWN),
+                this.addEndLane(new Vector2D(1.5, 6.5), LANE_DIR_DOWN),
+                this.addEndLane(new Vector2D(0.5, 6.5), LANE_DIR_DOWN)
         );
 
 
         List<Integer> allRight = Arrays.asList(
-                this.addEndLane(new Vector2D(6.5, 3.5), right),
-                this.addEndLane(new Vector2D(6.5, 4.5), right),
-                this.addEndLane(new Vector2D(6.5, 5.5), right)
+                this.addEndLane(new Vector2D(6.5, 3.5), LANE_DIR_RIGHT),
+                this.addEndLane(new Vector2D(6.5, 4.5), LANE_DIR_RIGHT),
+                this.addEndLane(new Vector2D(6.5, 5.5), LANE_DIR_RIGHT)
         );
 
         // Starting lanes
-        this.addStartLane( new Vector2D(2.5, -0.5), down, allDown.get(INDEX_LEFT), allRight);
-        this.addStartLane( new Vector2D(1.5, -0.5), down, allDown.get(INDEX_STRAIGHT), null);
-        this.addStartLane( new Vector2D(0.5, -0.5), down, allDown.get(INDEX_RIGHT), allLeft);
+        // TODO: a clearer setup would be nice :)
+        if (restrictedDirections) {
+            this.addStartLane( new Vector2D(2.5, -0.5), LANE_DIR_DOWN, allRight.get(INDEX_LEFT), null);
+            this.addStartLane( new Vector2D(1.5, -0.5), LANE_DIR_DOWN, allDown.get(INDEX_STRAIGHT), null);
+            this.addStartLane( new Vector2D(0.5, -0.5), LANE_DIR_DOWN, allLeft.get(INDEX_RIGHT), null);
 
-        this.addStartLane( new Vector2D(6.5, 2.5), left, allLeft.get(INDEX_LEFT), allDown);
-        this.addStartLane( new Vector2D(6.5, 1.5), left, allLeft.get(INDEX_STRAIGHT), null);
-        this.addStartLane( new Vector2D(6.5, 0.5), left, allLeft.get(INDEX_RIGHT), allUp);
+            this.addStartLane( new Vector2D(6.5, 2.5), LANE_DIR_LEFT, allDown.get(INDEX_LEFT), null);
+            this.addStartLane( new Vector2D(6.5, 1.5), LANE_DIR_LEFT, allLeft.get(INDEX_STRAIGHT), null);
+            this.addStartLane( new Vector2D(6.5, 0.5), LANE_DIR_LEFT, allUp.get(INDEX_RIGHT), null);
 
-        this.addStartLane( new Vector2D(-0.5, 3.5), right, allRight.get(INDEX_LEFT), allUp);
-        this.addStartLane( new Vector2D(-0.5, 4.5), right, allRight.get(INDEX_STRAIGHT), null);
-        this.addStartLane( new Vector2D(-0.5, 5.5), right, allRight.get(INDEX_RIGHT), allDown);
+            this.addStartLane( new Vector2D(-0.5, 3.5), LANE_DIR_RIGHT, allUp.get(INDEX_LEFT), null);
+            this.addStartLane( new Vector2D(-0.5, 4.5), LANE_DIR_RIGHT, allRight.get(INDEX_STRAIGHT), null);
+            this.addStartLane( new Vector2D(-0.5, 5.5), LANE_DIR_RIGHT, allDown.get(INDEX_RIGHT), null);
 
-        this.addStartLane( new Vector2D(3.5, 6.5), up, allUp.get(INDEX_LEFT), allLeft);
-        this.addStartLane( new Vector2D(4.5, 6.5), up, allUp.get(INDEX_STRAIGHT), null);
-        this.addStartLane( new Vector2D(5.5, 6.5), up, allUp.get(INDEX_RIGHT), allRight);
+            this.addStartLane( new Vector2D(3.5, 6.5), LANE_DIR_UP, allLeft.get(INDEX_LEFT), null);
+            this.addStartLane( new Vector2D(4.5, 6.5), LANE_DIR_UP, allUp.get(INDEX_STRAIGHT), null);
+            this.addStartLane( new Vector2D(5.5, 6.5), LANE_DIR_UP, allRight.get(INDEX_RIGHT), null);
+
+        } else {
+            this.addStartLane( new Vector2D(2.5, -0.5), LANE_DIR_DOWN, allDown.get(INDEX_LEFT), allRight);
+            this.addStartLane( new Vector2D(1.5, -0.5), LANE_DIR_DOWN, allDown.get(INDEX_STRAIGHT), null);
+            this.addStartLane( new Vector2D(0.5, -0.5), LANE_DIR_DOWN, allDown.get(INDEX_RIGHT), allLeft);
+
+            this.addStartLane( new Vector2D(6.5, 2.5), LANE_DIR_LEFT, allLeft.get(INDEX_LEFT), allDown);
+            this.addStartLane( new Vector2D(6.5, 1.5), LANE_DIR_LEFT, allLeft.get(INDEX_STRAIGHT), null);
+            this.addStartLane( new Vector2D(6.5, 0.5), LANE_DIR_LEFT, allLeft.get(INDEX_RIGHT), allUp);
+
+            this.addStartLane( new Vector2D(-0.5, 3.5), LANE_DIR_RIGHT, allRight.get(INDEX_LEFT), allUp);
+            this.addStartLane( new Vector2D(-0.5, 4.5), LANE_DIR_RIGHT, allRight.get(INDEX_STRAIGHT), null);
+            this.addStartLane( new Vector2D(-0.5, 5.5), LANE_DIR_RIGHT, allRight.get(INDEX_RIGHT), allDown);
+
+            this.addStartLane( new Vector2D(3.5, 6.5), LANE_DIR_UP, allUp.get(INDEX_LEFT), allLeft);
+            this.addStartLane( new Vector2D(4.5, 6.5), LANE_DIR_UP, allUp.get(INDEX_STRAIGHT), null);
+            this.addStartLane( new Vector2D(5.5, 6.5), LANE_DIR_UP, allUp.get(INDEX_RIGHT), allRight);
+        }
     }
 
 
     public void init(Intersection intersection, Vector2D offset) {
+
+        initLanes();
 
         getStartLanes().forEach(
                 l -> {

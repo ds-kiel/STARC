@@ -17,7 +17,7 @@ public class Intersection {
         this.id = id;
         this.offset = offset;
         this.mapHandler = new TiledMapHandler(6,6, this.offset);
-        this.layout = new ThreeLaneIntersectionLayout();
+        this.layout = new ThreeLaneIntersectionLayout(true); // TODO: Make this configurable!
         this.layout.init(this, offset);
     }
 

@@ -3,6 +3,7 @@ package org.contikios.cooja.plugins.vanet.transport_network;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.TrafficLightIntersection;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.layout.IntersectionLayout;
 import org.contikios.cooja.plugins.vanet.world.World;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
@@ -37,7 +38,7 @@ public class TransportNetwork {
         for(int y = 0; y < height;++y) {
             for(int x = 0; x < width; ++x) {
                 int id = y*width+x;
-                Intersection newIntersection = new Intersection(id, new Vector2D(offsetX, offsetY));
+                Intersection newIntersection = new TrafficLightIntersection(id, new Vector2D(offsetX, offsetY));
                 this.intersections[y*width+x] = newIntersection;
                 this.connectLeft(x, y);
                 this.connectTop(x, y);
