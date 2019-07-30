@@ -42,11 +42,7 @@ static uint16_t c = 0;
 //  }
 
 printf("Hello %u : %u\n", node_id, c++);
-while(1){
-watchdog_periodic();
-printf("Hello %u : %u\n", node_id, c++);
-leds_blink();
-}
+
 PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

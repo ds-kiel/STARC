@@ -1,6 +1,7 @@
 package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.Mote;
+import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
 import org.contikios.cooja.plugins.vanet.world.World;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
@@ -15,8 +16,11 @@ public class VehicleManager {
 
     private int idCounter = 0;
 
-    public VehicleManager(World world) {
+    private int intersectionType;
+
+    public VehicleManager(World world, int intersectionType) {
         this.world = world;
+        this.intersectionType = intersectionType;
     }
 
     public Collection<VehicleInterface> getVehicleCollection() {
@@ -41,7 +45,14 @@ public class VehicleManager {
         idCounter++;
 
         // for each mote add a new vehicle
-        VehicleInterface v = new Vehicle(world, m, id);
+        VehicleInterface v = null;
+
+        if (intersectionType == TransportNetwork.INTERSECTION_TYPE_TRAFFIC_LIGHTS) {
+           v = new TrafficLightVehicle(world, m, id);
+        } else {
+           v = new Vehicle(world, m, id);
+        }
+
         v = new LogAwareVehicleDecorator(v); // check if we want to log!
         v.getBody().setCenter(new Vector2D(
                 initVal, initVal

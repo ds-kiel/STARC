@@ -34,6 +34,7 @@ import java.util.*;
 
 
 import org.apache.log4j.Logger;
+import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
 import org.jdom.Element;
 
 import org.contikios.cooja.util.ScnObservable;
@@ -58,20 +59,23 @@ public class VanetConfig {
     screen_export_dir,
     vehicles_per_hour,
     network_width,
-    network_height;
+    network_height,
+    intersection_type;
 
     public static Object getDefaultValue(Parameter p) {
       switch (p) {
         case log_dir:
-          return new String("vanet");
+          return "";
         case vehicles_per_hour:
           return 200.0;
-            case screen_export_dir:
-            return ""; // empty
-          case network_width:
-            return 2;
-          case network_height:
-            return 2;
+        case screen_export_dir:
+          return "";
+        case network_width:
+          return 1;
+        case network_height:
+          return 1;
+        case intersection_type:
+          return TransportNetwork.INTERSECTION_TYPE_DECENTRALIZED;
       }
       throw new RuntimeException("Unknown default value: " + p);
     }

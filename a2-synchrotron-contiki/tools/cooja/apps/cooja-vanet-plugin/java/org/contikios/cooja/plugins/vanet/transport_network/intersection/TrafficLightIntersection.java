@@ -16,7 +16,6 @@ public class TrafficLightIntersection extends Intersection implements TrafficLig
         int phaseOffset = 0;
         int numPhases = 0;
 
-
         numPhases = 4;
         switch (dir) {
             case Lane.DIR_UP:

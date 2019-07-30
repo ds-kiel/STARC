@@ -22,11 +22,9 @@
       org.contikios.cooja.mspmote.SkyMoteType
       <identifier>vehicle</identifier>
       <description />
-      <source EXPORT="discard">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.c</source>
-      <commands EXPORT="discard">
-      	make TARGET=sky clean
-      	make intersection-node.sky TARGET=sky initiators=4</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.sky</firmware>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/hello-world/hello-world.c</source>
+      <commands EXPORT="discard">make hello-world.sky TARGET=sky</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/hello-world/hello-world.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
@@ -98,9 +96,10 @@
     <plugin_config>
       <screen_export_dir value="" />
       <log_dir value="" />
-      <vehicles_per_hour value="0.0" />
+      <vehicles_per_hour value="200.0" />
       <network_width value="1" />
       <network_height value="1" />
+      <intersection_type value="1" />
     </plugin_config>
     <width>150</width>
     <z>4</z>

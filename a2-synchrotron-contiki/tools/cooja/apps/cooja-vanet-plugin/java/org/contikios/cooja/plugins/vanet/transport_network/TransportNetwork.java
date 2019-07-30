@@ -19,10 +19,12 @@ public class TransportNetwork {
     private int height;
 
     private Intersection[] intersections;
-
     private int numStartLanes;
 
-    public TransportNetwork(int width, int height) {
+    public static final int INTERSECTION_TYPE_DECENTRALIZED = 0;
+    public static final int INTERSECTION_TYPE_TRAFFIC_LIGHTS = 1;
+
+    public TransportNetwork(int width, int height, int intersectionType) {
         this.width = width;
         this.height = height;
 
@@ -38,7 +40,12 @@ public class TransportNetwork {
         for(int y = 0; y < height;++y) {
             for(int x = 0; x < width; ++x) {
                 int id = y*width+x;
-                Intersection newIntersection = new TrafficLightIntersection(id, new Vector2D(offsetX, offsetY));
+                Intersection newIntersection = null;
+                if (intersectionType == INTERSECTION_TYPE_TRAFFIC_LIGHTS) {
+                    newIntersection = new TrafficLightIntersection(id, new Vector2D(offsetX, offsetY));
+                } else {
+                    newIntersection = new Intersection(id, new Vector2D(offsetX, offsetY));
+                }
                 this.intersections[y*width+x] = newIntersection;
                 this.connectLeft(x, y);
                 this.connectTop(x, y);

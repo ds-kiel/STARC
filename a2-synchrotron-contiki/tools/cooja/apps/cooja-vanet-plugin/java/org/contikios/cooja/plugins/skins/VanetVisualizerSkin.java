@@ -153,28 +153,32 @@ public class VanetVisualizerSkin implements VisualizerSkin {
             }
         });
 
-
         if (intersection instanceof TrafficLightAwareIntersection) {
 
             Map<Lane, Integer> states = ((TrafficLightAwareIntersection) intersection).getTrafficLightStates(simulation.getSimulationTimeMillis());
             intersection.getStartLanes().forEach(
-                    l -> {
-                        Vector2D sp = l.getStartPos();
-                        Vector2D ep = l.getEndPos();
+                l -> {
+                    Vector2D sp = l.getStartPos();
+                    Vector2D ep = l.getEndPos();
 
-                        float r = 0.075f* (float) Vanet.SCALE;
+                    float r = 0.1f * (float) Vanet.SCALE;
 
-                        Color color = Color.RED;
-                        Integer state = states.get(l);
+                    Color color = Color.RED;
+                    Integer state = states.get(l);
 
-                        if (state == TrafficLightAwareIntersection.PHASE_GREEN) {
-                            color = Color.GREEN;
-                        } else if (state == TrafficLightAwareIntersection.PHASE_YELLOW) {
-                            color = Color.YELLOW;
-                        }
-
-                        drawCircle(g, ep, r, color);
+                    if (state == TrafficLightAwareIntersection.PHASE_GREEN) {
+                        color = Color.GREEN;
+                    } else if (state == TrafficLightAwareIntersection.PHASE_YELLOW) {
+                        color = Color.YELLOW;
                     }
+
+                    Vector2D p = Vector2D.diff(ep, sp);
+                    p.normalize();
+                    p.rotate(Math.PI/4.0);
+                    p.scale(Vanet.SCALE * Math.sqrt(0.5) * 0.5);
+                    p.add(ep);
+                    drawCircle(g, p, r, color);
+                }
             );
         }
 
@@ -445,7 +449,8 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                             colors[0] = Color.LIGHT_GRAY;
                         }
                     } catch (UnknownVariableException e) {
-                        e.printStackTrace();
+                        //e.printStackTrace();
+                        // TODO check before trying to access the memory...
                     }
                 } else {
                     // Set color of unitinialized nodes

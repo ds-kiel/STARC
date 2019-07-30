@@ -28,9 +28,6 @@ public class MessageProxy {
         MoteDataHandler dataHandler = new MoteDataHandler(motePort);
         outputStream = dataHandler.getOutputStream();
 
-        // we start a thread to receive messages from the serial port!
-       // Stream<String> stream = in.lines();//.filter(line -> line.startsWith("#VANET ")).map(line -> line.substring("#VANET ".length()));
-
         // TODO: Clear this thread!
         new Thread(new Runnable() {
             @Override
@@ -66,7 +63,7 @@ public class MessageProxy {
                         if (matching) {
                             byte[] bytes = new byte[line.size()-identifierBytes.length];
 
-                            // ugly byte arr copying...
+                            // TODO: improve copying...
                             for(int i = identifierBytes.length; i < line.size(); ++i) {
                                 bytes[i-identifierBytes.length] = line.get(i);
                             }
@@ -77,10 +74,6 @@ public class MessageProxy {
                         e.printStackTrace();
                     }
                 }
-
-                //stream.forEach(q ->
-                //    {System.out.print(q); queue.add(q.getBytes(StandardCharsets.US_ASCII));}
-                //);
             }
         }).start();
     }
@@ -109,7 +102,7 @@ public class MessageProxy {
 
         byte[] bytes = new byte[temp.size()];
 
-        // ugly byte arr copying...
+        // TODO: improve copying...
         for(int i = 0; i < temp.size(); ++i) {
             bytes[i] = temp.get(i);
         }

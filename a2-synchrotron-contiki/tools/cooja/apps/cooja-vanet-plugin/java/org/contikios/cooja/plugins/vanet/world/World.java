@@ -43,21 +43,23 @@ public class World {
 
     private double vehiclesPerHour = 0.0f;
 
-    public World(Simulation simulation, int networkWidth, int networkHeight) {
+    public World(Simulation simulation, int networkWidth, int networkHeight, int intersectionType) {
         this.simulation = simulation;
         this.vehicleMoteType = simulation.getMoteType("vehicle");
         this.initiatorMoteType = simulation.getMoteType("vehicle");
         this.physics = new Physics();
-        this.transportNetwork = new TransportNetwork(networkWidth,networkHeight);
-        this.vehicleManager = new VehicleManager(this);
+        this.transportNetwork = new TransportNetwork(networkWidth,networkHeight, intersectionType);
+        this.vehicleManager = new VehicleManager(this, intersectionType);
         this.idGenerator = new IDGenerator(1, 255);
-
 
         // TODO: This is implementation specific
         // we remove all nodes
         Arrays.stream(simulation.getMotes()).forEach(simulation::removeMote);
         // we place the initial nodes onto the intersections
-        placeInitiators();
+
+        if (intersectionType == TransportNetwork.INTERSECTION_TYPE_DECENTRALIZED) {
+            placeInitiators();
+        }
     }
 
     protected void placeInitiators() {
