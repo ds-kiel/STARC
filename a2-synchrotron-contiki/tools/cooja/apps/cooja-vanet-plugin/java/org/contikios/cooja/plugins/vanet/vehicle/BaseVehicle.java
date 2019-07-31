@@ -223,6 +223,14 @@ abstract class BaseVehicle implements VehicleInterface {
         vel.translate(acceleration);
     }
 
+    protected double calculateBreakDist(double vel) {
+        return vel*vel/(2*DECELERATION);
+    }
+
+    protected double calculateMaxVel(double breakDist) {
+        return Math.sqrt(breakDist*2*DECELERATION);
+    }
+
     protected void drive(double delta, Vector2D wantedPos, double maxBrakeDistance) {
 
         Vector2D wantedDir = null;
@@ -241,7 +249,7 @@ abstract class BaseVehicle implements VehicleInterface {
             wantedVel = MAX_SPEED;
             // we now check if we could brake in the given distance
             if (maxBrakeDistance >= 0.0) {
-                double maxVel = Math.sqrt(maxBrakeDistance*2*DECELERATION);
+                double maxVel = calculateMaxVel(maxBrakeDistance);
                 if (wantedVel > maxVel) {
                     wantedVel = maxVel;
                 }
@@ -281,4 +289,7 @@ abstract class BaseVehicle implements VehicleInterface {
         startPos = lane.getEndPos();
         curWayPointIndex = 0;
     }
+
+
+
 }

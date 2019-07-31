@@ -39,7 +39,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -58,6 +60,7 @@ import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersec
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TrafficLightAwareIntersection;
 import org.contikios.cooja.plugins.vanet.vehicle.LogAwareVehicleDecorator;
+import org.contikios.cooja.plugins.vanet.vehicle.PlatoonawareVehicle;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.world.World;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
@@ -107,6 +110,9 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         World world = Vanet.world;
 
         if (world != null) {
+
+            drawPlatoonConnections(g, world);
+
 
             TransportNetwork transportNetwork = world.getTransportNetwork();
 
@@ -390,6 +396,75 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                 g2.drawLine(lineStart.x, lineStart.y, lineEnd.x, lineEnd.y);
             }
         }
+    }
+
+    private void drawPlatoonConnections(Graphics g, World world) {
+
+        Set<PlatoonawareVehicle> checked = new HashSet<>();
+
+        for (Mote mote: simulation.getMotes()) {
+            VehicleInterface v = world.getVehicle(mote);
+            if (v instanceof PlatoonawareVehicle) {
+                checked.add((PlatoonawareVehicle)v);
+            }
+        }
+
+        /*if (visualizer.getSelectedMotes().size() == 0) {
+            return;
+        }
+
+        ArrayList<PlatoonawareVehicle> toCheck = new ArrayList<>();
+
+
+        for (Mote mote: visualizer.getSelectedMotes()) {
+            VehicleInterface v = world.getVehicle(mote);
+            if (v instanceof PlatoonawareVehicle) {
+                toCheck.add((PlatoonawareVehicle)v);
+            }
+        }
+
+        while(toCheck.size() > 0) {
+            PlatoonawareVehicle v = toCheck.remove(0);
+
+            if (!checked.contains(v)) {
+                checked.add(v);
+
+                PlatoonawareVehicle pred = v.getPlatoonPredecessor();
+                if (pred != null) {
+                    if (!checked.contains(pred)) {
+                        toCheck.add(pred);
+                    }
+                }
+
+                PlatoonawareVehicle succ = v.getPlatoonSuccessor();
+                if (succ != null) {
+                    if (!checked.contains(succ)) {
+                        toCheck.add(succ);
+                    }
+                }
+            }
+        }*/
+
+        Graphics2D g2 = (Graphics2D) g;
+
+        Stroke initialStroke = g2.getStroke();
+        g2.setStroke(new BasicStroke(5));
+        g2.setColor(Color.LIGHT_GRAY);
+
+        checked.forEach(
+                pv -> {
+                    if (pv.getPlatoonPredecessor() != null) {
+
+                        Vector2D p = pv.getBody().getCenter();
+                        Vector2D endPos = pv.getPlatoonPredecessor().getBody().getCenter();
+                        Point lineStart = visualizer.transformPositionToPixel(p.getX(), p.getY(), 0);
+                        Point lineEnd = visualizer.transformPositionToPixel(endPos.getX(), endPos.getY(), 0);
+                        g2.drawLine(lineStart.x, lineStart.y, lineEnd.x, lineEnd.y);
+                    }
+                }
+        );
+
+        g2.setStroke(initialStroke);
     }
 
     private void drawTileReservations(Graphics g, World world) {

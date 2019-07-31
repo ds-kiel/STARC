@@ -118,6 +118,7 @@ public class Vehicle extends BaseVehicle {
         }
     }
 
+
     protected void requestReservation() {
         TiledMapHandler.PathHelper pathHandler = currentIntersection.getMapHandler().createPathHelper();
         for(int i = Math.max(0, curWayPointIndex-1); i < waypoints.size(); ++i) {

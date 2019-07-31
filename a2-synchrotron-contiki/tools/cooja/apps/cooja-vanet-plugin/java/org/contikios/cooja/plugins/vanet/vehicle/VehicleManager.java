@@ -53,10 +53,15 @@ public class VehicleManager {
            v = new Vehicle(world, m, id);
         }
 
-        v = new LogAwareVehicleDecorator(v); // check if we want to log!
-        v.getBody().setCenter(new Vector2D(
-                initVal, initVal
-        ));
+        if (v instanceof PlatoonawareVehicle) {
+            v = new LogAndPlatoonAwareVehicleDecorator((PlatoonawareVehicle) v);
+        } else {
+            v = new LogAwareVehicleDecorator(v);
+        }
+
+        v.getBody().setCenter(
+            new Vector2D(initVal, initVal)
+        );
         vehicles.put(id, v);
         return v;
     }

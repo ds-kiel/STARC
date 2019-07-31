@@ -1,7 +1,7 @@
 package org.contikios.cooja.plugins.vanet.world.physics;
 
 
-import org.contikios.cooja.plugins.vanet.world.physics.Computation.LaneIntersection;
+import org.contikios.cooja.plugins.vanet.world.physics.Computation.LineIntersection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -88,7 +88,7 @@ public class Physics {
         return closestPoint;
     }
 
-    private LaneIntersection intersectsLine(Body body, Vector2D linePos, Vector2D lineDir) {
+    private LineIntersection intersectsLine(Body body, Vector2D linePos, Vector2D lineDir) {
 
         if (body instanceof CircleBody) {
 
@@ -113,7 +113,7 @@ public class Physics {
             if (distToLine <= r) {
                 double offset = Math.sqrt(r*r-distToLine*distToLine);
 
-                LaneIntersection in = new LaneIntersection();
+                LineIntersection in = new LineIntersection();
                 in.body = body;
 
                 in.distance = d;
@@ -123,7 +123,7 @@ public class Physics {
         return null;
     }
 
-    public Collection<LaneIntersection> computeLineIntersections(Vector2D pos, Vector2D dir) {
+    public Collection<LineIntersection> computeLineIntersections(Vector2D pos, Vector2D dir) {
         // dir has to be normalized!
 
         return this.bodies.stream()

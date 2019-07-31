@@ -14,7 +14,8 @@ import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TiledMapHandler;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleManager;
-import org.contikios.cooja.plugins.vanet.world.physics.Computation.LaneIntersection;
+import org.contikios.cooja.plugins.vanet.world.physics.Body;
+import org.contikios.cooja.plugins.vanet.world.physics.Computation.LineIntersection;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
@@ -197,9 +198,9 @@ public class World {
 
 
        // we need to check the collision
-        Collection<LaneIntersection> laneIntersections = this.physics.computeLineIntersections(endPos,d);
+        Collection<LineIntersection> LineIntersections = this.physics.computeLineIntersections(endPos,d);
 
-        double maxDist = laneIntersections.stream().
+        double maxDist = LineIntersections.stream().
                             map(i -> i.distance).
                             filter(x -> x >= 0.0).
                             max(Double::compareTo).
@@ -216,5 +217,10 @@ public class World {
             this.vehiclesPerHour = vehiclesPerHour;
             // TODO: if we want to manually change the value, we would need to save the last changed num and time
         }
+    }
+
+    public VehicleInterface getVehicleByPhysicsBody(Body body) {
+        return vehicleManager.getVehicleCollection().stream()
+                .filter(v -> v.getBody() == body).findAny().get();
     }
 }

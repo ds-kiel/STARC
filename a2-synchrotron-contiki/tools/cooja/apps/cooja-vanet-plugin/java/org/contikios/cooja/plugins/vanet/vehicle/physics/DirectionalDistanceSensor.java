@@ -1,7 +1,8 @@
 package org.contikios.cooja.plugins.vanet.vehicle.physics;
 
 import org.contikios.cooja.plugins.Vanet;
-import org.contikios.cooja.plugins.vanet.world.physics.Computation.LaneIntersection;
+import org.contikios.cooja.plugins.vanet.world.physics.Body;
+import org.contikios.cooja.plugins.vanet.world.physics.Computation.LineIntersection;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Sensor;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
@@ -14,6 +15,8 @@ public class DirectionalDistanceSensor implements Sensor  {
     private double maxLength;
     private double val = -1.0;
 
+    private LineIntersection lineIntersection;
+
     public DirectionalDistanceSensor(VehicleBody ownBody) {
         this.ownBody = ownBody;
         this.maxLength = 500.0f* Vanet.SCALE;
@@ -25,23 +28,37 @@ public class DirectionalDistanceSensor implements Sensor  {
         Vector2D dir = ownBody.getDir();
         Vector2D pos = ownBody.getCenter();
 
-        Collection<LaneIntersection> intersectedBodies = physics.computeLineIntersections(pos, dir);
+        lineIntersection = computeNearestBodyCollisions(physics, pos, dir, ownBody, maxLength);
+    }
 
-        val = -1.0;
+    public static LineIntersection computeNearestBodyCollisions(Physics physics, Vector2D pos, Vector2D dir, Body except, double maxLength) {
+        Collection<LineIntersection> intersectedBodies = physics.computeLineIntersections(pos, dir);
 
-        for (LaneIntersection i: intersectedBodies) {
-            if (i.body == ownBody) {
+        double val = -1;
+        LineIntersection li = null;
+        for (LineIntersection i: intersectedBodies) {
+            if (i.body == except) {
                 continue; // no intersection with ourself ;)
             }
 
             double v = i.distance;
             if (v >= 0.0 && v <= maxLength && (val == -1.0 || v < val)) {
                 val = v;
+                li = i;
             }
+        }
+        return li;
+    };
+
+    public double readValue() {
+        if (lineIntersection != null) {
+            return lineIntersection.distance;
+        } else {
+            return -1.0;
         }
     }
 
-    public double readValue() {
-        return val;
+    public LineIntersection getLineIntersection() {
+        return lineIntersection;
     }
 }

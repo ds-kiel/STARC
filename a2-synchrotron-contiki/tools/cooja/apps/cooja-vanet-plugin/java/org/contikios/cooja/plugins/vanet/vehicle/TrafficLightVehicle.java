@@ -5,11 +5,13 @@ import org.contikios.cooja.Mote;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TrafficLightAwareIntersection;
+import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.world.World;
+import org.contikios.cooja.plugins.vanet.world.physics.Computation.LineIntersection;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
-public class TrafficLightVehicle extends BaseVehicle {
+public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehicle {
 
     public TrafficLightVehicle(World world, Mote m, int id) {
         super(world, m, id);
@@ -31,6 +33,9 @@ public class TrafficLightVehicle extends BaseVehicle {
         } else if (state == STATE_INITIALIZED) {
             return STATE_QUEUING;
         } else if (state == STATE_QUEUING) {
+            if (platoonPredecessor == null) {
+                checkForPredecessor();
+            }
             // TODO: Allow to join before we reach that point!
             if (trafficLightState == TrafficLightAwareIntersection.PHASE_GREEN) {
                 return STATE_MOVING;
@@ -41,6 +46,12 @@ public class TrafficLightVehicle extends BaseVehicle {
             // NOOP: We are either queuing or moving
         }
         else if (state == STATE_MOVING) {
+
+            // we try to build up a platoon
+            if (platoonPredecessor == null) {
+                checkForPredecessor();
+            }
+
             if (curWayPointIndex >= waypoints.size() - 1) {
                 return STATE_LEAVING;
             } else {
@@ -71,6 +82,15 @@ public class TrafficLightVehicle extends BaseVehicle {
                 }
             }
         } else if (state == STATE_LEAVING) {
+
+            // we remove ourself from the platoon
+            if (platoonSuccessor != null) {
+                platoonSuccessor.setPlatoonPredecessor(null);
+            }
+
+            platoonSuccessor = this; // set to ourself to prevent new connections
+            platoonPredecessor = null;
+
             return STATE_LEFT;
         }
         else if (state == STATE_LEFT)  {
@@ -86,6 +106,46 @@ public class TrafficLightVehicle extends BaseVehicle {
         return state;
     }
 
+
+    protected void checkForPredecessor() {
+        double senseDist = Math.max(body.getVel().length()*body.getVel().length() / (2*DECELERATION), body.getRadius()*2)*1.5;
+
+        LineIntersection li = DirectionalDistanceSensor.computeNearestBodyCollisions(
+                world.getPhysics(),
+                body.getCenter(),
+                body.getDir(),
+                body,
+                senseDist
+        );
+
+        if (li != null) {
+            VehicleInterface sensedVehicle = world.getVehicleByPhysicsBody(li.body);
+            if (sensedVehicle instanceof PlatoonawareVehicle) {
+                PlatoonawareVehicle platoonawareVehicle = (PlatoonawareVehicle) sensedVehicle;
+                if (platoonawareVehicle.getPlatoonSuccessor() == null && sharesLane(platoonawareVehicle)) {
+                    platoonawareVehicle.setPlatoonSuccessor(this);
+                    this.setPlatoonPredecessor(platoonawareVehicle);
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void drive(double delta, Vector2D wantedPos, double maxBrakeDistance) {
+        if (platoonPredecessor != null) {
+            double predecessorMaxBrakeDist = calculateBreakDist(platoonPredecessor.getBody().getVel().length());
+            predecessorMaxBrakeDist += Vector2D.distance(platoonPredecessor.getBody().getCenter(), body.getCenter());
+            predecessorMaxBrakeDist -= 3*body.getRadius();
+
+            predecessorMaxBrakeDist = Math.max(0, predecessorMaxBrakeDist);
+
+            if (maxBrakeDistance < 0 || predecessorMaxBrakeDist < maxBrakeDistance) {
+                maxBrakeDistance = predecessorMaxBrakeDist;
+            }
+        }
+        super.drive(delta, wantedPos, maxBrakeDistance);
+    }
+
     @Override
     public Vector2D getNextWaypoint() {
         Vector2D originalWP = null;
@@ -98,7 +158,7 @@ public class TrafficLightVehicle extends BaseVehicle {
             Vector2D originDir = Vector2D.diff(body.getCenter(), originalWP);
 
             if (originDir.length() > 0) {
-                double threshold = 0.1* Vanet.SCALE;
+                double threshold = 0.1 * Vanet.SCALE;
                 originDir.normalize();
 
                 int i = curWayPointIndex+1;
@@ -123,5 +183,36 @@ public class TrafficLightVehicle extends BaseVehicle {
     protected void initLane(Lane lane) {
         super.initLane(lane);
         waypoints.add(targetLane.getEndPos());
+    }
+
+    protected PlatoonawareVehicle platoonPredecessor;
+    protected PlatoonawareVehicle platoonSuccessor;
+
+    public PlatoonawareVehicle getPlatoonPredecessor() {
+        return platoonPredecessor;
+    }
+
+    public void setPlatoonPredecessor(PlatoonawareVehicle platoonPredecessor) {
+        this.platoonPredecessor = platoonPredecessor;
+    }
+
+    public PlatoonawareVehicle getPlatoonSuccessor() {
+        return platoonSuccessor;
+    }
+
+    public void setPlatoonSuccessor(PlatoonawareVehicle platoonSuccessor) {
+        this.platoonSuccessor = platoonSuccessor;
+    }
+
+    public Lane getTargetLane() {
+        return targetLane;
+    }
+
+    public Lane getStartLane() {
+        return currentLane;
+    }
+
+    public boolean sharesLane(PlatoonawareVehicle vehicle) {
+        return vehicle.getStartLane() == getStartLane() && vehicle.getTargetLane() == getTargetLane();
     }
 }
