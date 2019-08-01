@@ -47,16 +47,19 @@ public class VehicleManager {
         // for each mote add a new vehicle
         VehicleInterface v = null;
 
+
         if (intersectionType == TransportNetwork.INTERSECTION_TYPE_TRAFFIC_LIGHTS) {
            v = new TrafficLightVehicle(world, m, id);
         } else {
            v = new Vehicle(world, m, id);
         }
 
-        if (v instanceof PlatoonawareVehicle) {
-            v = new LogAndPlatoonAwareVehicleDecorator((PlatoonawareVehicle) v);
-        } else {
-            v = new LogAwareVehicleDecorator(v);
+        if (world.getTransportNetwork().getHeight() == 1 && world.getTransportNetwork().getWidth() == 1) {
+            if (v instanceof PlatoonawareVehicle) {
+                v = new LogAndPlatoonAwareVehicleDecorator((PlatoonawareVehicle) v);
+            } else {
+                v = new LogAwareVehicleDecorator(v);
+            }
         }
 
         v.getBody().setCenter(
