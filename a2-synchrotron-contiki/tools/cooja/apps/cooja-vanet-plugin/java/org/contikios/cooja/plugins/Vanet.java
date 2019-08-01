@@ -28,10 +28,12 @@ public class Vanet extends VisPlugin {
     public static World world;
     private long nextUpdate = 0;
 
-
     public static final double SCALE = 3.0;
 
     private VanetConfig vanetConfig = new VanetConfig();
+
+    private long timeout = 0;
+
 
     public Vanet(Simulation simulation, final Cooja Cooja) {
         super("Vanet", Cooja, false);
@@ -51,13 +53,15 @@ public class Vanet extends VisPlugin {
                 world.setVehiclesPerSecond(vps);
                 Logger.setLogDir(((String) vanetConfig.getParameterValue(VanetConfig.Parameter.log_dir)));
                 VanetVisualizerSkin.setScreenExportDir(((String) vanetConfig.getParameterValue(VanetConfig.Parameter.screen_export_dir)));
+
+                timeout = vanetConfig.getParameterLongValue(VanetConfig.Parameter.timeout);
             }
         });
 
         simulation.invokeSimulationThread(new Runnable() {
             @Override
             public void run() {
-                System.out.println("Dummy action to allow simulation start");
+                System.out.println("asd");
             }
         });
     }
@@ -66,18 +70,38 @@ public class Vanet extends VisPlugin {
         super.startPlugin();
 
         millisecondObserver = (Observable o, Object arg) -> {
-            if (simulation.getSimulationTimeMillis() >= nextUpdate) {
+            long ms = simulation.getSimulationTimeMillis();
+
+            if (timeout > 0 && ms > timeout) {
+                shutdown();
+                return;
+            }
+
+
+            if (ms >= nextUpdate) {
                 Vanet.this.update(TICK_MS); // one s
                 nextUpdate += TICK_MS;
             }
 
-            if (simulation.getSimulationTimeMillis() % TICK_MS == 0) {
+            if (ms % TICK_MS == 0) {
                 Logger.flush();
             }
         };
         simulation.addMillisecondObserver(millisecondObserver);
 
-        simulation.startSimulation();
+        if (timeout > 0) {
+            simulation.startSimulation();
+        }
+    }
+
+    protected void shutdown() {
+        simulation.invokeSimulationThread(new Runnable() {
+            public void run() {
+                Logger.flush();
+                simulation.stopSimulation();
+                simulation.getCooja().doQuit(false, 0);
+            }
+        });
     }
 
     public void closePlugin() {

@@ -60,7 +60,8 @@ public class VanetConfig {
     vehicles_per_hour,
     network_width,
     network_height,
-    intersection_type;
+    intersection_type,
+    timeout;
 
     public static Object getDefaultValue(Parameter p) {
       switch (p) {
@@ -76,6 +77,8 @@ public class VanetConfig {
           return 1;
         case intersection_type:
           return TransportNetwork.INTERSECTION_TYPE_DECENTRALIZED;
+        case timeout:
+          return (Long) 0L;
       }
       throw new RuntimeException("Unknown default value: " + p);
     }
@@ -145,6 +148,16 @@ public class VanetConfig {
    */
   public int getParameterIntegerValue(Parameter id) {
     return (Integer) getParameterValue(id);
+  }
+
+  /**
+   * Returns an integer parameter value
+   *
+   * @param identifier Parameter identifier
+   * @return Current parameter value
+   */
+  public long getParameterLongValue(Parameter id) {
+    return (Long) getParameterValue(id);
   }
 
   /**
@@ -231,6 +244,8 @@ public class VanetConfig {
         parameters.put(param, Boolean.parseBoolean(value));
       } else if (paramClass == Integer.class) {
         parameters.put(param, Integer.parseInt(value));
+      } else if (paramClass == Long.class) {
+        parameters.put(param, Long.parseLong(value));
       } else if (paramClass == String.class) {
         parameters.put(param, String.valueOf(value));
       } else {
