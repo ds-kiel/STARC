@@ -76,6 +76,8 @@ public class Vanet extends VisPlugin {
             }
         };
         simulation.addMillisecondObserver(millisecondObserver);
+
+        simulation.startSimulation();
     }
 
     public void closePlugin() {
