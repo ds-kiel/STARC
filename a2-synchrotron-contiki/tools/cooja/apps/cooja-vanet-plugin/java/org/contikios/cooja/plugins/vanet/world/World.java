@@ -10,8 +10,10 @@ import org.contikios.cooja.mote.memory.UnknownVariableException;
 import org.contikios.cooja.mote.memory.VarMemory;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TiledMapHandler;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.layout.ThreeLaneIntersectionLayout;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleManager;
 import org.contikios.cooja.plugins.vanet.world.physics.Body;
@@ -196,7 +198,6 @@ public class World {
        endPos.scale(0.5 * Vanet.SCALE);
        endPos.add(l.getEndPos());
 
-
        // we need to check the collision
         Collection<LineIntersection> LineIntersections = this.physics.computeLineIntersections(endPos,d);
 
@@ -207,7 +208,7 @@ public class World {
                             orElse(0.0);
 
         Vector2D freePos = new Vector2D(d);
-        freePos.scale(maxDist + 1.5 * Vanet.SCALE);
+        freePos.scale(maxDist + ThreeLaneIntersectionLayout.LANE_LENGTH * Vanet.SCALE);
         freePos.add(endPos);
         return new AbstractMap.SimpleImmutableEntry<>(l, freePos);
     }

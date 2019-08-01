@@ -17,6 +17,13 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
         super(world, m, id);
     }
 
+
+    /**
+     * One might wonder why this is declared here.
+     * The reason for this is to keep driving once we decided to go for it ;)
+     */
+    protected boolean driveThrough = false;
+
     @Override
     protected int handleStates(int state) {
 
@@ -59,16 +66,14 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
                     return STATE_MOVING;
                 } else {
                     // we need to check if we could stop before the traffic lights
-                    boolean driveThrough = false;
+                    // driveThrough might be true from previous evaluations too...
 
                     if (curWayPointIndex > 0) {
                         driveThrough = true;
-                    }
-
-                    if (Vector2D.distance(body.getCenter(), waypoints.get(0)) < Vector2D.distance(startPos, waypoints.get(0))) {
+                    } else if (Vector2D.distance(body.getCenter(), waypoints.get(0)) < Vector2D.distance(startPos, waypoints.get(0))) {
                         driveThrough = true;
                     } else {
-                        double maxVel = Math.sqrt((Vector2D.distance(startPos,body.getCenter())-0.05*Vanet.SCALE)*2*DECELERATION);
+                        double maxVel = calculateMaxVel(Vector2D.distance(startPos,body.getCenter()));
                         if (body.getVel().length() > maxVel) {
                             driveThrough = true;
                         }
@@ -183,6 +188,7 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
     protected void initLane(Lane lane) {
         super.initLane(lane);
         waypoints.add(targetLane.getEndPos());
+        driveThrough = false;
     }
 
     protected PlatoonawareVehicle platoonPredecessor;
