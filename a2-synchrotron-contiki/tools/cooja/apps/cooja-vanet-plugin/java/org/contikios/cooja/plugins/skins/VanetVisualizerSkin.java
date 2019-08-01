@@ -42,6 +42,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -85,12 +88,14 @@ public class VanetVisualizerSkin implements VisualizerSkin {
     private boolean showTileReservations = false;
 
     private static String screenExportDir;
-
-
     private static Simulation simulation;
+
+
+    private static ExecutorService executorService;
 
     public VanetVisualizerSkin() {
         img = loadFromFile("img/intersection-big.png");
+        executorService = Executors.newFixedThreadPool(1);
     }
 
     private BufferedImage loadFromFile(String path) {
@@ -560,17 +565,36 @@ public class VanetVisualizerSkin implements VisualizerSkin {
             Graphics2D g = image.createGraphics();
             paintPane.printAll(g);
             g.dispose();
-            try {
-                File directory = new File(VanetVisualizerSkin.screenExportDir);
-                if (!directory.exists()){
-                    directory.mkdirs();
-                }
-                File f = new File(directory, String.format("img_%06d.png", directory.list().length));
-                ImageIO.write(image, "png", f);
-                System.out.println(f.getAbsoluteFile());
-            } catch (IOException exp) {
-                exp.printStackTrace();
+
+            File directory = new File(VanetVisualizerSkin.screenExportDir);
+            if (!directory.exists()){
+                directory.mkdirs();
             }
+
+            File f = new File(directory, String.format("img_%06d.jpg", directory.list().length));
+
+            // Use an own thread for this, since this is very io abusive ;)
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        ImageIO.write(image, "JPG", f);
+                        System.out.println(f.getAbsoluteFile());
+                    } catch (IOException exp) {
+                        exp.printStackTrace();
+                    }
+                }
+            };
+            executorService.submit(r);
+        }
+    }
+
+    public static void waitForImages() {
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(1, TimeUnit.HOURS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

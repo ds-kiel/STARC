@@ -97,8 +97,9 @@ public class Vanet extends VisPlugin {
     protected void shutdown() {
         simulation.invokeSimulationThread(new Runnable() {
             public void run() {
-                Logger.flush();
                 simulation.stopSimulation();
+                Logger.flush();
+                VanetVisualizerSkin.waitForImages();
                 simulation.getCooja().doQuit(false, 0);
             }
         });
