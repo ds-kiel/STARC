@@ -53,6 +53,13 @@ public class Vanet extends VisPlugin {
                 VanetVisualizerSkin.setScreenExportDir(((String) vanetConfig.getParameterValue(VanetConfig.Parameter.screen_export_dir)));
             }
         });
+
+        simulation.invokeSimulationThread(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("Dummy action to allow simulation start");
+            }
+        });
     }
 
     public void startPlugin() {
