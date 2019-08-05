@@ -42,6 +42,11 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
         } else if (state == STATE_QUEUING) {
             if (platoonPredecessor == null) {
                 checkForPredecessor();
+                
+                if (platoonPredecessor != null && platoonPredecessor.getState() == STATE_MOVING) {
+                    platoonPredecessor.setPlatoonSuccessor(null);
+                    platoonPredecessor = null;
+                }
             }
             // TODO: Allow to join before we reach that point!
             if (trafficLightState == TrafficLightAwareIntersection.PHASE_GREEN) {
