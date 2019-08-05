@@ -49,7 +49,9 @@ public class Vanet extends VisPlugin {
                 int networkWidth = vanetConfig.getParameterIntegerValue(VanetConfig.Parameter.network_width);
                 int networkHeight = vanetConfig.getParameterIntegerValue(VanetConfig.Parameter.network_height);
                 int intersectionType = vanetConfig.getParameterIntegerValue(VanetConfig.Parameter.intersection_type);
-                world = new World(Vanet.this.simulation, networkWidth, networkHeight, intersectionType);
+                double ltr = vanetConfig.getParameterDoubleValue(VanetConfig.Parameter.left_turn_rate);
+                double rtr = vanetConfig.getParameterDoubleValue(VanetConfig.Parameter.right_turn_rate);
+                world = new World(Vanet.this.simulation, networkWidth, networkHeight, intersectionType, ltr, rtr);
                 world.setVehiclesPerSecond(vps);
                 Logger.setLogDir(((String) vanetConfig.getParameterValue(VanetConfig.Parameter.log_dir)));
                 VanetVisualizerSkin.setScreenExportDir(((String) vanetConfig.getParameterValue(VanetConfig.Parameter.screen_export_dir)));

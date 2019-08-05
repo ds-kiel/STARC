@@ -61,6 +61,8 @@ public class VanetConfig {
     network_width,
     network_height,
     intersection_type,
+    left_turn_rate,
+    right_turn_rate,
     timeout;
 
     public static Object getDefaultValue(Parameter p) {
@@ -79,6 +81,10 @@ public class VanetConfig {
           return TransportNetwork.INTERSECTION_TYPE_DECENTRALIZED;
         case timeout:
           return (Long) 0L;
+        case left_turn_rate:
+          return 0.15;
+        case right_turn_rate:
+          return 0.15;
       }
       throw new RuntimeException("Unknown default value: " + p);
     }

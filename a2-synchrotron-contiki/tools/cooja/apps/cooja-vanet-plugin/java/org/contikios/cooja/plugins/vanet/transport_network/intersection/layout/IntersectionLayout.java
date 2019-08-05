@@ -15,6 +15,10 @@ public abstract class IntersectionLayout {
     public static final Vector2D LANE_DIR_DOWN = new Vector2D(0, 1);
     public static final Vector2D LANE_DIR_LEFT = new Vector2D(-1, 0);
 
+    public static final int TURN_LEFT = -1;
+    public static final int STRAIGHT = 0;
+    public static final int TURN_RIGHT = 1;
+
     protected HashMap<Integer, Lane> startLanes = new HashMap<>();
     protected HashMap<Integer, Lane> endLanes = new HashMap<>();
     protected HashMap<Integer, Collection<Integer>> possibleDirs = new HashMap();
@@ -33,12 +37,11 @@ public abstract class IntersectionLayout {
         return this.endLanes.values();
     }
 
-    public Collection<Lane> getStartLaneWithDirection(Vector2D dir) {
-        return getStartLanes().stream().filter(l -> l.getDirectionVector().equals(dir)).collect(Collectors.toList());
-    }
     public Collection<Lane> getEndLaneWithDirection(Vector2D dir) {
         return getEndLanes().stream().filter(l -> l.getDirectionVector().equals(dir)).collect(Collectors.toList());
     }
+
+
 
     public abstract void replaceLane(int originalId, Lane replacement);
 

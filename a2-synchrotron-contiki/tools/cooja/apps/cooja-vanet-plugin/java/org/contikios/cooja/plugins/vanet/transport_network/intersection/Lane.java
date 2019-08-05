@@ -1,6 +1,7 @@
 package org.contikios.cooja.plugins.vanet.transport_network.intersection;
 
 import org.contikios.cooja.plugins.Vanet;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.layout.IntersectionLayout;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
@@ -89,6 +90,20 @@ public class Lane {
             return DIR_DOWN;
         } else  {
             return DIR_UP;
+        }
+    }
+
+    public int computeTurn(Lane other) {
+
+        Vector2D ownDir = getDirectionVector();
+        Vector2D otherDir = other.getDirectionVector();
+
+        if (ownDir.equals(otherDir)) {
+            return IntersectionLayout.STRAIGHT;
+        } else if (ownDir.getX() == -otherDir.getY() && ownDir.getY() == otherDir.getX()) {
+            return IntersectionLayout.TURN_LEFT;
+        } else {
+            return IntersectionLayout.TURN_RIGHT;
         }
     }
 

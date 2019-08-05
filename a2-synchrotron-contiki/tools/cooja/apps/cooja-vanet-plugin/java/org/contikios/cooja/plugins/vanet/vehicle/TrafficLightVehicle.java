@@ -113,7 +113,7 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
 
 
     protected void checkForPredecessor() {
-        double senseDist = Math.max(body.getVel().length()*body.getVel().length() / (2*DECELERATION), body.getRadius()*2)*1.5;
+        double senseDist = Math.max(calculateBreakDist(body.getVel().length()), body.getRadius()*2)*1.5;
 
         LineIntersection li = DirectionalDistanceSensor.computeNearestBodyCollisions(
                 world.getPhysics(),
@@ -138,6 +138,7 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
     @Override
     protected void drive(double delta, Vector2D wantedPos, double maxBrakeDistance) {
         if (platoonPredecessor != null) {
+            // This is just an approximation, we do not use the direction of the movement here...
             double predecessorMaxBrakeDist = calculateBreakDist(platoonPredecessor.getBody().getVel().length());
             predecessorMaxBrakeDist += Vector2D.distance(platoonPredecessor.getBody().getCenter(), body.getCenter());
             predecessorMaxBrakeDist -= 3*body.getRadius();

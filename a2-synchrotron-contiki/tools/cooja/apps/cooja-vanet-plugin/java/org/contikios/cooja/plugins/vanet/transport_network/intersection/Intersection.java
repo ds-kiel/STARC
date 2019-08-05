@@ -6,6 +6,7 @@ import org.contikios.cooja.plugins.vanet.transport_network.intersection.layout.T
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Intersection {
     private Vector2D offset;
@@ -39,6 +40,21 @@ public class Intersection {
     public Collection<Lane> getStartLanes() {
         return layout.getStartLanes();
     }
+
+    public Collection<Lane> getStartLaneWithTurn(int turn) {
+        return getStartLanes().stream()
+                .filter(l -> {
+                    Collection<Lane> possLanes = getPossibleLanes(l);
+                    return possLanes.stream().anyMatch(
+                            pl -> {
+                                return l.computeTurn(pl) == turn;
+                            }
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+
     public Collection<Lane> getEndLanes() {
         return layout.getEndLanes();
     }

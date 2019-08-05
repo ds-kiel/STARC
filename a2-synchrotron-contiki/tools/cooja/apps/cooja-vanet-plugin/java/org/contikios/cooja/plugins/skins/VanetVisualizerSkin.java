@@ -66,6 +66,7 @@ import org.contikios.cooja.plugins.vanet.vehicle.LogAwareVehicleDecorator;
 import org.contikios.cooja.plugins.vanet.vehicle.PlatoonawareVehicle;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.world.World;
+import org.contikios.cooja.plugins.vanet.world.physics.CollisionAwareBody;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import javax.imageio.ImageIO;
@@ -407,12 +408,9 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
         Set<PlatoonawareVehicle> checked = new HashSet<>();
 
-        for (Mote mote: simulation.getMotes()) {
-            VehicleInterface v = world.getVehicle(mote);
-            if (v instanceof PlatoonawareVehicle) {
-                checked.add((PlatoonawareVehicle)v);
-            }
-        }
+        world.getVehicles().stream().filter(PlatoonawareVehicle.class::isInstance).forEach(
+            pv -> checked.add((PlatoonawareVehicle)pv)
+        );
 
         /*if (visualizer.getSelectedMotes().size() == 0) {
             return;
@@ -457,16 +455,15 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         g2.setColor(Color.LIGHT_GRAY);
 
         checked.forEach(
-                pv -> {
-                    if (pv.getPlatoonPredecessor() != null) {
-
-                        Vector2D p = pv.getBody().getCenter();
-                        Vector2D endPos = pv.getPlatoonPredecessor().getBody().getCenter();
-                        Point lineStart = visualizer.transformPositionToPixel(p.getX(), p.getY(), 0);
-                        Point lineEnd = visualizer.transformPositionToPixel(endPos.getX(), endPos.getY(), 0);
-                        g2.drawLine(lineStart.x, lineStart.y, lineEnd.x, lineEnd.y);
-                    }
+            pv -> {
+                if (pv.getPlatoonPredecessor() != null) {
+                    Vector2D p = pv.getBody().getCenter();
+                    Vector2D endPos = pv.getPlatoonPredecessor().getBody().getCenter();
+                    Point lineStart = visualizer.transformPositionToPixel(p.getX(), p.getY(), 0);
+                    Point lineEnd = visualizer.transformPositionToPixel(endPos.getX(), endPos.getY(), 0);
+                    g2.drawLine(lineStart.x, lineStart.y, lineEnd.x, lineEnd.y);
                 }
+            }
         );
 
         g2.setStroke(initialStroke);
@@ -538,6 +535,15 @@ public class VanetVisualizerSkin implements VisualizerSkin {
                     //colors = new Color[2];
                     //colors[0] = transparent;
                     //colors[1] = transparent;
+                }
+
+
+                // mark the cars for 10 secs
+                if (v.getBody() != null) {
+                    if (v.getBody().hasCollision(world.getCurrentMS()- 10 * 1000, world.getCurrentMS())) {
+                        colors = new Color[1];
+                        colors[0] = Color.RED;
+                    }
                 }
             }
         }

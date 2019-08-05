@@ -16,6 +16,7 @@ public class ThreeLaneIntersectionLayout extends IntersectionLayout {
 
     private boolean restrictedDirections;
 
+
     public ThreeLaneIntersectionLayout(boolean restrictedDirections) {
         this.restrictedDirections = restrictedDirections;
     }

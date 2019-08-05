@@ -1,9 +1,11 @@
 package org.contikios.cooja.plugins.vanet.world.physics;
 
 
+import org.contikios.cooja.plugins.vanet.world.World;
 import org.contikios.cooja.plugins.vanet.world.physics.Computation.LineIntersection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -17,7 +19,7 @@ public class Physics {
 
     }
 
-    public void simulate(double delta) {
+    public void simulate(double delta, long ms) {
 
         // move the bodies based on their velocity
         for (Body body: bodies) {
@@ -32,13 +34,18 @@ public class Physics {
             Body bodyA = bodies.get(i);
 
             for (int j = i+1; j < size; j++) {
-
                 Body bodyB = bodies.get(j);
-
                 // else we check collisions!
                 if (collides(bodyA, bodyB)) {
                     System.out.println("COLLISION: " +  bodyA.getName() + " with " + bodyB.getName());
-                   //Logger.event("collision", 0, bodyA.getName() + " with " + bodyB.getName(), null);
+                    BodyCollision bc = new BodyCollision(ms, Arrays.asList(bodyA, bodyB));
+
+                    if (bodyA instanceof CollisionAwareBody) {
+                        ((CollisionAwareBody) bodyA).addCollision(bc);
+                    }
+                    if (bodyB instanceof CollisionAwareBody) {
+                        ((CollisionAwareBody) bodyB).addCollision(bc);
+                    }
                 }
             }
         }

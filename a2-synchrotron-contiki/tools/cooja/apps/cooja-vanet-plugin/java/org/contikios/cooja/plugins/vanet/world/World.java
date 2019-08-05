@@ -1,9 +1,6 @@
 package org.contikios.cooja.plugins.vanet.world;
 
-import org.contikios.cooja.Cooja;
-import org.contikios.cooja.Mote;
-import org.contikios.cooja.MoteType;
-import org.contikios.cooja.Simulation;
+import org.contikios.cooja.*;
 import org.contikios.cooja.contikimote.ContikiMoteType;
 import org.contikios.cooja.interfaces.Position;
 import org.contikios.cooja.mote.memory.UnknownVariableException;
@@ -13,7 +10,9 @@ import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TiledMapHandler;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.layout.IntersectionLayout;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.layout.ThreeLaneIntersectionLayout;
+import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleManager;
 import org.contikios.cooja.plugins.vanet.world.physics.Body;
@@ -46,14 +45,21 @@ public class World {
 
     private double vehiclesPerHour = 0.0f;
 
-    public World(Simulation simulation, int networkWidth, int networkHeight, int intersectionType) {
+    // TODO: We might want to inject the whole config here?
+    private double leftTurnRate;
+    private double rightTurnRate;
+
+    public World(Simulation simulation, int networkWidth, int networkHeight, int intersectionType, double leftTurnRate, double rightTurnRate) {
         this.simulation = simulation;
         this.vehicleMoteType = simulation.getMoteType("vehicle");
         this.initiatorMoteType = simulation.getMoteType("vehicle");
         this.physics = new Physics();
-        this.transportNetwork = new TransportNetwork(networkWidth,networkHeight, intersectionType);
+        this.transportNetwork = new TransportNetwork(networkWidth, networkHeight, intersectionType);
         this.vehicleManager = new VehicleManager(this, intersectionType);
         this.idGenerator = new IDGenerator(1, 255);
+
+        this.leftTurnRate = leftTurnRate;
+        this.rightTurnRate = rightTurnRate;
 
         // TODO: This is implementation specific
         // we remove all nodes
@@ -82,7 +88,7 @@ public class World {
     }
 
     public TiledMapHandler getMapHandler() {
-        return this.transportNetwork.getIntersection(0,0).getMapHandler();
+        return this.transportNetwork.getIntersection(0, 0).getMapHandler();
     }
 
     public TransportNetwork getTransportNetwork() {
@@ -97,6 +103,7 @@ public class World {
     public Physics getPhysics() {
         return physics;
     }
+
 
     public void simulate(long deltaMS) {
 
@@ -114,7 +121,7 @@ public class World {
 
         // simulate components for each step
         // update sensors etc...
-        this.physics.simulate(delta);
+        this.physics.simulate(delta, currentMS);
 
         // step through every vehicle logic and execute it
         vehicleCollection.forEach(v -> v.step(delta));
@@ -150,10 +157,10 @@ public class World {
             return;
         }
 
-        double vehiclesPerHourPerLane = (vehiclesPerHour/3600.0)*getTransportNetwork().getNumStartLanes();
-        int wanted = (int) ((currentMS/1000.0f)*vehiclesPerHourPerLane) - vehicleManager.getTotal();
+        double vehiclesPerHourPerLane = (vehiclesPerHour / 3600.0) * getTransportNetwork().getNumStartLanes();
+        int wanted = (int) ((currentMS / 1000.0f) * vehiclesPerHourPerLane) - vehicleManager.getTotal();
 
-        for(int i  = 0; i < wanted; ++i) {
+        for (int i = 0; i < wanted; ++i) {
             Mote m = vehicleMoteType.generateMote(simulation);
             Integer id = idGenerator.next();
             if (id != null) {
@@ -164,7 +171,16 @@ public class World {
         }
     }
 
-    public VehicleInterface getVehicle(Mote m) {
+
+    public Mote getMote(VehicleInterface v){
+        return moteMap.get(v);
+    }
+
+    public Collection<VehicleInterface> getVehicles() {
+        return new ArrayList<>(vehicleManager.getVehicleCollection());
+    }
+
+    public VehicleInterface getVehgetVehicleicle(Mote m) {
         for (Map.Entry<VehicleInterface, Mote> entry : moteMap.entrySet()) {
             if (Objects.equals(m, entry.getValue())) {
                 return entry.getKey();
@@ -188,24 +204,37 @@ public class World {
     }
 
     public AbstractMap.SimpleImmutableEntry<Lane, Vector2D> getFreePosition() {
-       Lane l = this.transportNetwork.getRandomStartLane();
 
-       Vector2D d = new Vector2D(l.getDirectionVector());
-       d.scale(-1);
+        int turn;
+        double r = RAND.nextDouble();
 
-       // we translate the endpos a bit such that we check right from the beginning
-       Vector2D endPos = new Vector2D(l.getDirectionVector());
-       endPos.scale(0.5 * Vanet.SCALE);
-       endPos.add(l.getEndPos());
+        /* Use strictly smaller than because nextDouble excludes the 1.0 */
+        if (r < leftTurnRate) {
+            turn = IntersectionLayout.TURN_LEFT;
+        } else if (r < leftTurnRate + rightTurnRate) {
+            turn = IntersectionLayout.TURN_RIGHT;
+        } else {
+            turn = IntersectionLayout.STRAIGHT;
+        }
 
-       // we need to check the collision
-        Collection<LineIntersection> LineIntersections = this.physics.computeLineIntersections(endPos,d);
+        Lane l = this.transportNetwork.getRandomStartLaneWithTurn(turn);
+
+        Vector2D d = new Vector2D(l.getDirectionVector());
+        d.scale(-1);
+
+        // we translate the endpos a bit such that we check right from the beginning
+        Vector2D endPos = new Vector2D(l.getDirectionVector());
+        endPos.scale(0.5 * Vanet.SCALE);
+        endPos.add(l.getEndPos());
+
+        // we need to check the collision
+        Collection<LineIntersection> LineIntersections = this.physics.computeLineIntersections(endPos, d);
 
         double maxDist = LineIntersections.stream().
-                            map(i -> i.distance).
-                            filter(x -> x >= 0.0).
-                            max(Double::compareTo).
-                            orElse(0.0);
+                map(i -> i.distance).
+                filter(x -> x >= 0.0).
+                max(Double::compareTo).
+                orElse(0.0);
 
         Vector2D freePos = new Vector2D(d);
         freePos.scale(maxDist + ThreeLaneIntersectionLayout.LANE_LENGTH * Vanet.SCALE);
