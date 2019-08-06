@@ -25,7 +25,7 @@
       <source EXPORT="discard">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.c</source>
       <commands EXPORT="discard">
       	make TARGET=sky clean
-      	make intersection-node.sky TARGET=sky initiators=4</commands>
+      	make intersection-node.sky TARGET=sky initiators=1</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
@@ -96,9 +96,12 @@
   <plugin>
     org.contikios.cooja.plugins.Vanet
     <plugin_config>
-      <screen_export_dir value="/Users/rathje/Desktop/export/tmp/screens" />
-      <log_dir value="/Users/rathje/Desktop/export/tmp/logs" />
-      <vehicles_per_hour value="150.0" />
+      <intersection_type value="0" />
+      <vehicles_per_hour value="1000.0" />
+      <screen_export_dir value="" />
+      <timeout value="0" />
+      <left_turn_rate value="0.15" />
+      <right_turn_rate value="0.15" />
     </plugin_config>
     <width>150</width>
     <z>4</z>
