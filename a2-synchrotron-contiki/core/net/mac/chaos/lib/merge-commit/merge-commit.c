@@ -98,11 +98,22 @@
 #endif
 
 
+#if MERGE_COMMIT_ADVANCED_STATS
+
+//static uint8_t bit_count(uint8_t u) { return (u - (u >> 1) - (u >> 2) - (u >> 3) - (u >> 4) - (u >> 5) - (u >> 6) - (u >> 7)); }
+static uint8_t bit_count(uint8_t x)
+{
+  const uint8_t one_bits[] = {0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4};
+  return one_bits[x&0x0f] + one_bits[x>>4];
+}
+merge_commit_advanced_slot_stats_t merge_commit_advanced_stats[MERGE_COMMIT_ROUND_MAX_SLOTS];
+#endif
+
+
 typedef struct __attribute__((packed)) {
   merge_commit_t mc;
   uint8_t flags_and_leaves[FLAGS_ESTIMATE*2];
 } merge_commit_local_t;
-
 
 
 extern void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc);
@@ -480,6 +491,29 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
     time_diff = endTime-start;
   }*/
 
+
+
+  /* Advanced statistics */
+#if MERGE_COMMIT_ADVANCED_STATS
+  {
+    merge_commit_advanced_slot_stats_t slot_stats;
+
+    slot_stats.has_node_index = chaos_has_node_index;
+    slot_stats.node_index = chaos_node_index;
+    slot_stats.node_count = chaos_node_count;
+    slot_stats.phase = tx_mc->phase;
+
+    uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
+    uint8_t i;
+    slot_stats.flag_progress = 0;
+    for (i = 0; i < FLAGS_LEN; i++) {
+      slot_stats.flag_progress += bit_count(tx_flags[i]);
+    }
+    // and finally copy the stats to the overall array
+    memcpy(&merge_commit_advanced_stats[slot_count], &slot_stats, sizeof(slot_stats));
+  }
+#endif
+
   return next_state;
 }
 
@@ -512,6 +546,11 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   left = 0;
 
   delta_at_slot = 0;
+
+
+#if MERGE_COMMIT_ADVANCED_STATS
+  memset(merge_commit_advanced_stats, 0, sizeof(merge_commit_advanced_stats));
+#endif
 
   /* init random restart threshold */
   restart_threshold = chaos_random_generator_fast() % (CHAOS_RESTART_MAX - CHAOS_RESTART_MIN) + CHAOS_RESTART_MIN;

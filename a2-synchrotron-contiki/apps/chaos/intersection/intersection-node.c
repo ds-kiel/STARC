@@ -103,10 +103,7 @@ int decode_data( char * dest, const char * source) {
   return res_size;
 }
 
-void send_data( char * data, uint32_t size) {
-  // we will use device control characters to encode our message!
-
-  printf("#VANET ");
+void send_data_part(char * data, uint32_t size) {
   int i = 0;
   for(i = 0; i < size; ++i) {
     // we will encode the special characters \n, \r and zero like the following
@@ -132,6 +129,12 @@ void send_data( char * data, uint32_t size) {
       putchar(c);
     }
   }
+}
+
+void send_data( char * data, uint32_t size) {
+  // we will use device control characters to encode our message!
+  printf("#VANET ");
+  send_data_part(data, size);
   putchar('\n'); //aaaand finish the newline ;)
 }
 
@@ -213,19 +216,6 @@ static int path_available(merge_commit_value_t *plan, path_t* path, int node_id)
   return 1;
 }
 
-
-static int px = 0;
-static int py = 0;
-static int dx = 0;
-static int dy = 0;
-
-// original positions and directions
-static int opx = 0;
-static int opy = 0;
-static int odx = 0;
-static int ody = 0;
-
-static int accepted = 0;
 
 static uint16_t own_arrival = 0;
 
@@ -324,6 +314,48 @@ PROCESS_BEGIN();
     }
     // COMMIT HAS FINISHED!
     // CHECK IF IT WAS SUCCESSFUL!
+
+
+#ifdef MERGE_COMMIT_ADVANCED_STATS
+
+  const uint8_t slots_per_msg = 50;
+  // Start Message
+  printf("#VANET MC-STATS-START");
+
+
+  uint8_t tmp = 0;
+
+  // we first send the round number
+  tmp = mc_round_count_local >> 8;
+  send_data_part((char*)&tmp, 1);
+  tmp = mc_round_count_local&0xFF;
+  send_data_part((char*)&tmp, 1);
+
+  uint16_t remaining_slots = mc_off_slot+1;
+
+  // and the number of slots
+  tmp = remaining_slots >> 8;
+  send_data_part((char*)&tmp, 1);
+  tmp = remaining_slots&0xFF;
+  send_data_part((char*)&tmp, 1);
+
+  // and finally the number of slots per message
+  send_data_part((char*)&slots_per_msg, 1);
+  putchar('\n'); // and finish with newline ;)
+
+  uint8_t cur_msg = 0;
+
+  uint8_t i;
+  while(remaining_slots > 0) {
+    uint8_t num_slots = MIN(slots_per_msg, remaining_slots);
+    printf("#VANET MC-STATS-SLOTS");
+    send_data_part(&merge_commit_advanced_stats[cur_msg*slots_per_msg], sizeof(merge_commit_advanced_slot_stats_t)*MIN(slots_per_msg, remaining_slots));
+    printf("\n");
+    cur_msg++;
+    remaining_slots -= num_slots;
+  }
+  printf("#VANET MC-STATS-END\n");
+#endif
   }
 PROCESS_END();
 }

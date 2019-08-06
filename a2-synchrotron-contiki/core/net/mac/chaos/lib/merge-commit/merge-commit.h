@@ -72,6 +72,11 @@
 #define MERGE_COMMIT_VALUE_STRUCT_CONTENT uint32_t x;
 #endif
 
+
+#ifndef MERGE_COMMIT_ADVANCED_STATS
+#define MERGE_COMMIT_ADVANCED_STATS 0
+#endif
+
 // struct definitions
 
 
@@ -81,7 +86,7 @@ typedef struct __attribute__((packed)) {
 
 
 typedef struct __attribute__((packed)) {
-    char gap_0[1];
+    char gap_0[1]; // align memory
     join_data_t join_data;
     merge_commit_value_t value;
     uint8_t phase;
@@ -109,5 +114,24 @@ int merge_commit_has_left();
 int merge_commit_agreed();
 
 int merge_commit_did_tx();
+
+
+
+#if MERGE_COMMIT_ADVANCED_STATS
+
+typedef struct __attribute__((packed)) {
+  uint8_t node_count;
+  uint8_t flag_progress;
+  uint8_t phase;
+  uint8_t has_node_index;
+  uint8_t node_index;
+  //  num_reservations??!?
+  //  num_joins ?
+  //  num_leaves ?
+} merge_commit_advanced_slot_stats_t;
+
+extern merge_commit_advanced_slot_stats_t merge_commit_advanced_stats[MERGE_COMMIT_ROUND_MAX_SLOTS];
+
+#endif
 
 #endif /* _MERGE_COMMIT_H_ */

@@ -11,6 +11,7 @@ import java.util.*;
 
 public class Vehicle extends BaseVehicle {
     protected MessageProxy messageProxy; // used for communication with cooja motes
+    protected ChaosStatsHandler chaosStatsHandler; // handle the stats of the chaos motes
 
     // Configure if the Tiles should be freed when not needed anymore
     static final boolean TILE_FREEDOM = true;
@@ -23,6 +24,7 @@ public class Vehicle extends BaseVehicle {
     public Vehicle(World world, Mote m, int id) {
         super(world, m, id);
         messageProxy = new MessageProxy(m);
+        chaosStatsHandler = new ChaosStatsHandler(id);
     }
 
     public void step(double delta) {
@@ -139,7 +141,9 @@ public class Vehicle extends BaseVehicle {
     protected void handleMessage(byte[] msg) {
         //System.out.println(new String(msg));
 
-        if (state == STATE_INIT && new String(msg).equals("init")) {
+        if (chaosStatsHandler.supports(msg)) {
+            chaosStatsHandler.handle(msg);
+        } else if (state == STATE_INIT && new String(msg).equals("init")) {
             init();
             state = STATE_INITIALIZED;
         } else if (state == STATE_LEAVING && new String(msg).equals("left")) {
