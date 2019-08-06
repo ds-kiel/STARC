@@ -47,7 +47,7 @@ public class ChaosStatsHandler {
         expectedSlots = (msg.get(2) << 8) | msg.get(3);
         slotsPerMessage = msg.get(4);
         receivedSlots = 0;
-        System.out.println(String.format("Start %d, %d, %d",  round, expectedSlots, slotsPerMessage));
+        //System.out.println(String.format("Start %d, %d, %d",  round, expectedSlots, slotsPerMessage));
     }
 
     private void handleSlotsMsg(List<Byte> msg) {
@@ -64,9 +64,9 @@ public class ChaosStatsHandler {
             int node_index = Byte.toUnsignedInt(msg.remove(0));
 
             String logMsg = String.format("%d, %d, %d, %d, %d, %d, %d",  round, receivedSlots, phase, node_count, flag_progress, has_node_index, node_index);
-            Logger.event("chaos", 0, logMsg, String.valueOf(id));
+            //Logger.event("chaos", 0, logMsg, String.valueOf(id));
 
-            System.out.println(String.format("Slot round %d, received %d, phase %d, progress %d, count %d, has %d, index %d",  round, receivedSlots, phase, flag_progress, node_count, has_node_index, node_index));
+            //System.out.println(String.format("Slot round %d, received %d, phase %d, progress %d, count %d, has %d, index %d",  round, receivedSlots, phase, flag_progress, node_count, has_node_index, node_index));
 
             receivedSlots++;
             msgSlots--;
