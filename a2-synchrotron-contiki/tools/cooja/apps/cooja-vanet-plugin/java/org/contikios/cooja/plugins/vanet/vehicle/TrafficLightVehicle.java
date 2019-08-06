@@ -23,6 +23,7 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
      * The reason for this is to keep driving once we decided to go for it ;)
      */
     protected boolean driveThrough = false;
+    protected boolean platoonPredecessorWasMoving = false;
 
     @Override
     protected int handleStates(int state) {
@@ -41,14 +42,28 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
             return STATE_QUEUING;
         } else if (state == STATE_QUEUING) {
             if (platoonPredecessor == null) {
+                platoonPredecessorWasMoving = false;
                 checkForPredecessor();
-                
+
+                // If we are still queuing we do not want to join passing platoons...
                 if (platoonPredecessor != null && platoonPredecessor.getState() == STATE_MOVING) {
                     platoonPredecessor.setPlatoonSuccessor(null);
                     platoonPredecessor = null;
                 }
             }
-            // TODO: Allow to join before we reach that point!
+
+            // We check if we have to wait at a red light while the predecessor is already passing the intersection
+            // we need to check with another variable that the predecessor is still moving, since the vehicles are updated sequentially...
+            if (platoonPredecessor != null && platoonPredecessor.getState() == STATE_MOVING) {
+                if (platoonPredecessorWasMoving) {
+                    platoonPredecessor.setPlatoonSuccessor(null);
+                    platoonPredecessor = null;
+                }
+                platoonPredecessorWasMoving = true;
+            } else {
+                platoonPredecessorWasMoving = false;
+            }
+
             if (trafficLightState == TrafficLightAwareIntersection.PHASE_GREEN) {
                 return STATE_MOVING;
             } else {
@@ -58,6 +73,7 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
             // NOOP: We are either queuing or moving
         }
         else if (state == STATE_MOVING) {
+            platoonPredecessorWasMoving = false;
 
             // we try to build up a platoon
             if (platoonPredecessor == null) {
@@ -118,7 +134,8 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
 
 
     protected void checkForPredecessor() {
-        double senseDist = Math.max(calculateBreakDist(body.getVel().length()), body.getRadius()*2)*1.5;
+
+        double senseDist = calculateBreakDist(body.getVel().length())+2.5*body.getRadius();
 
         LineIntersection li = DirectionalDistanceSensor.computeNearestBodyCollisions(
                 world.getPhysics(),
@@ -146,7 +163,7 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
             // This is just an approximation, we do not use the direction of the movement here...
             double predecessorMaxBrakeDist = calculateBreakDist(platoonPredecessor.getBody().getVel().length());
             predecessorMaxBrakeDist += Vector2D.distance(platoonPredecessor.getBody().getCenter(), body.getCenter());
-            predecessorMaxBrakeDist -= 3*body.getRadius();
+            predecessorMaxBrakeDist -= 2.5*body.getRadius();
 
             predecessorMaxBrakeDist = Math.max(0, predecessorMaxBrakeDist);
 

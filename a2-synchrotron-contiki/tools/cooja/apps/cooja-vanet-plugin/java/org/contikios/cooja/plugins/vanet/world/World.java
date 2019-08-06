@@ -180,7 +180,7 @@ public class World {
         return new ArrayList<>(vehicleManager.getVehicleCollection());
     }
 
-    public VehicleInterface getVehgetVehicleicle(Mote m) {
+    public VehicleInterface getVehicle(Mote m) {
         for (Map.Entry<VehicleInterface, Mote> entry : moteMap.entrySet()) {
             if (Objects.equals(m, entry.getValue())) {
                 return entry.getKey();
@@ -237,7 +237,7 @@ public class World {
                 orElse(0.0);
 
         Vector2D freePos = new Vector2D(d);
-        freePos.scale(maxDist + ThreeLaneIntersectionLayout.LANE_LENGTH * Vanet.SCALE);
+        freePos.scale(maxDist + (0.5 + ThreeLaneIntersectionLayout.LANE_LENGTH) * Vanet.SCALE);
         freePos.add(endPos);
         return new AbstractMap.SimpleImmutableEntry<>(l, freePos);
     }
