@@ -28,8 +28,8 @@ public class TrafficLightIntersection extends Intersection implements TrafficLig
                 break;
         }
 
-        long greenPhaseDurationMS = 10*1000;
-        long yellowPhaseDurationMS = 2*1000;
+        long greenPhaseDurationMS = 9*1000;
+        long yellowPhaseDurationMS = 3*1000;
         long redPhaseDurationMS = 3*1000;
 
         long overall = greenPhaseDurationMS+yellowPhaseDurationMS+redPhaseDurationMS;
