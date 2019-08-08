@@ -74,7 +74,7 @@ public class LogAwareVehicleDecorator implements VehicleInterface {
 
         // we do not want to capture the init state!
         if (state != STATE_INIT) {
-            String id = String.format("%03d", impl.getID());
+            String id = String.format("%06d", impl.getID());
             Logger.event("state", impl.getWorld().getCurrentMS(), getStateName(state), id);
             Logger.event("speed", impl.getWorld().getCurrentMS(), String.valueOf(impl.getBody().getVel().length()), id);
         }
