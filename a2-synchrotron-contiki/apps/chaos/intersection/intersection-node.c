@@ -326,7 +326,7 @@ PROCESS_BEGIN();
   uint8_t tmp = 0;
 
   // we first send the round number
-  tmp = mc_round_count_local >> 8;
+  tmp = (mc_round_count_local >> 8)&0xFF;
   send_data_part((char*)&tmp, 1);
   tmp = mc_round_count_local&0xFF;
   send_data_part((char*)&tmp, 1);
@@ -334,7 +334,7 @@ PROCESS_BEGIN();
   uint16_t remaining_slots = mc_off_slot+1;
 
   // and the number of slots
-  tmp = remaining_slots >> 8;
+  tmp = (remaining_slots >> 8)&0xFF;
   send_data_part((char*)&tmp, 1);
   tmp = remaining_slots&0xFF;
   send_data_part((char*)&tmp, 1);
