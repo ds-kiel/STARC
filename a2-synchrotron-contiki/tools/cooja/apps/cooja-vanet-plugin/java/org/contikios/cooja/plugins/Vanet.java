@@ -14,7 +14,7 @@ import org.jdom.Element;
 import java.util.Collection;
 
 @ClassDescription("Vanet")
-@PluginType(PluginType.SIM_PLUGIN)
+@PluginType(PluginType.SIM_CONTROL_PLUGIN)
 public class Vanet extends VisPlugin {
 
     private static final boolean QUIET = false;
