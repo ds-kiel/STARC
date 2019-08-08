@@ -16,6 +16,8 @@ public class ChaosStatsHandler {
     protected int slotsPerMessage;
 
 
+    protected ArrayList<String> buffer = new ArrayList<>();
+
     ChaosStatsHandler(int id) {
         this.id = id;
     }
@@ -65,9 +67,9 @@ public class ChaosStatsHandler {
             int node_index = Byte.toUnsignedInt(msg.remove(0));
 
             String logMsg = String.format("%d, %d, %d, %d, %d, %d, %d",  round, receivedSlots, phase, node_count, flag_progress, has_node_index, node_index);
-            Logger.event("chaos", 0, logMsg,  String.format("%06d", id));
-
-            //System.out.println(String.format("Slot round %d, received %d, phase %d, progress %d, count %d, has %d, index %d",  round, receivedSlots, phase, flag_progress, node_count, has_node_index, node_index));
+            buffer.add(
+                logMsg
+            );
 
             receivedSlots++;
             msgSlots--;
@@ -75,6 +77,13 @@ public class ChaosStatsHandler {
     }
 
     private void handleEndMsg(List<Byte> msg) {
-        // NOOP :)
+
+        // Write everything at once so we are sure, we get the full stats everytime!
+        String idStr = String.format("%06d", id);
+        buffer.forEach(
+            logMsg -> Logger.event("chaos", 0, logMsg,  idStr)
+        );
+
+        buffer.clear();
     }
 }
