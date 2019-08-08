@@ -596,11 +596,13 @@ public class VanetVisualizerSkin implements VisualizerSkin {
     }
 
     public static void waitForImages() {
-        executorService.shutdown();
-        try {
-            executorService.awaitTermination(1, TimeUnit.HOURS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (executorService != null) {
+            executorService.shutdown();
+            try {
+                executorService.awaitTermination(1, TimeUnit.HOURS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
