@@ -43,9 +43,10 @@ public class ChaosStatsHandler {
     }
 
     private void handleStartMsg(List<Byte> msg) {
-        round = (msg.get(0) << 8) | msg.get(1);
-        expectedSlots = (msg.get(2) << 8) | msg.get(3);
-        slotsPerMessage = msg.get(4);
+
+        round = ((msg.get(0) & 0xff) << 8) | (msg.get(1) & 0xff);
+        expectedSlots = ((msg.get(2) & 0xff) << 8) | (msg.get(3) & 0xff);
+        slotsPerMessage = msg.get(4) & 0xff;
         receivedSlots = 0;
         //System.out.println(String.format("Start %d, %d, %d",  round, expectedSlots, slotsPerMessage));
     }
