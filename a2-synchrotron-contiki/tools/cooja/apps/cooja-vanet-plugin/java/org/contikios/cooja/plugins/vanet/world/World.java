@@ -105,11 +105,10 @@ public class World {
     }
 
 
-    public void simulate(long deltaMS) {
+    public void simulate(long ms, long deltaMS) {
 
-        // TODO: we should not need to manually addd this here...
-        currentMS += deltaMS;
         double delta = deltaMS / 1000.0;
+        this.currentMS = ms;
 
         spawnVehicles();
 

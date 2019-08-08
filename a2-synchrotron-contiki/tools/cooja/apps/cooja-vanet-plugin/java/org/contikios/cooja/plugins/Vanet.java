@@ -115,7 +115,7 @@ public class Vanet extends VisPlugin {
         // first update the world with the physics!
         // then update all the nodes#+
         if (world != null) {
-            world.simulate(deltaMS);
+            world.simulate(simulation.getSimulationTimeMillis(), deltaMS);
             VanetVisualizerSkin.saveImage(simulation.getSimulationTimeMillis());
         }
     }
