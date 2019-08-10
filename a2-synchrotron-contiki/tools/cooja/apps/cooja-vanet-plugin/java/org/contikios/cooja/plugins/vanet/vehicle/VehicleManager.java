@@ -2,6 +2,7 @@ package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
+import org.contikios.cooja.plugins.vanet.vehicle.platoon.PlatoonAwareVehicle;
 import org.contikios.cooja.plugins.vanet.world.World;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
@@ -51,12 +52,15 @@ public class VehicleManager {
         if (intersectionType == TransportNetwork.INTERSECTION_TYPE_TRAFFIC_LIGHTS) {
            v = new TrafficLightVehicle(world, m, id);
         } else {
-           v = new Vehicle(world, m, id);
+           v = new ChaosVehicle(world, m, id);
         }
 
+        // TODO: Inject Config here, so we can check if logs are enabled (or introduec method in the Logger)
         if (world.getTransportNetwork().getHeight() == 1 && world.getTransportNetwork().getWidth() == 1) {
-            if (v instanceof PlatoonawareVehicle) {
-                v = new LogAndPlatoonAwareVehicleDecorator((PlatoonawareVehicle) v);
+            if (v instanceof PlatoonAwareVehicle) {
+                v = new LogAndPlatoonAwareVehicleDecorator((PlatoonAwareVehicle) v);
+            } else if (v instanceof OrderAwareVehicle) {
+                v = new LogAndOrderAwareVehicleDecorator((OrderAwareVehicle) v);
             } else {
                 v = new LogAwareVehicleDecorator(v);
             }

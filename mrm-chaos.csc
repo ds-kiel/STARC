@@ -98,7 +98,7 @@
     <plugin_config>
       <log_dir value="" />
       <intersection_type value="0" />
-      <vehicles_per_hour value="200.0" />
+      <vehicles_per_hour value="400.0" />
       <screen_export_dir value="" />
       <timeout value="0" />
       <left_turn_rate value="0.15" />

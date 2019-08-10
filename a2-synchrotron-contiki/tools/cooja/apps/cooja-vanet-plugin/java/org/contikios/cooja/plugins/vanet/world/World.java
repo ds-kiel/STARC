@@ -1,18 +1,13 @@
 package org.contikios.cooja.plugins.vanet.world;
 
 import org.contikios.cooja.*;
-import org.contikios.cooja.contikimote.ContikiMoteType;
 import org.contikios.cooja.interfaces.Position;
-import org.contikios.cooja.mote.memory.UnknownVariableException;
-import org.contikios.cooja.mote.memory.VarMemory;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
-import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TiledMapHandler;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.layout.IntersectionLayout;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.layout.ThreeLaneIntersectionLayout;
-import org.contikios.cooja.plugins.vanet.vehicle.Vehicle;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleInterface;
 import org.contikios.cooja.plugins.vanet.vehicle.VehicleManager;
 import org.contikios.cooja.plugins.vanet.world.physics.Body;
@@ -156,6 +151,7 @@ public class World {
             return;
         }
 
+        // TODO: We should adapt this with the lane probability...
         double vehiclesPerHourPerLane = (vehiclesPerHour / 3600.0) * getTransportNetwork().getNumStartLanes();
         int wanted = (int) ((currentMS / 1000.0f) * vehiclesPerHourPerLane) - vehicleManager.getTotal();
 

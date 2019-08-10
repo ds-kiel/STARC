@@ -5,25 +5,22 @@ import org.contikios.cooja.Mote;
 import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TrafficLightAwareIntersection;
-import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.world.World;
-import org.contikios.cooja.plugins.vanet.world.physics.Computation.LineIntersection;
 import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
-public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehicle {
+public class TrafficLightVehicle extends BaseOrderVehicle {
 
     public TrafficLightVehicle(World world, Mote m, int id) {
         super(world, m, id);
     }
-
 
     /**
      * One might wonder why this is declared here.
      * The reason for this is to keep driving once we decided to go for it ;)
      */
     protected boolean driveThrough = false;
-    protected boolean platoonPredecessorWasMoving = false;
+    protected boolean predecessorWasMoving = false;
 
     @Override
     protected int handleStates(int state) {
@@ -41,28 +38,9 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
         } else if (state == STATE_INITIALIZED) {
             return STATE_QUEUING;
         } else if (state == STATE_QUEUING) {
-            if (platoonPredecessor == null) {
-                platoonPredecessorWasMoving = false;
-                checkForPredecessor();
 
-                // If we are still queuing we do not want to join passing platoons...
-                if (platoonPredecessor != null && platoonPredecessor.getState() == STATE_MOVING) {
-                    platoonPredecessor.setPlatoonSuccessor(null);
-                    platoonPredecessor = null;
-                }
-            }
-
-            // We check if we have to wait at a red light while the predecessor is already passing the intersection
-            // we need to check with another variable that the predecessor is still moving, since the vehicles are updated sequentially...
-            if (platoonPredecessor != null && platoonPredecessor.getState() == STATE_MOVING) {
-                if (platoonPredecessorWasMoving) {
-                    platoonPredecessor.setPlatoonSuccessor(null);
-                    platoonPredecessor = null;
-                }
-                platoonPredecessorWasMoving = true;
-            } else {
-                platoonPredecessorWasMoving = false;
-            }
+            // we try to build up a platoon
+            updatePredecessor();
 
             if (trafficLightState == TrafficLightAwareIntersection.PHASE_GREEN) {
                 return STATE_MOVING;
@@ -73,12 +51,9 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
             // NOOP: We are either queuing or moving
         }
         else if (state == STATE_MOVING) {
-            platoonPredecessorWasMoving = false;
-
+            predecessorWasMoving = false;
             // we try to build up a platoon
-            if (platoonPredecessor == null) {
-                checkForPredecessor();
-            }
+            updatePredecessor();
 
             if (curWayPointIndex >= waypoints.size() - 1) {
                 return STATE_LEAVING;
@@ -110,12 +85,12 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
         } else if (state == STATE_LEAVING) {
 
             // we remove ourself from the platoon
-            if (platoonSuccessor != null) {
-                platoonSuccessor.setPlatoonPredecessor(null);
+            if (successor != null) {
+                successor.setPredecessor(null);
             }
 
-            platoonSuccessor = this; // set to ourself to prevent new connections
-            platoonPredecessor = null;
+            successor = this; // set to ourself to prevent new connections
+            predecessor = null;
 
             return STATE_LEFT;
         }
@@ -132,47 +107,6 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
         return state;
     }
 
-
-    protected void checkForPredecessor() {
-
-        double senseDist = calculateBreakDist(body.getVel().length())+2.5*body.getRadius();
-
-        LineIntersection li = DirectionalDistanceSensor.computeNearestBodyCollisions(
-                world.getPhysics(),
-                body.getCenter(),
-                body.getDir(),
-                body,
-                senseDist
-        );
-
-        if (li != null) {
-            VehicleInterface sensedVehicle = world.getVehicleByPhysicsBody(li.body);
-            if (sensedVehicle instanceof PlatoonawareVehicle) {
-                PlatoonawareVehicle platoonawareVehicle = (PlatoonawareVehicle) sensedVehicle;
-                if (platoonawareVehicle.getPlatoonSuccessor() == null && sharesLane(platoonawareVehicle)) {
-                    platoonawareVehicle.setPlatoonSuccessor(this);
-                    this.setPlatoonPredecessor(platoonawareVehicle);
-                }
-            }
-        }
-    }
-
-    @Override
-    protected void drive(double delta, Vector2D wantedPos, double maxBrakeDistance) {
-        if (platoonPredecessor != null) {
-            // This is just an approximation, we do not use the direction of the movement here...
-            double predecessorMaxBrakeDist = calculateBreakDist(platoonPredecessor.getBody().getVel().length());
-            predecessorMaxBrakeDist += Vector2D.distance(platoonPredecessor.getBody().getCenter(), body.getCenter());
-            predecessorMaxBrakeDist -= 2.5*body.getRadius();
-
-            predecessorMaxBrakeDist = Math.max(0, predecessorMaxBrakeDist);
-
-            if (maxBrakeDistance < 0 || predecessorMaxBrakeDist < maxBrakeDistance) {
-                maxBrakeDistance = predecessorMaxBrakeDist;
-            }
-        }
-        super.drive(delta, wantedPos, maxBrakeDistance);
-    }
 
     @Override
     public Vector2D getNextWaypoint() {
@@ -214,34 +148,21 @@ public class TrafficLightVehicle extends BaseVehicle implements PlatoonawareVehi
         driveThrough = false;
     }
 
-    protected PlatoonawareVehicle platoonPredecessor;
-    protected PlatoonawareVehicle platoonSuccessor;
+    @Override
+    protected boolean updatePredecessor() {
+        if (predecessor == null) {
+            predecessorWasMoving = false;
+        }
+        boolean foundNew = super.updatePredecessor();
 
-    public PlatoonawareVehicle getPlatoonPredecessor() {
-        return platoonPredecessor;
-    }
-
-    public void setPlatoonPredecessor(PlatoonawareVehicle platoonPredecessor) {
-        this.platoonPredecessor = platoonPredecessor;
-    }
-
-    public PlatoonawareVehicle getPlatoonSuccessor() {
-        return platoonSuccessor;
-    }
-
-    public void setPlatoonSuccessor(PlatoonawareVehicle platoonSuccessor) {
-        this.platoonSuccessor = platoonSuccessor;
-    }
-
-    public Lane getTargetLane() {
-        return targetLane;
-    }
-
-    public Lane getStartLane() {
-        return currentLane;
-    }
-
-    public boolean sharesLane(PlatoonawareVehicle vehicle) {
-        return vehicle.getStartLane() == getStartLane() && vehicle.getTargetLane() == getTargetLane();
+        if (foundNew) {
+            // If we are still queuing we do not want to join passing platoons...
+            if (predecessor != null && getState() == STATE_QUEUING && predecessor.getState() == STATE_MOVING) {
+                predecessor.setSuccessor(null);
+                predecessor = null;
+                foundNew = false;
+            }
+        }
+        return foundNew;
     }
 }
