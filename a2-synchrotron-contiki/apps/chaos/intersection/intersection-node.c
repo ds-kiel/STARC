@@ -275,7 +275,10 @@ PROCESS_BEGIN();
       if (merge_commit_has_left()) {
         send_str("left");
       } else if (merge_commit_has_joined()) {
-        send_str("joined");
+        printf("#VANET joined");
+        uint8_t tmp = (chaos_node_index)&0xFF;
+        send_data_part((char*)&tmp, 1);
+        putchar('\n');
       }
 
 
@@ -396,6 +399,36 @@ PROCESS_THREAD(comm_process, ev, data)
     } else if(msg_id == 'L') {
       merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE;
       printf("Trying to leave network\n");
+    } else if(msg_id == 'Q') {
+
+      // TODO: We should not quit immediately! we should quit only after the round?!?
+      // Easier solution would be to switch directly in the round! might work=?!?
+      chaos_has_node_index = 0; // we remove ourself from the network
+      merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE;
+      printf("Quitting the network\n");
+    } else if(msg_id == 'H' && msg_size >= 3) {
+
+      // TODO: WE CANNOT SET THE INDEX DIRECTLY, THIS WOULD AFFECT OUR CURRENT ROUND
+      chaos_node_index = msg_data[0]; // we init ourself with the chaos index
+      chaos_has_node_index = 1;
+      merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_JOIN;
+
+      // we offset the msg size and data
+      msg_size -= 3;
+      msg_data += 3;
+
+      printf("Got handover reservation with size %d: ", msg_size);
+      own_arrival = 1;
+
+      // copy that reservation to our own
+      own_reservation.size = msg_size;
+      memcpy(own_reservation.tiles, msg_data, msg_size);
+
+      // clean current commit value
+      memset(&mc_value, 0, sizeof(merge_commit_value_t));
+
+      reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
+      set_own_arrival(&mc_value);
     } else if(msg_id == 'C' && msg_size == 1) {
       wanted_channel = msg_data[0];
       printf("Trying to change channel to %d\n", wanted_channel);
@@ -431,9 +464,6 @@ PROCESS_THREAD(comm_process, ev, data)
       // 2. the reservation is part of the current reservation
       // 3. the reservation is completely new
 
-
-
-
       // clean current commit value
       memset(&mc_value, 0, sizeof(merge_commit_value_t));
 
@@ -454,7 +484,6 @@ PROCESS_THREAD(comm_process, ev, data)
         }
       }
       send_str("ack"); // ack the new reservation
-
     }
   };
 

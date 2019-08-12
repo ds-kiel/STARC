@@ -51,7 +51,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         messageProxy = new MessageProxy(m);
         chaosStatsHandler = new ChaosStatsHandler(id);
         chaosNetworkState = new ChaosNetworkState();
-        chaosPlatoon = new ChaosPlatoon(this, -1, chaosNetworkState);
+        chaosPlatoon = new ChaosPlatoon(this, 1, chaosNetworkState);
         setPlatoon(chaosPlatoon);
     }
 
@@ -150,12 +150,21 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
 
             if (curWayPointIndex >= waypoints.size()-Lane.STEPS_INTO_LANE+1) {
                 requestReservation();
+                boolean wasTail = platoon.isTail(this);
+                platoon.leave(this);
 
-
-                // Try to leave the network
-                // TODO: If we are in a platoon, we want to leave it but hand over the chaos network!
+                // if we are the tail of the platoon, we want to leave the chaos network as well!
                 if (chaosNetworkState.hasChaosIndex()) {
-                    messageProxy.send("L".getBytes());
+                    if (wasTail) {
+                        messageProxy.send("L".getBytes()); // notify the chaos initiator about the leave
+                    } else {
+                        // else we just want to quit
+                        messageProxy.send("Q".getBytes()); // we just leave the network immediately
+                        PlatoonAwareVehicle newHead = platoon.getHead();
+                        if (newHead instanceof ChaosVehicle) {
+
+                        }
+                    }
                     return STATE_LEAVING;
                 } else {
                     return STATE_LEFT;
@@ -202,6 +211,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
     }
 
     protected void requestReservation() {
+
         TiledMapHandler.PathHelper pathHandler = currentIntersection.getMapHandler().createPathHelper();
 
         // we always request the reservation for the whole platoon as a head
@@ -233,10 +243,12 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
             init();
             state = STATE_INITIALIZED;
         } else if (state == STATE_LEAVING && new String(msg).equals("left")) {
-            // TODO: Introduce a separate join state just as with the requests
             state = STATE_LEFT;
-        } else if (state == STATE_WAITING && new String(msg).equals("joined")) {
-            chaosNetworkState.setChaosIndex(1); //TODO: Use the real chaos index!
+        } else if (state == STATE_LEAVING && new String(msg).equals("quit")) {
+            state = STATE_LEFT;
+        } else if (state == STATE_WAITING && new String(msg).startsWith("joined")) {
+            int chaosIndex = msg["joined".length()]&0xFF;
+            chaosNetworkState.setChaosIndex(chaosIndex);
         }
 
         // handle request states
