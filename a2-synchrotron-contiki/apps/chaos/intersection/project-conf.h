@@ -231,7 +231,7 @@
 #define TILES_HEIGHT 6
 #define NUM_TILES (TILES_WIDTH * TILES_HEIGHT)
 
-#define MERGE_COMMIT_VALUE_STRUCT_CONTENT uint16_t arrivals[MAX_NODE_COUNT]; uint8_t tile_reservations[NUM_TILES];
+#define MERGE_COMMIT_VALUE_STRUCT_CONTENT uint16_t priorities[MAX_NODE_COUNT]; uint8_t tile_reservations[NUM_TILES];
 #define SERIAL_LINE_CONF_BUFSIZE 256
 
 
