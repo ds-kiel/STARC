@@ -32,7 +32,7 @@ public class ChaosPlatoon extends Platoon  {
 
     public boolean mayJoin(PlatoonAwareVehicle platoonAwareVehicle) {
         // we do not want to form platoons while the head is already trying to reserve its path...
-        if (!isMoving() && !joined) {
+        if (!isMoving() /*&& !joined*/) {
             return maxSize == -1 || this.members.size() < this.maxSize;
         } else {
             return false;
