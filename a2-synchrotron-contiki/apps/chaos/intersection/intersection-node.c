@@ -620,8 +620,8 @@ int comp_node_with_priority (const void * a, const void * b)
 
 void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
 
-  static int time_diff = 0;
-  int start = RTIMER_NOW();
+ /* static int time_diff = 0;
+  int start = RTIMER_NOW(); */
 
   int i = 0;
   merge_commit_value_t new;
@@ -654,13 +654,13 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
     uint16_t res;
 
     if (reservation_priorities[a] == reservation_priorities[b]) {
-      // use the id as a tie-breaker, higher ids
+      // use the id as a tie-breaker, higher ids first
       if (b >= a) {
         res = b;
       } else {
         res = a;
       }
-    }else if (reservation_priorities[a] > reservation_priorities[b]) {
+    } else if (reservation_priorities[a] > reservation_priorities[b]) {
       res = a;
     } else {
       res = b;
@@ -671,11 +671,11 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
   // now copy the generated reservations
   memcpy(&tx_mc->value, &new, sizeof(merge_commit_value_t));
 
-  int endTime = RTIMER_NOW();
+  /*int endTime = RTIMER_NOW();
   if (time_diff < endTime-start) {
     printf("New Merge-Commit diff %d ms\n", 1000*time_diff/RTIMER_SECOND);
     time_diff = endTime-start;
-  }
+  }*/
 }
 
 
