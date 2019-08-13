@@ -399,7 +399,7 @@ PROCESS_THREAD(comm_process, ev, data)
     } else if(msg_id == 'L') {
       merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE;
       printf("Trying to leave network\n");
-    } else if(msg_id == 'Q') {
+    } /*else if(msg_id == 'Q') {
 
       // TODO: We should not quit immediately! we should quit only after the round?!?
       // Easier solution would be to switch directly in the round! might work=?!?
@@ -429,7 +429,8 @@ PROCESS_THREAD(comm_process, ev, data)
 
       reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
       set_own_arrival(&mc_value);
-    } else if(msg_id == 'C' && msg_size == 1) {
+    } */
+    else if(msg_id == 'C' && msg_size == 1) {
       wanted_channel = msg_data[0];
       printf("Trying to change channel to %d\n", wanted_channel);
       if (!get_round_synced()) {

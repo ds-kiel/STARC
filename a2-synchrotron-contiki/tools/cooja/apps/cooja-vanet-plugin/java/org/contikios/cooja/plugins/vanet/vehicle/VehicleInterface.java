@@ -40,4 +40,6 @@ public interface VehicleInterface {
 
     Vector2D getNextWaypoint();
     Intersection getCurrentIntersection();
+
+    void setMote(Mote mote);
 }

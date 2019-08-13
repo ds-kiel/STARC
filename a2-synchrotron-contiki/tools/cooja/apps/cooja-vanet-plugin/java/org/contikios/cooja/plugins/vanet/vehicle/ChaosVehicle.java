@@ -30,7 +30,6 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         }
     }
 
-
     protected MessageProxy messageProxy; // used for communication with cooja motes
     protected ChaosStatsHandler chaosStatsHandler; // handle the stats of the chaos motes
 
@@ -51,7 +50,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         messageProxy = new MessageProxy(m);
         chaosStatsHandler = new ChaosStatsHandler(id);
         chaosNetworkState = new ChaosNetworkState();
-        chaosPlatoon = new ChaosPlatoon(this, 1, chaosNetworkState);
+        chaosPlatoon = new ChaosPlatoon(this, -1);
         setPlatoon(chaosPlatoon);
     }
 
@@ -72,8 +71,6 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
     protected boolean isPlatoonHead() {
         return platoon != null && platoon.isHead(this);
     }
-
-
 
     // Update the state, return value will be the next state
     protected int handleStates(int state) {
@@ -151,21 +148,26 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
             if (curWayPointIndex >= waypoints.size()-Lane.STEPS_INTO_LANE+1) {
                 requestReservation();
                 boolean wasTail = platoon.isTail(this);
+                System.out.println("WAS TAIL " + String.valueOf(wasTail));
                 platoon.leave(this);
 
                 // if we are the tail of the platoon, we want to leave the chaos network as well!
                 if (chaosNetworkState.hasChaosIndex()) {
                     if (wasTail) {
                         messageProxy.send("L".getBytes()); // notify the chaos initiator about the leave
+                        return STATE_LEAVING; // and wait for ack
                     } else {
-                        // else we just want to quit
-                        messageProxy.send("Q".getBytes()); // we just leave the network immediately
+                        // else we just do a handover!
                         PlatoonAwareVehicle newHead = platoon.getHead();
-                        if (newHead instanceof ChaosVehicle) {
-
+                        doChaosHandover(this, (ChaosVehicle) newHead);
+                        if (newHead.getState() >= STATE_MOVING) {
+                            // we force the new Head to check its position at least once
+                            System.out.println("HANDOVER " + ((ChaosVehicle) newHead).state);
+                            ((ChaosVehicle) newHead).state = STATE_MOVING;
                         }
+
+                        return STATE_LEFT; // and leave immediately
                     }
-                    return STATE_LEAVING;
                 } else {
                     return STATE_LEFT;
                 }
@@ -183,7 +185,6 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
                     initLane(targetLane);
                     byte[] bytes = new byte[2];
                     bytes[0] = 'C';
-                    //TODO: Check that this does not overflow
                     bytes[1] = (byte)((currentIntersection.getId()+11)&0xFF);
                     messageProxy.send(bytes);
                     return STATE_QUEUING;
@@ -244,11 +245,11 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
             state = STATE_INITIALIZED;
         } else if (state == STATE_LEAVING && new String(msg).equals("left")) {
             state = STATE_LEFT;
-        } else if (state == STATE_LEAVING && new String(msg).equals("quit")) {
-            state = STATE_LEFT;
+            platoon.setJoined(false);
         } else if (state == STATE_WAITING && new String(msg).startsWith("joined")) {
             int chaosIndex = msg["joined".length()]&0xFF;
             chaosNetworkState.setChaosIndex(chaosIndex);
+            platoon.setJoined(true);
         }
 
         // handle request states
@@ -274,5 +275,41 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         } else {
             this.platoon = null;
         }
+    }
+
+
+    private static void doChaosHandover(ChaosVehicle from, ChaosVehicle to) {
+
+        // we swap everything, first the motes
+        from.world.swapMotes(from, to);
+
+        // then the message proxies
+        MessageProxy mp = from.messageProxy;
+        from.messageProxy = to.messageProxy;
+        to.messageProxy = mp;
+
+        // and chaos stats handlers
+        ChaosStatsHandler statsHandler = from.chaosStatsHandler;
+        from.chaosStatsHandler = to.chaosStatsHandler;
+        to.chaosStatsHandler = statsHandler;
+
+
+        int requestState = from.requestState;
+        from.requestState = to.requestState;
+        to.requestState = requestState;
+
+
+        byte[] wantedRequest = from.wantedRequest;
+        from.wantedRequest = to.wantedRequest;
+        to.wantedRequest = wantedRequest;
+
+
+        byte[] currentRequest = from.currentRequest;
+        from.currentRequest = to.currentRequest;
+        to.currentRequest = currentRequest;
+
+        ChaosNetworkState chaosNetworkState = from.chaosNetworkState;
+        from.chaosNetworkState = to.chaosNetworkState;
+        to.chaosNetworkState = chaosNetworkState;
     }
 }

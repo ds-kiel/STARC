@@ -9,18 +9,21 @@ public class ChaosPlatoon extends Platoon  {
 
     int maxSize = 1;
 
-    protected ChaosVehicle.ChaosNetworkState networkState;
+    protected boolean joined = false;
 
     protected Observable observable = new Observable();
 
-    public ChaosPlatoon(PlatoonAwareVehicle platoonAwareVehicle, int maxSize, ChaosVehicle.ChaosNetworkState networkState) {
+    public ChaosPlatoon(PlatoonAwareVehicle platoonAwareVehicle, int maxSize) {
         super(platoonAwareVehicle);
         this.maxSize = maxSize;
-        this.networkState = networkState;
     }
 
-    public ChaosVehicle.ChaosNetworkState getNetworkState() {
-        return networkState;
+    public boolean isJoined() {
+        return joined;
+    }
+
+    public void setJoined(boolean joined) {
+        this.joined = joined;
     }
 
     public boolean isMoving() {
@@ -29,7 +32,7 @@ public class ChaosPlatoon extends Platoon  {
 
     public boolean mayJoin(PlatoonAwareVehicle platoonAwareVehicle) {
         // we do not want to form platoons while the head is already trying to reserve its path...
-        if (!isMoving() && !networkState.hasChaosIndex()) {
+        if (!isMoving() && !joined) {
             return maxSize == -1 || this.members.size() < this.maxSize;
         } else {
             return false;

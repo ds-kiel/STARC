@@ -60,10 +60,11 @@ public class Vanet extends VisPlugin {
             }
         });
 
+        // Create a dummy thread to be able to start the simulation although no mote was added
         simulation.invokeSimulationThread(new Runnable() {
             @Override
             public void run() {
-                System.out.println("asd");
+                System.out.println("");
             }
         });
     }

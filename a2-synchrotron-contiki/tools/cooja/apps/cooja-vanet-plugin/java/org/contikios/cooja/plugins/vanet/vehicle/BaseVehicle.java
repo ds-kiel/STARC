@@ -290,6 +290,8 @@ abstract class BaseVehicle implements VehicleInterface {
         curWayPointIndex = 0;
     }
 
-
-
+    @Override
+    public void setMote(Mote mote) {
+        //NOOP we are not saving the mote atm
+    }
 }

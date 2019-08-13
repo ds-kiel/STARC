@@ -31,7 +31,7 @@ public class World {
 
     private Simulation simulation;
 
-    private Map<VehicleInterface, Mote> moteMap = new HashMap<>();
+    private Map<Integer, Mote> moteMap = new HashMap<>();
 
     private MoteType vehicleMoteType;
     private MoteType initiatorMoteType;
@@ -131,14 +131,14 @@ public class World {
     }
 
     private void writeBackPosition(VehicleInterface v) {
-        Mote mote = moteMap.get(v);
+        Mote mote = moteMap.get(v.getID());
         Position pos = mote.getInterfaces().getPosition();
         Vector2D center = v.getBody().getCenter();
         pos.setCoordinates(center.getX(), center.getY(), 0);
     }
 
     private void readPosition(VehicleInterface v) {
-        Mote mote = moteMap.get(v);
+        Mote mote = moteMap.get(v.getID());
         Vector2D center = v.getBody().getCenter();
         Position pos = mote.getInterfaces().getPosition();
         center.setX(pos.getXCoordinate());
@@ -168,7 +168,47 @@ public class World {
 
 
     public Mote getMote(VehicleInterface v){
-        return moteMap.get(v);
+        return moteMap.get(v.getID());
+    }
+
+    /**
+     * Used to swap the motes but not the vehicles, used for an easy handover in virtual platoons
+     */
+    public void swapMotes(VehicleInterface a, VehicleInterface b) {
+
+        if (a == null) {
+            System.out.println("a is null");
+        }
+        if (b  == null) {
+            System.out.println("b is null");
+        }
+
+
+        Mote ma = getMote(a);
+        Mote mb = getMote(b);
+
+        a.setMote(mb);
+        b.setMote(ma);
+
+        if (ma == null) {
+            System.out.println("ma is null");
+        }
+
+        if (mb == null) {
+            System.out.println("mb is null");
+        }
+
+        // change Ids to make change invisible to other components
+        int tmpId = ma.getInterfaces().getMoteID().getMoteID();
+        ma.getInterfaces().getMoteID().setMoteID(mb.getID());
+        mb.getInterfaces().getMoteID().setMoteID(tmpId);
+
+        moteMap.put(a.getID(), mb);
+        moteMap.put(b.getID(), ma);
+
+        // we write back the positions of the vehicles
+        writeBackPosition(a);
+        writeBackPosition(b);
     }
 
     public Collection<VehicleInterface> getVehicles() {
@@ -176,9 +216,9 @@ public class World {
     }
 
     public VehicleInterface getVehicle(Mote m) {
-        for (Map.Entry<VehicleInterface, Mote> entry : moteMap.entrySet()) {
+        for (Map.Entry<Integer, Mote> entry : moteMap.entrySet()) {
             if (Objects.equals(m, entry.getValue())) {
-                return entry.getKey();
+                return this.vehicleManager.getVehicle(entry.getKey());
             }
         }
         return null;
@@ -186,13 +226,13 @@ public class World {
 
     public void initVehicle(Mote m) {
         VehicleInterface v = vehicleManager.createVehicle(m);
-        moteMap.put(v, m);
+        moteMap.put(v.getID(), m);
         writeBackPosition(v); // support initial position setting
     }
 
     public void removeVehicle(VehicleInterface v) {
-        Mote m = moteMap.get(v);
-        moteMap.remove(v);
+        Mote m = moteMap.get(v.getID());
+        moteMap.remove(v.getID());
         vehicleManager.removeVehicle(v.getID());
         idGenerator.free(m.getID());
         simulation.removeMote(m);

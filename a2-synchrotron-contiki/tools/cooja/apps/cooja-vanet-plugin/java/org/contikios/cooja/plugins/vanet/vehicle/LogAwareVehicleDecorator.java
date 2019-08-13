@@ -1,5 +1,6 @@
 package org.contikios.cooja.plugins.vanet.vehicle;
 
+import org.contikios.cooja.Mote;
 import org.contikios.cooja.plugins.vanet.log.Logger;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
 import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
@@ -93,5 +94,10 @@ public class LogAwareVehicleDecorator implements VehicleInterface {
     @Override
     public Intersection getCurrentIntersection() {
         return impl.getCurrentIntersection();
+    }
+
+    @Override
+    public void setMote(Mote mote) {
+        impl.setMote(mote);
     }
 }
