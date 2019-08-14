@@ -158,21 +158,6 @@ static void id_to_pos(int *x, int *y, int id) {
   *y = id/TILES_WIDTH;
 }
 
-// TODO: Move the tile-specific code to other files
-// TODO: We should
-static void extract_path(path_t* dest, merge_commit_value_t *src, int node_id) {
-  int i = 0;
-  dest->size = 0;
-
-  for(i = 0; i < NUM_TILES; ++i) {
-    if (src->tile_reservations[i] == node_id) {
-      // add to array
-      dest->tiles[dest->size] = i;
-      dest->size++;
-    }
-  }
-}
-
 static void reserve_path_with_offset(merge_commit_value_t *val, path_t* path, int node_id, int offset) {
   int i;
   for(i = offset; i < path->size; ++i) {
@@ -546,81 +531,13 @@ int comp_node_with_priority (const void * a, const void * b)
     return 1;
   }
 }
-//
-//void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
-//
-//  static int time_diff = 0;
-//  int i = 0;
-//  int c = 0;
-//  merge_commit_value_t new;
-//  memset(&new, 0, sizeof(merge_commit_value_t));
-//
-//  int size = 0;
-//  uint32_t chaos_index_with_priorities[MAX_NODE_COUNT];
-//
-//  for(i = 0; i < MAX_NODE_COUNT; ++i) {
-//    // we can use bitwise or here since either one of them is 0 or both have the same value...
-//    uint32_t priority = rx_mc->value.priorities[i] | tx_mc->value.priorities[i];
-//    if (priority > 0) {
-//
-//      chaos_index_with_priorities[size] = (priority << 16) | (i&0xFFFF);
-//      size++;
-//      // Do insertion sort with the array
-//      // TODO: Use Merge Sort for better performance
-//      int j = size-1;
-//      while(j > 0 && chaos_index_with_priorities[j-1] > chaos_index_with_priorities[j]) {
-//        // we need to swap these elements
-//        uint32_t swap = chaos_index_with_priorities[j];
-//        chaos_index_with_priorities[j] = chaos_index_with_priorities[j-1];
-//        chaos_index_with_priorities[j-1] = swap;
-//        j--;
-//      }
-//    }
-//  }
-//
-// // printf("Got reservations from %d: ", size);
-//  for(i = 0; i < size; ++i) {
-//
-//    // mask the id
-//    uint32_t index = (chaos_index_with_priorities[i] & 0xFFFF);
-//
-//    //printf("%d, ", index);
-//
-//    merge_commit_value_t *plans[2];
-//    plans[0] = &tx_mc->value;
-//    plans[1] = &rx_mc->value;
-//
-//    // TODO: We might want to try to add another route for ourselfs here
-//    // Add with a parameter
-//
-//    c = 0;
-//    while(c < (sizeof(plans) / sizeof(merge_commit_t *))) {
-//
-//      path_t path;
-//      extract_path(&path, plans[c], index+1);
-//      if (path.size > 0 /*&& path_available(&new, &path, index+1)* We reserve part of the paths now*/) {
-//        reserve_path(&new, &path, index+1);
-//
-//        // we need to add the priority time of this request!
-//        new.priorities[index] = chaos_index_with_priorities[i] >> 16;
-//
-//        break; // We could reserve the path ;)
-//      }
-//      c++;
-//    }
-//  }
-//    //printf("\n");
-//
-//  // now copy the generated reservations
-//  memcpy(&tx_mc->value, &new, sizeof(merge_commit_value_t));
-//}
 
 void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
 
  /* static int time_diff = 0;
   int start = RTIMER_NOW(); */
 
-  int i = 0;
+  static int i = 0;
   merge_commit_value_t new;
   memset(&new, 0, sizeof(merge_commit_value_t));
 
