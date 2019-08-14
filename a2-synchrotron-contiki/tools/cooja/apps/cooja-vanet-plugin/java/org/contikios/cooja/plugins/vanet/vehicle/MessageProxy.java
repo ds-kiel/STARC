@@ -14,7 +14,10 @@ import java.util.stream.Stream;
 public class MessageProxy {
     private LinkedBlockingQueue<byte[]> queue = new LinkedBlockingQueue<>();
 
+    private InputStream inputStream;
     private OutputStream outputStream;
+
+    private Thread thread;
 
     public MessageProxy(Mote mote) {
 
@@ -27,55 +30,63 @@ public class MessageProxy {
         // output to the mote
         MoteDataHandler dataHandler = new MoteDataHandler(motePort);
         outputStream = dataHandler.getOutputStream();
+        inputStream = dataObserver.getInputStream();
 
-        // TODO: Clear this thread!
-        new Thread(new Runnable() {
+        thread = new Thread(new Runnable() {
+
             @Override
             public void run() {
 
-                InputStream in = dataObserver.getInputStream();
                 ArrayList<Byte> line = new ArrayList<>();
 
+                InputStream in = inputStream;
                 final byte[] identifierBytes = "#VANET ".getBytes(StandardCharsets.ISO_8859_1);
 
-                while(true) {
-                    line.clear();
+                try {
+                    while (!Thread.interrupted()) {
+                        line.clear();
 
-                    try {
                         byte c = (byte) (in.read() & 0xFF);
 
                         boolean matching = true;
 
-                        while(c != 0x0A) { // newline char
+                        while (c != 0x0A) { // newline char
 
                             int l = line.size();
 
                             //check if the newline is really wanted...
-                            matching = matching && ((l >= identifierBytes.length) || c == identifierBytes[l]);
-
-                            if (matching) {
+                            if (matching && (l >= identifierBytes.length) || c == identifierBytes[l]) {
                                 line.add(c);
+                            } else {
+                                matching = false;
                             }
-
                             c = (byte) (in.read() & 0xFF);
                         }
 
                         if (matching) {
-                            byte[] bytes = new byte[line.size()-identifierBytes.length];
+                            byte[] bytes = new byte[line.size() - identifierBytes.length];
 
-                            // TODO: improve copying...
-                            for(int i = identifierBytes.length; i < line.size(); ++i) {
-                                bytes[i-identifierBytes.length] = line.get(i);
+                            for (int i = identifierBytes.length; i < line.size(); ++i) {
+                                bytes[i - identifierBytes.length] = line.get(i);
                             }
+                            // TODO: improve copying...
 
                             queue.add(bytes);
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        line.clear();
                     }
-                }
+                } catch (IOException e) {}
             }
-        }).start();
+        });
+        thread.start();
+    }
+
+
+    public void clear() {
+        try {
+            inputStream.close();
+        } catch (Exception e) {}
+        thread.interrupt(); // stop the message thread
     }
 
     private byte[] encode(byte[] source) {
@@ -213,12 +224,28 @@ public class MessageProxy {
             this.motePort = motePort;
 
             this.inputStream = new InputStream() {
+                boolean closed = false;
+
+                @Override
+                public void close() throws IOException {
+                    closed = true;
+                }
+
+                @Override
+                public int available() throws IOException {
+                    return byteQueue.size();
+                }
                 @Override
                 public int read() throws IOException {
+
+                    if (closed) {
+                        throw new IOException();
+                    }
+
                     try {
                         return byteQueue.take().intValue() & 0xff;
                     } catch (InterruptedException e) {
-                        return read();
+                        throw new InterruptedIOException();
                     }
                 }
             };

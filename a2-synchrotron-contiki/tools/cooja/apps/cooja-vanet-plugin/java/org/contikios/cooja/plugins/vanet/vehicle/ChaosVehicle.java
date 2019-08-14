@@ -148,7 +148,6 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
             if (curWayPointIndex >= waypoints.size()-Lane.STEPS_INTO_LANE+1) {
                 requestReservation();
                 boolean wasTail = platoon.isTail(this);
-                System.out.println("WAS TAIL " + String.valueOf(wasTail));
                 platoon.leave(this);
 
                 // if we are the tail of the platoon, we want to leave the chaos network as well!
@@ -162,7 +161,6 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
                         doChaosHandover(this, (ChaosVehicle) newHead);
                         if (newHead.getState() >= STATE_MOVING) {
                             // we force the new Head to check its position at least once
-                            System.out.println("HANDOVER " + ((ChaosVehicle) newHead).state);
                             ((ChaosVehicle) newHead).state = STATE_MOVING;
                         }
 
@@ -180,6 +178,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         else if (state == STATE_LEFT)  {
             if (curWayPointIndex >= waypoints.size()) {
                 if (targetLane.isFinalEndLane()) {
+                    messageProxy.clear();
                     return STATE_FINISHED;
                 } else {
                     initLane(targetLane);
@@ -194,6 +193,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
             }
 
         } else if (state == STATE_FINISHED) {
+
             return STATE_FINISHED;
         }
         return state;
