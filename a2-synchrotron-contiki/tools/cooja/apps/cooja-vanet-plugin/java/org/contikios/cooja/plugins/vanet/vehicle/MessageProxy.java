@@ -12,9 +12,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Stream;
 
 public class MessageProxy {
-    private LinkedBlockingQueue<byte[]> queue = new LinkedBlockingQueue<>();
+    private LinkedBlockingQueue<byte[]> queue;
 
-    private InputStream inputStream;
     private OutputStream outputStream;
 
     private Thread thread;
@@ -30,63 +29,7 @@ public class MessageProxy {
         // output to the mote
         MoteDataHandler dataHandler = new MoteDataHandler(motePort);
         outputStream = dataHandler.getOutputStream();
-        inputStream = dataObserver.getInputStream();
-
-        thread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-
-                ArrayList<Byte> line = new ArrayList<>();
-
-                InputStream in = inputStream;
-                final byte[] identifierBytes = "#VANET ".getBytes(StandardCharsets.ISO_8859_1);
-
-                try {
-                    while (!Thread.interrupted()) {
-                        line.clear();
-
-                        byte c = (byte) (in.read() & 0xFF);
-
-                        boolean matching = true;
-
-                        while (c != 0x0A) { // newline char
-
-                            int l = line.size();
-
-                            //check if the newline is really wanted...
-                            if (matching && (l >= identifierBytes.length) || c == identifierBytes[l]) {
-                                line.add(c);
-                            } else {
-                                matching = false;
-                            }
-                            c = (byte) (in.read() & 0xFF);
-                        }
-
-                        if (matching) {
-                            byte[] bytes = new byte[line.size() - identifierBytes.length];
-
-                            for (int i = identifierBytes.length; i < line.size(); ++i) {
-                                bytes[i - identifierBytes.length] = line.get(i);
-                            }
-                            // TODO: improve copying...
-
-                            queue.add(bytes);
-                        }
-                        line.clear();
-                    }
-                } catch (IOException e) {}
-            }
-        });
-        thread.start();
-    }
-
-
-    public void clear() {
-        try {
-            inputStream.close();
-        } catch (Exception e) {}
-        thread.interrupt(); // stop the message thread
+        queue = dataObserver.getLineQueue();
     }
 
     private byte[] encode(byte[] source) {
@@ -214,50 +157,56 @@ public class MessageProxy {
     private class MoteDataObserver implements Observer {
 
         SerialPort motePort;
-        InputStream inputStream;
+        LinkedBlockingQueue<byte[]> lineQueue = new LinkedBlockingQueue<>();;
 
-        LinkedBlockingQueue<Byte> byteQueue = new LinkedBlockingQueue<>();
+        ArrayList<Byte> byteBuffer = new ArrayList<>();
 
         int numBytes = 0;
 
         MoteDataObserver(SerialPort motePort) {
             this.motePort = motePort;
-
-            this.inputStream = new InputStream() {
-                boolean closed = false;
-
-                @Override
-                public void close() throws IOException {
-                    closed = true;
-                }
-
-                @Override
-                public int available() throws IOException {
-                    return byteQueue.size();
-                }
-                @Override
-                public int read() throws IOException {
-
-                    if (closed) {
-                        throw new IOException();
-                    }
-
-                    try {
-                        return byteQueue.take().intValue() & 0xff;
-                    } catch (InterruptedException e) {
-                        throw new InterruptedIOException();
-                    }
-                }
-            };
         }
 
-        public InputStream getInputStream() {
-            return inputStream;
+        public LinkedBlockingQueue<byte[]> getLineQueue() {
+            return lineQueue;
         }
 
         @Override
         public void update(Observable obs, Object obj) {
-            byteQueue.add(motePort.getLastSerialData());
+
+            byte b = (byte) (motePort.getLastSerialData() & 0xFF);
+
+            if (b != 0x0A) {
+                // we add all bytes except newlines
+                byteBuffer.add(b);
+            } else {
+
+                final byte[] identifierBytes = "#VANET ".getBytes(StandardCharsets.ISO_8859_1);
+
+                if (byteBuffer.size() >= identifierBytes.length) {
+
+                    boolean matching = true;
+
+                    for(int i = 0; i < identifierBytes.length; ++i) {
+                        if (identifierBytes[i] != byteBuffer.get(i)) {
+                            matching = false;
+                            break;
+                        }
+                    }
+
+                    if (matching) {
+
+                        byte[] line = new byte[byteBuffer.size()-identifierBytes.length];
+
+                        for(int i = 0; i < byteBuffer.size()-identifierBytes.length; ++i) {
+                            line[i] = byteBuffer.get(i+identifierBytes.length);
+                        }
+                        lineQueue.add(line);
+                    }
+                }
+
+                byteBuffer.clear();
+            }
             numBytes++;
         }
 

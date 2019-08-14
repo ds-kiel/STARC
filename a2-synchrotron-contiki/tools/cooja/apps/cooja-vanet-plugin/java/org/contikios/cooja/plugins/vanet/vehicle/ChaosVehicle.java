@@ -178,7 +178,6 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         else if (state == STATE_LEFT)  {
             if (curWayPointIndex >= waypoints.size()) {
                 if (targetLane.isFinalEndLane()) {
-                    messageProxy.clear();
                     return STATE_FINISHED;
                 } else {
                     initLane(targetLane);
