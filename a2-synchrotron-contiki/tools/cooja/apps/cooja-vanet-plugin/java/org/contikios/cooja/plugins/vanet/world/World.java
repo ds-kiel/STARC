@@ -51,7 +51,7 @@ public class World {
         this.physics = new Physics();
         this.transportNetwork = new TransportNetwork(networkWidth, networkHeight, intersectionType);
         this.vehicleManager = new VehicleManager(this, intersectionType);
-        this.idGenerator = new IDGenerator(1, 255);
+        this.idGenerator = new IDGenerator(1, (2^16)-1);
 
         this.leftTurnRate = leftTurnRate;
         this.rightTurnRate = rightTurnRate;
@@ -151,9 +151,9 @@ public class World {
             return;
         }
 
-        // TODO: We should adapt this with the lane probability...
-        double vehiclesPerHourPerLane = (vehiclesPerHour / 3600.0) * getTransportNetwork().getNumStartLanes();
-        int wanted = (int) ((currentMS / 1000.0f) * vehiclesPerHourPerLane) - vehicleManager.getTotal();
+        // TODO: we might want to use the lane probability as well?
+        double vehiclesPerSecond = (vehiclesPerHour / 3600.0);
+        int wanted = (int) ((currentMS / 1000.0f) * vehiclesPerSecond) - vehicleManager.getTotal();
 
         for (int i = 0; i < wanted; ++i) {
             Mote m = vehicleMoteType.generateMote(simulation);
