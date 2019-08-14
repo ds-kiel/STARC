@@ -161,10 +161,7 @@ public class World {
             if (id != null) {
                 m.getInterfaces().getMoteID().setMoteID(id);
                 initVehicle(m);
-
-                simulation.stopSimulation(true);
                 simulation.addMote(m);
-                simulation.startSimulation();
             }
         }
     }
@@ -238,10 +235,7 @@ public class World {
         moteMap.remove(v.getID());
         vehicleManager.removeVehicle(v.getID());
         idGenerator.free(m.getID());
-
-        simulation.stopSimulation(true);
         simulation.removeMote(m);
-        simulation.startSimulation();
     }
 
     public AbstractMap.SimpleImmutableEntry<Lane, Vector2D> getFreePosition() {
