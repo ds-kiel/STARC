@@ -92,6 +92,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     Visualizer.registerVisualizerSkin(CodeVisualizerSkin.class);
   }
 
+
   private CommandHandler commandHandler;
   private MSP430 myCpu = null;
   private MspMoteType myMoteType = null;
@@ -101,6 +102,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
 
   /* Stack monitoring variables */
   private boolean stopNextInstruction = false;
+  private boolean removed = false;
 
   public GenericNode mspNode = null;
 
@@ -299,6 +301,11 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   }
 
   public void execute(long t, int duration) {
+
+      if (removed) {
+          return;
+      }
+
     MspClock clock = ((MspClock) (myMoteInterfaceHandler.getClock()));
     double deviation = clock.getDeviation();
     long drift = clock.getDrift();
@@ -689,5 +696,13 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       }
     }
     return true;
+  }
+
+
+  public void removed() {
+      super.removed();
+
+      removed = true;
+
   }
 }
