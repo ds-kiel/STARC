@@ -50,7 +50,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         messageProxy = new MessageProxy(m);
         chaosStatsHandler = new ChaosStatsHandler(id);
         chaosNetworkState = new ChaosNetworkState();
-        chaosPlatoon = new ChaosPlatoon(this, 1);
+        chaosPlatoon = new ChaosPlatoon(this, -1);
         setPlatoon(chaosPlatoon);
     }
 
