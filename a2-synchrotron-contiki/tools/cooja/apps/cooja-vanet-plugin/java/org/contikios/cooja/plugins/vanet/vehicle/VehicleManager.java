@@ -13,7 +13,7 @@ public class VehicleManager {
     private HashMap<Integer, VehicleInterface> vehicles = new HashMap<>();
     private World world;
 
-    private int initVal = -1000000;
+    public static final int INIT_POS = -1000000;
 
     private int idCounter = 0;
 
@@ -67,7 +67,7 @@ public class VehicleManager {
         }
 
         v.getBody().setCenter(
-            new Vector2D(initVal, initVal)
+            new Vector2D(INIT_POS, INIT_POS)
         );
         vehicles.put(id, v);
         return v;

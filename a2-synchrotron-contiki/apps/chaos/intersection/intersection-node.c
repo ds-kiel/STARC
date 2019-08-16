@@ -347,6 +347,9 @@ const uint8_t slots_per_msg = 50;
     } else {
         printf("Commit NOT completed\n");
     }
+
+    // Notify round end to simulation, to be able to remove vehicles...
+    send_str("round_end");
   }
 PROCESS_END();
 }

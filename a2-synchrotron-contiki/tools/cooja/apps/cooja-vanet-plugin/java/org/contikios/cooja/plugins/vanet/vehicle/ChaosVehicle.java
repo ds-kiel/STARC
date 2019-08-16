@@ -163,7 +163,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
                             // we force the new Head to check its position at least once
                             ((ChaosVehicle) newHead).state = STATE_MOVING;
                         }
-
+                        prepareRemoval(); // prepare removal
                         return STATE_LEFT; // and leave immediately
                     }
                 } else {
@@ -178,7 +178,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         else if (state == STATE_LEFT)  {
             if (curWayPointIndex >= waypoints.size()) {
                 if (targetLane.isFinalEndLane()) {
-                    return STATE_FINISHED;
+                    return STATE_LEFT;
                 } else {
                     initLane(targetLane);
                     byte[] bytes = new byte[2];
@@ -234,6 +234,17 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         }
     }
 
+    private void prepareRemoval() {
+        if (targetLane.isFinalEndLane()) {
+            // we remove our body from the world and set ourself to an end position
+            destroy();
+            // but we set the body position to somewhere far away
+            body.setCenter(new Vector2D(-VehicleManager.INIT_POS, -VehicleManager.INIT_POS));
+            body.setVel(new Vector2D());
+            // we know have to wait for the round_end msg
+        }
+    }
+
     protected void handleMessage(byte[] msg) {
         //System.out.println(new String(msg));
 
@@ -245,10 +256,13 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         } else if (state == STATE_LEAVING && new String(msg).equals("left")) {
             state = STATE_LEFT;
             platoon.setJoined(false);
+            prepareRemoval();
         } else if (state == STATE_WAITING && new String(msg).startsWith("joined")) {
             int chaosIndex = msg["joined".length()]&0xFF;
             chaosNetworkState.setChaosIndex(chaosIndex);
             platoon.setJoined(true);
+        } else if (state == STATE_LEFT && targetLane.isFinalEndLane() && new String(msg).equals("round_end")) {
+            state = STATE_FINISHED; // finish and remove the vehicle!
         }
 
         // handle request states
