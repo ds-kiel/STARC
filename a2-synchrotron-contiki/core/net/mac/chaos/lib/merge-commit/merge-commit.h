@@ -86,7 +86,6 @@ typedef struct __attribute__((packed)) {
 
 
 typedef struct __attribute__((packed)) {
-    char gap_0[1]; // align memory
     join_data_t join_data;
     merge_commit_value_t value;
     uint8_t phase;
