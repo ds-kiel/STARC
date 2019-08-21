@@ -273,10 +273,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         if (tx_mc->phase == PHASE_MERGE) {
 
           if (chaos_has_node_index) {
-            //leds_on(LEDS_RED);
             merge_commit_merge_callback(rx_mc, tx_mc);
-            //leds_off(LEDS_RED);
-
           } else {
             // we compare the new commit value
             if (memcmp(&tx_mc->value, &rx_mc->value, sizeof(merge_commit_value_t)) != 0) {
@@ -322,8 +319,16 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
           }
 
-          if (!chaos_has_node_index) {
-            COOJA_DEBUG_STR("trying to join!");
+
+          // We check if there are any nodes that only want to rejoin! We need to do it here since we are waiting for their flags
+          for (i = 0; i < join_data_tx->slot_count; i++) {
+            if( !join_data_tx->indices[i] && join_data_tx->slots[i] ){
+              int chaos_index = join_get_index_for_node_id(join_data_tx->slots[i]);
+              if (chaos_index >= 0) {
+                //printf("Rejoined node %d at index %d\n", join_data_tx->slots[i], chaos_index);
+                join_data_tx->indices[i] = chaos_index;
+              }
+            }
           }
 
 
@@ -348,8 +353,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
             // first add the nodes
             for (i = 0; i < join_data_tx->slot_count; i++) {
-              // TODO: We dont need to check for the indices, because, they all want to join right?
-              if( /*!join_data_tx->indices[i] &&*/ join_data_tx->slots[i] ){
+              if( !join_data_tx->indices[i] && join_data_tx->slots[i] ){
                 int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
                 if (chaos_index >= 0) {
                   //printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
