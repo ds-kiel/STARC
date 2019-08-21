@@ -108,13 +108,15 @@ typedef struct __attribute__((packed)) {
 typedef struct __attribute__((packed)) {
     uint8_t node_count;
     uint8_t config;
+    uint8_t slot_count;
+    uint8_t slot_filled_count;
     union {
         uint8_t commit_field;
         struct{
-            uint8_t                   //control flags
-                    slot_count :5,       //number of slots into which nodes wrote their ids
+            uint8_t                     //control flags
+                    gap0 :6,
                     overflow :1,              /* available join slots too short */
-                    commit :2;                /* commit join */
+                    commit :1;                /* commit join */
         };
     };
     node_id_t slots[NODE_LIST_LEN]; //slots to write node ids into /* assigned indices */

@@ -272,130 +272,122 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
         if (tx_mc->phase == PHASE_MERGE) {
 
+          // check if we could rejoin the network
+          if( !IS_INITIATOR() && !chaos_has_node_index ){
+            int i;
+            for (i = 0; i < join_data_rx->slot_count; i++) {
+              // TODO: This does not handle the chaos index 0!
+              if (join_data_rx->slots[i] == node_id && join_data_rx->indices[i]) {
+                chaos_node_index = join_data_rx->indices[i];
+                chaos_has_node_index = 1;
+                printf("Rejoined with index %d\n", chaos_node_index);
+                //joined = 1; This is not a real join ;)
+                rejoin_needed = 0;
+
+                // We set our flags...
+                tx_flags[ARR_INDEX] |= (1 << ARR_OFFSET);
+                break;
+              }
+            }
+          }
+
+
           if (chaos_has_node_index) {
             merge_commit_merge_callback(rx_mc, tx_mc);
           } else {
             // we compare the new commit value
             if (memcmp(&tx_mc->value, &rx_mc->value, sizeof(merge_commit_value_t)) != 0) {
               memcpy(&tx_mc->value, &rx_mc->value, sizeof(merge_commit_value_t));
-              tx |= 1;
+              tx = 1;
             }
           }
 
           // Join logic
-          tx |= (join_data_tx->overflow != join_data_rx->overflow);
-          join_data_tx->overflow |= join_data_rx->overflow;
-          join_data_tx->node_count = 0; // not yet needed
-
-          //check if remote and local knowledge differ -> if so: merge
-          uint8_t delta_slots = join_data_tx->slot_count != join_data_rx->slot_count;
-          if(!delta_slots){
-            delta_slots = memcmp(join_data_tx->slots, join_data_rx->slots, sizeof(join_data_rx->slots)) != 0;
-          }
-          if ( delta_slots ) {
-
-            // we will use +1 to detect overflows!
-            node_id_t merge[sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]) + 1] = {0};
-            uint8_t delta;
-
-            uint8_t merge_size = join_merge_lists(merge, sizeof(merge)/sizeof(merge[0]), join_data_tx->slots, join_data_tx->slot_count,
-                                                  join_data_rx->slots, join_data_rx->slot_count, &delta);
-            if (delta) {
-              delta_at_slot = slot_count;
-              tx |= 1; //arrays differ, so TX
-            }
-
-            /* New overflow? */
-            if (merge_size >= sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0])) {
-              join_data_tx->overflow = 1;
-              tx |= 1; //arrays differs, so TX
-              merge_size = sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]);
-            }
-            join_data_tx->slot_count = merge_size;
-            memcpy(join_data_tx->slots, merge, sizeof(join_data_tx->slots));
-            if (merge_size > 0) {
-              COOJA_DEBUG_PRINTF("MERGED LISTS with %d", merge[0]);
-            }
-
-          }
-
-
-          // We check if there are any nodes that only want to rejoin! We need to do it here since we are waiting for their flags
-          for (i = 0; i < join_data_tx->slot_count; i++) {
-            if( !join_data_tx->indices[i] && join_data_tx->slots[i] ){
-              int chaos_index = join_get_index_for_node_id(join_data_tx->slots[i]);
-              if (chaos_index >= 0) {
-                //printf("Rejoined node %d at index %d\n", join_data_tx->slots[i], chaos_index);
-                join_data_tx->indices[i] = chaos_index;
-              }
-            }
-          }
-
+          tx |= join_merge(join_data_tx, join_data_rx);
 
           // Check if we should do the next phase!
-          // TODO: Tweak the slot_count here...
-          // TODO: Account the difference from the latest join (the slot_count)
+          if (IS_INITIATOR()) {
+            if (flags_complete &&
+                        (slot_count >= MERGE_COMMIT_MAX_COMMIT_SLOT
+                         || (COMMIT_THRESHOLD && delta_at_slot > 0 &&
+                                       slot_count >= delta_at_slot + COMMIT_THRESHOLD))) {
+              //LEDS_ON(LEDS_RED);
+              memset(tx_flags, 0, merge_commit_get_flags_length());
+              tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
 
-          if (IS_INITIATOR() && flags_complete
-            && (slot_count >= MERGE_COMMIT_MAX_COMMIT_SLOT
-                  || (COMMIT_THRESHOLD && delta_at_slot > 0 && slot_count >= delta_at_slot+COMMIT_THRESHOLD))) {
-            //LEDS_ON(LEDS_RED);
-            memset(tx_flags, 0, merge_commit_get_flags_length());
-            tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
+              // Next phase \o/
+              tx_mc->phase = PHASE_COMMIT;
+              //TODO: we could also abort here
 
-            // Next phase \o/
-            tx_mc->phase = PHASE_COMMIT;
-            //TODO: we could also abort here
+              // join commit
+              COOJA_DEBUG_PRINTF("commit! with %d joins", join_data_tx->slot_count);
+              uint8_t chaos_node_count_before_commit = chaos_node_count;
 
-            // join commit
-            COOJA_DEBUG_PRINTF("commit! with %d joins", join_data_tx->slot_count);
-            uint8_t chaos_node_count_before_commit = chaos_node_count;
+              // first add the nodes
+              for (i = 0; i < join_data_tx->slot_count; i++) {
+                // TODO: This does not handle the chaos index 0!
+                if (!join_data_tx->indices[i] && join_data_tx->slots[i]) {
+                  int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
+                  if (chaos_index >= 0) {
+                    //printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
+                    join_data_tx->indices[i] = chaos_index;
+                    // remove the leave flag
+                    tx_leaves[ARR_INDEX_X(chaos_index)] &= ~(1 << (ARR_OFFSET_X(chaos_index)));
+                  } else {
+                    join_data_tx->overflow |= 1;
+                    join_data_tx->slots[i] = 0; // reset the nodes will use index 0!
+                  }
+                }
+              }
 
-            // first add the nodes
-            for (i = 0; i < join_data_tx->slot_count; i++) {
-              if( !join_data_tx->indices[i] && join_data_tx->slots[i] ){
-                int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
-                if (chaos_index >= 0) {
-                  //printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
-                  join_data_tx->indices[i] = chaos_index;
-                  // remove the leave flag
-                  tx_leaves[ARR_INDEX_X(chaos_index)] &= ~(1 << (ARR_OFFSET_X(chaos_index)));
-                } else {
-                  join_data_tx->overflow |= 1;
-                  join_data_tx->slots[i] = 0; // reset the nodes will use index 0!
+              // then remove every node that wants to leave
+              for (i = 0; i < MAX_NODE_COUNT; ++i) {
+                node_id_t nid = joined_nodes[i];
+
+                //printf("leaves check  %d %d %d (%d, %d) %d\n", i, nid, (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) == 0, ARR_INDEX_X(i), ARR_OFFSET_X(i), tx_leaves[ARR_INDEX_X(i)]);
+
+                if (nid != 0) {
+                  // check if node wants to leave
+
+                  if (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) {
+                    // node has left! -> remove it
+                    //printf("Removing node %d with index %d\n", nid, i);
+                    joined_nodes[i] = 0;
+                    chaos_node_count--;
+                  }
+                }
+              }
+
+              // we also need to update our join masks ;)
+              for (i = 0; i < FLAGS_LEN; i++) {
+                join_masks[i] |= ~tx_leaves[i];
+              }
+
+              //update phase and node_count
+              join_data_tx->node_count = chaos_node_count;
+              join_data_tx->commit = 1;
+
+              tx = 1;
+              leds_on(LEDS_GREEN);
+            } else {
+              // We check if there are any nodes that only want to rejoin! We need to do it here since we are waiting for their flags
+              for (i = 0; i < join_data_tx->slot_count; i++) {
+                if( !join_data_tx->indices[i] && join_data_tx->slots[i] ){
+                  int chaos_index = join_get_index_for_node_id(join_data_tx->slots[i]);
+                  if (chaos_index >= 0) {
+                    //printf("Rejoined node %d at index %d\n", join_data_tx->slots[i], chaos_index);
+                    join_data_tx->indices[i] = chaos_index;
+                    join_data_tx->slot_filled_count++;
+                    tx = 1;
+
+
+                    // TODO: WE NEED TO SORT HERE
+                    // AAAAAND We only need to check this, if there were changes in the slots!
+                     // And please recheck the slot merging...
+                  }
                 }
               }
             }
-
-            // then remove every node that wants to leave
-            for(i = 0; i < MAX_NODE_COUNT; ++i) {
-              node_id_t nid = joined_nodes[i];
-
-              //printf("leaves check  %d %d %d (%d, %d) %d\n", i, nid, (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) == 0, ARR_INDEX_X(i), ARR_OFFSET_X(i), tx_leaves[ARR_INDEX_X(i)]);
-
-              if (nid != 0) {
-                // check if node wants to leave
-
-                if (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) {
-                  // node has left! -> remove it
-                  //printf("Removing node %d with index %d\n", nid, i);
-                  joined_nodes[i] = 0;
-                  chaos_node_count--;
-                }
-              }
-            }
-
-            // we also need to update our join masks ;)
-            for(i = 0; i < FLAGS_LEN; i++) {
-              join_masks[i] |= ~tx_leaves[i];
-            }
-
-            //update phase and node_count
-            join_data_tx->node_count = chaos_node_count;
-            join_data_tx->commit = 1;
-
-            tx = 1;
-            leds_on(LEDS_GREEN);
           }
         } else if (tx_mc->phase == PHASE_COMMIT) {
           if (flags_complete) {

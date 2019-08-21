@@ -302,6 +302,9 @@ const uint8_t slots_per_msg = 50;
   printf("#VANET MC-STATS-END\n");
 #endif
 
+
+printf("CONFIG %d\n", join_get_config());
+
     if (mc_phase == PHASE_COMMIT) {
 
       if (merge_commit_has_left()) {

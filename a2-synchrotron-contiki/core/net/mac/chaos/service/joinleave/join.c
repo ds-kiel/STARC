@@ -128,7 +128,7 @@ static uint16_t complete_slot = 0;
 static uint8_t is_join_round = 0; // only used on initiator
 
 
-node_index_t free_slots[MAX_NODE_COUNT] = {0};
+node_t free_slots[MAX_NODE_COUNT] = {0};
 node_id_t joined_nodes[MAX_NODE_COUNT] = {0};
 uint8_t join_config = 0;
 static join_node_map_entry_t joined_nodes_map[MAX_NODE_COUNT];
@@ -167,8 +167,8 @@ static uint8_t bit_count(uint8_t u)
 
 void join_do_sort_joined_nodes_map(){
   LEDS_ON(LEDS_RED);
-  //need to do a precopy!!
 
+  //need to do a precopy
   join_node_map_entry_t tmp[MAX_NODE_COUNT];
   memcpy(tmp, joined_nodes_map, sizeof(joined_nodes_map));
   join_merge_sort(joined_nodes_map, tmp, 0, chaos_node_count-1);
@@ -215,45 +215,111 @@ void join_init(){
   }
 }
 
-inline int join_merge_lists(node_id_t merge[], uint8_t max, node_id_t ids_a[], uint8_t ca, node_id_t ids_b[], uint8_t cb, uint8_t * delta) {
 
-  uint8_t index_merge = 0;
-  uint8_t index_a = 0;
-  uint8_t index_b = 0;
+inline void join_merge_data(join_data_t *tx, join_data_t *rx, uint8_t *tx, uint8_t *delta_flag) {
 
-  // We merge both sorted ids
-  uint8_t equal_count = 0;
+  int diff = 0;
 
-  while((index_a < ca || index_b < cb) && index_merge < max) {
-    if (index_a >= ca || (index_b < cb && ids_b[index_b] < ids_a[index_a])) {
-      merge[index_merge] = ids_b[index_b];
-      index_b++;
-    } else if (index_b >= cb || (index_a < ca && ids_a[index_a] < ids_b[index_b])) {
-      merge[index_merge] = ids_a[index_a];
-      index_a++;
-    } else {
-      merge[index_merge] = ids_a[index_a];
-      equal_count++;
-      index_a++;
-      index_b++;
+  diff |= (join_data_tx->overflow != join_data_rx->overflow)
+  join_data_tx->overflow |= join_data_rx->overflow;
+  join_data_tx->node_count = 0; // not yet needed
+
+
+
+  //check if remote and local knowledge differ -> if so: merge
+  uint8_t delta_slots = join_data_tx->slot_count != join_data_rx->slot_count || join_data_tx->slot_filled_count != join_data_rx->slot_filled_count;
+
+  if(!delta_slots){
+    delta_slots = memcmp(join_data_tx->slots, join_data_rx->slots, sizeof(join_data_rx->slots)) != 0;
+  }
+
+  if ( delta_slots ) {
+
+    // we will use +1 to detect overflows!
+    node_id_t merged_ids[sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]) + 1] = {0};
+    node_t merged_indices[sizeof(join_data_tx->indices) / sizeof(join_data_tx->indices[0]) + 1] = {0};
+    
+    uint8_t m = 0;
+    uint8_t t = 0;
+    uint8_t r = 0;
+
+    node_id_t ids_t[] = join_data_tx->slots;
+    node_id_t ids_r[] = join_data_rx->slots;
+
+    node_t indices_t[] = join_data_tx->indices;
+    node_t indices_r[] = join_data_rx->indices;
+    
+    uint8_t ct = join_data_tx->slot_count; 
+    uint8_t cr = join_data_rx->slot_count; 
+
+    // We merge both sorted ids
+    uint8_t equal_count = 0;
+
+    while((t < ct || r < cr) && m < (sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]) + 1)) {
+      if (t >= ct || (r < cr && ((indices_r[r] > indices_t[t] == 0) || ids_r[r] < ids_t[t]))) {
+        // the rx element r has a higher priority!
+        merged_ids[m] = ids_r[r];
+        merged_indices[m] = indices_r[r];
+        r++;
+      } else if (r >= cr || (t < ct && ((indices_t[t] > indices_r[r] == 0) || ids_t[t] < ids_r[r]))) {
+        // the tx element t has a higher priority!
+        merged_ids[m] = ids_t[t];
+        merged_indices[m] = indices_t[t];
+        t++;
+      } else {
+        // we need to check if one has already been assigned an index
+        merge[m] = ids_t[t];
+        // TODO: Chaos index 0 not supported!
+        merged_indices[m] = MAX(indices_t[t], indices_r[r]);
+        equal_count++;
+        t++;
+        r++;
+      }
+
+      m++;
+
+     #if 0*FAULTY_NODE_ID
+      //TODO: Enable me again
+      //if( merge[m-1] > FAULTY_NODE_ID && !rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1] ){
+      //    rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1]=3;
+      //    memcpy(rx_pkt_crc_err, (uint8_t*)join_rx, sizeof(join_t));
+      //  }
+      #endif
     }
 
-    index_merge++;
+    if (delta_flag) {
+      *delta_flag |= equal_count != m;
+    }
 
-#if 0*FAULTY_NODE_ID
-    //TODO: Enable me again
-    //if( merge[index_merge-1] > FAULTY_NODE_ID && !rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1] ){
-    //    rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1]=3;
-    //    memcpy(rx_pkt_crc_err, (uint8_t*)join_rx, sizeof(join_t));
-    //  }
-#endif
+    if (equal_count != m) {
+      diff = 1;
+      *delta |= 1;
+    }
+
+    /* New overflow? */
+    if (m >= sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0])) {
+      join_data_tx->overflow = 1;
+      diff |= 2; //arrays differs, so TX
+      merge_size = sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]);
+    }
+    join_data_tx->slot_count = merge_size;
+    join_data_tx->slot_filled_count = MAX(MAX(join_data_tx->slot_filled_count, join_data_rx->slot_filled_count), join_data_tx->slot_count);
+    memcpy(join_data_tx->slots, merged_ids, sizeof(join_data_tx->slots));
+    memcpy(join_data_tx->indices, merged_indices, sizeof(join_data_tx->indices));
+    if (merge_size > 0) {
+      COOJA_DEBUG_PRINTF("MERGED LISTS with %d", merge[0]);
+    }
+
   }
 
-  if (delta) {
-    *delta |= equal_count != index_merge;
-  }
+  return diff;
+}
 
-  return index_merge;
+inline int join_merge_lists(node_id_t merge[], uint8_t max, node_id_t ids_a[], uint8_t ca, node_id_t ids_b[], uint8_t cb, uint8_t * delta) {
+
+
+
+  return m;
 }
 
 // only executed by initiator
@@ -272,7 +338,7 @@ inline int add_node(node_id_t id, uint8_t chaos_node_count_before_commit) {
 
   // add only if we have have space for it
   if(chaos_node_count < MAX_NODE_COUNT) {
-    node_index_t chaos_index = free_slots[MAX_NODE_COUNT-1-chaos_node_count];
+    node_t chaos_index = free_slots[MAX_NODE_COUNT-1-chaos_node_count];
     joined_nodes[chaos_index] = id;
 
     // joined_nodes_map will be sorted later
@@ -308,7 +374,7 @@ void join_init_free_slots() {
 
   /*i = chaos_node_count;
   while(i < MAX_NODE_COUNT) {
-    node_index_t chaos_index = free_slots[MAX_NODE_COUNT-1-i];
+    node_t chaos_index = free_slots[MAX_NODE_COUNT-1-i];
     printf("Free Slots: %d, %d\n", chaos_index, MAX_NODE_COUNT-1-i);
     ++i;
   }*/
@@ -444,9 +510,21 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
         if ( delta_slots ) {
 
           // we will use +1 to detect overflows!
-          node_id_t merge[sizeof(join_data_tx->slots)/sizeof(join_data_tx->slots[0])+1] = {0};
+          node_id_t merged_ids[sizeof(join_data_tx->slots)/sizeof(join_data_tx->slots[0])+1] = {0};
+          uint8_t merged_indices[sizeof(join_data_tx->indices)/sizeof(join_data_tx->indices[0])+1] = {0};
 
-          uint8_t merge_size = join_merge_lists(merge, sizeof(merge)/sizeof(merge[0]), join_data_tx->slots, join_data_tx->slot_count, join_data_rx->slots, join_data_rx->slot_count, &delta);
+
+          uint8_t merge_size
+
+          uint8_t merge_size = join_merge_lists(
+                  merged_ids,
+                  merged_indices,
+                  sizeof(merged_ids)/sizeof(merged_ids[0]),
+                  join_data_tx->slots,
+                  join_data_tx->slot_count,
+                  join_data_rx->slots,
+                  join_data_rx->slot_count,
+                  &delta);
 
           /* New overflow? */
           if (merge_size >= sizeof(join_data_tx->slots)/ sizeof(node_id_t)) {
@@ -455,7 +533,7 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
             merge_size = sizeof(join_data_tx->slots)/ sizeof(node_id_t);
           }
           join_data_tx->slot_count = merge_size;
-          memcpy(join_data_tx->slots, merge, sizeof(join_data_tx->slots));
+          memcpy(join_data_tx->slots, merged_ids, sizeof(join_data_tx->slots));
         }
       } else {
         //since half of the slots passed, we need to wait for the initiator commit.
