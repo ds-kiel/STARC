@@ -144,7 +144,7 @@ static unsigned short restart_threshold;
 static merge_commit_local_t mc_local; /* used only for house keeping and reporting */
 static uint8_t* tx_flags_final = 0;
 static uint8_t delta_at_slot = 0;
-static uint8_t joined, left = 0;
+static uint8_t joined, left, rejoin_needed = 0;
 
 static uint8_t join_masks[FLAGS_LEN];
 uint8_t merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE;
@@ -175,8 +175,6 @@ static chaos_state_t
 process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, int chaos_txrx_success, size_t payload_length, uint8_t* rx_payload, uint8_t* tx_payload, uint8_t** app_flags)
 {
 
-
-
   //int start = RTIMER_NOW();
   merge_commit_t* tx_mc = (merge_commit_t*)tx_payload;
   merge_commit_t* rx_mc = (merge_commit_t*)rx_payload;
@@ -204,21 +202,48 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
       got_valid_rx = 1;
       tx = 0;
 
+
+      uint8_t* tx_leaves = merge_commit_get_leaves(tx_mc);
+      uint8_t* rx_leaves = merge_commit_get_leaves(rx_mc);
+
+      uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
+      uint8_t* rx_flags = merge_commit_get_flags(rx_mc);
+
+
+      // We received a successful transmission
+      // we now check if the transmitted join config matches with ours
+      if (chaos_has_node_index && !IS_INITIATOR()) {
+        // We think that we are part of the network
+        if (!join_check_config(join_data_rx->config)) {
+          // but it seems like we have missed a commit msg
+          // so we reset everything for this round and behave as a forwarder only!
+
+          // BUT we have to clear the flags...
+          tx_leaves[ARR_INDEX] &= ~(1 << ARR_OFFSET);
+          tx_flags[ARR_INDEX] &= ~(1 << ARR_OFFSET);
+
+          chaos_has_node_index = 0;
+          chaos_node_index = 0;
+
+          rejoin_needed = 1; // we need to rejoin even if we just want to leave!
+          printf("Configuration mismatch mine: %d, theirs: %d\n", join_get_config(), join_data_rx->config);
+        }
+      }
+      // after the checking, we can use the new config value ourselfs
+      join_set_config(join_data_rx->config);
+      join_data_tx->config = join_get_config();
+
+
+
       //be careful: do not mix the different phases
       if (tx_mc->phase == rx_mc->phase) {
         // same phase
         int i;
 
-        // first calculate the current leaves
-        uint8_t* tx_leaves = merge_commit_get_leaves(tx_mc);
-        uint8_t* rx_leaves = merge_commit_get_leaves(rx_mc);
 
+        // first calculate the current leaves
         uint8_t rx_complete = 1;
         uint8_t flags_complete = 1;
-
-        uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
-        uint8_t* rx_flags = merge_commit_get_flags(rx_mc);
-
 
         if (!has_initial_join_masks) {
           for(i = 0; i < FLAGS_LEN; i++) {
@@ -381,8 +406,6 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
       } else if (tx_mc->phase < rx_mc->phase) {
         // received phase is more advanced than local one -> switch to received state (and set own flags)
         memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_and_leaves_overall_length());
-        uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
-        uint8_t* tx_leaves = merge_commit_get_leaves(tx_mc);
 
         chaos_node_count = join_data_rx->node_count;
 
@@ -403,6 +426,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
               //LEDS_ON(LEDS_RED);
               COOJA_DEBUG_PRINTF("JOINED");
               joined = 1;
+              rejoin_needed = 0;
               break;
             }
           }
@@ -467,6 +491,11 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         //sort joined_nodes_map to speed up search (to enable the use of binary search) when adding new nodes
       join_reset_nodes_map();
       join_init_free_slots();
+    }
+
+    // increase the join config
+    if (mc_local.mc.phase == PHASE_COMMIT) {
+      join_increase_config();
     }
   }
 
@@ -566,16 +595,21 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
     join_masks[i] = 0;
   }
 
-  // Add join behaviour
+
   if (chaos_has_node_index) {
     mc_local.mc.join_data.node_count = chaos_node_count;
     /* set my flag */
     uint8_t* flags = merge_commit_get_flags(&mc_local.mc);
     flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
+
+    if (IS_INITIATOR()) {
+      mc_local.mc.join_data.config = join_get_config(); // set initial join configuration
+    }
   }
 
   uint8_t* leaves = merge_commit_get_leaves(&mc_local.mc);
 
+  // Add join and leave behaviour
   if (IS_INITIATOR()) {
     // Initialize leave_flags for the slots that are
 
@@ -600,7 +634,7 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
     if (chaos_has_node_index && merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE) {
       // we try to leave the network, so we remove us
       leaves[ARR_INDEX] = (1 << (ARR_OFFSET));
-    } else if (!chaos_has_node_index && merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_JOIN){
+    } else if (!chaos_has_node_index && (rejoin_needed || merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_JOIN)){
       // we try to join the network
       mc_local.mc.join_data.slots[0] = node_id;
       mc_local.mc.join_data.slot_count = 1;

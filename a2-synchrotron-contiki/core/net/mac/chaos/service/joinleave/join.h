@@ -107,6 +107,7 @@ typedef struct __attribute__((packed)) {
 
 typedef struct __attribute__((packed)) {
     uint8_t node_count;
+    uint8_t config;
     union {
         uint8_t commit_field;
         struct{
@@ -122,12 +123,18 @@ typedef struct __attribute__((packed)) {
 
 
 extern node_id_t joined_nodes[MAX_NODE_COUNT];
+extern uint8_t join_config;
 
 inline int join_merge_lists(node_id_t merge[], uint8_t max, node_id_t ids_a[], uint8_t ca, node_id_t ids_b[], uint8_t cb, uint8_t * delta);
 inline int add_node(node_id_t id, uint8_t chaos_node_count_before_commit);
 int join_binary_search( join_node_map_entry_t array[], int size, node_id_t search_id );
 void join_reset_nodes_map();
 void join_init_free_slots();
+
+uint8_t join_get_config();
+void join_set_config(uint8_t config);
+void join_increase_config();
+uint8_t join_check_config(uint8_t other);
 
 void join_do_sort_joined_nodes_map();
 #endif /* _JOIN_H_ */

@@ -349,7 +349,7 @@ const uint8_t slots_per_msg = 50;
     }
 
     // Notify round end to simulation, to be able to remove vehicles...
-    send_str("round_end");
+    send_str("round_endmerge_commit_wanted_join_state");
   }
 PROCESS_END();
 }

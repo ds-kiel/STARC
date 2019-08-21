@@ -130,6 +130,7 @@ static uint8_t is_join_round = 0; // only used on initiator
 
 node_index_t free_slots[MAX_NODE_COUNT] = {0};
 node_id_t joined_nodes[MAX_NODE_COUNT] = {0};
+uint8_t join_config = 0;
 static join_node_map_entry_t joined_nodes_map[MAX_NODE_COUNT];
 
 static void round_begin(const uint16_t round_count, const uint8_t id);
@@ -138,6 +139,24 @@ static void round_begin_sniffer(chaos_header_t* header);
 static void round_end_sniffer(const chaos_header_t* header);
 static int join_binary_search_chaos_index( join_node_map_entry_t array[], int size, node_id_t search_id );
 static void join_merge_sort(join_node_map_entry_t a[], join_node_map_entry_t aux[], int lo, int hi);
+
+// TODO: Use the join config in the join and leave rounds as well
+uint8_t join_get_config() {
+  return join_config;
+}
+
+void join_set_config(uint8_t config) {
+  join_config = config;
+}
+
+void join_increase_config() {
+  join_config++;
+}
+
+uint8_t join_check_config(uint8_t other) {
+  return join_config == other;
+}
+
 
 CHAOS_SERVICE(join, JOIN_SLOT_LEN, JOIN_ROUND_MAX_SLOTS, 0, is_pending, round_begin, round_begin_sniffer, round_end_sniffer);
 
