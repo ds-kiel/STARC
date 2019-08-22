@@ -334,9 +334,9 @@ void join_init_free_slots() {
     }
   }
 
-  if (num_free != MAX_NODE_COUNT-chaos_node_count) {
-      printf("leaves Num free not matching!\n");
-  }
+  //if (num_free != MAX_NODE_COUNT-chaos_node_count) {
+  //printf("leaves Num free not matching!\n");
+  //}
 
 
   /*i = chaos_node_count;

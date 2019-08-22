@@ -226,7 +226,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
           chaos_node_index = 0;
 
           rejoin_needed = 1; // we need to rejoin even if we just want to leave!
-          printf("Configuration mismatch mine: %d, theirs: %d\n", join_get_config(), join_data_rx->config);
+          //printf("Configuration mismatch mine: %d, theirs: %d\n", join_get_config(), join_data_rx->config);
         }
       }
       // after the checking, we can use the new config value ourselfs
@@ -284,7 +284,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
           // check if we could rejoin the network
           if(!IS_INITIATOR() && !chaos_has_node_index && tx_mc->rejoin_slot == node_id){
-            printf("Rejoined with index %d\n", tx_mc->rejoin_index);
+            //printf("Rejoined with index %d\n", tx_mc->rejoin_index);
             chaos_node_index = tx_mc->rejoin_index;
             chaos_has_node_index = 1;
             //joined = 1; This is not a real join ;)
@@ -333,7 +333,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
                 if (join_data_tx->slots[i]) {
                   int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
                   if (chaos_index >= 0) {
-                    printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
+                    //printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
                     join_data_tx->indices[i] = chaos_index;
                     // remove the leave flag
                     tx_leaves[ARR_INDEX_X(chaos_index)] &= ~(1 << (ARR_OFFSET_X(chaos_index)));
@@ -384,7 +384,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
                 if( n ){
                   int chaos_index = join_get_index_for_node_id(n);
                   if (chaos_index >= 0) {
-                    printf("Rejoined node %d at index %d\n", n, chaos_index);
+                    //printf("Rejoined node %d at index %d\n", n, chaos_index);
                     tx = 1;
                     tx_mc->rejoin_slot = n;
                     tx_mc->rejoin_index = chaos_index;
