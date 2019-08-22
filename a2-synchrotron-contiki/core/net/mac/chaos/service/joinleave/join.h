@@ -108,17 +108,16 @@ typedef struct __attribute__((packed)) {
 typedef struct __attribute__((packed)) {
     uint8_t node_count;
     uint8_t config;
-    uint8_t slot_count;
-    uint8_t slot_filled_count;
     union {
         uint8_t commit_field;
         struct{
-            uint8_t                     //control flags
-                    gap0 :6,
-                    overflow :1,              /* available join slots too short */
-                    commit :1;                /* commit join */
+            uint8_t                   //control flags
+                slot_count :5,       //number of slots into which nodes wrote their ids
+                overflow :1,              /* available join slots too short */
+                commit :2;                /* commit join */
         };
     };
+
     node_id_t slots[NODE_LIST_LEN]; //slots to write node ids into /* assigned indices */
     node_index_t indices[NODE_LIST_LEN]; //slots to write node ids into /* assigned indices */
 } join_data_t;
@@ -127,7 +126,7 @@ typedef struct __attribute__((packed)) {
 extern node_id_t joined_nodes[MAX_NODE_COUNT];
 extern uint8_t join_config;
 
-inline int join_merge_lists(node_id_t merge[], uint8_t max, node_id_t ids_a[], uint8_t ca, node_id_t ids_b[], uint8_t cb, uint8_t * delta);
+inline int join_merge_data(join_data_t *tx, join_data_t *rx, uint8_t *delta_flag);
 inline int add_node(node_id_t id, uint8_t chaos_node_count_before_commit);
 int join_binary_search( join_node_map_entry_t array[], int size, node_id_t search_id );
 void join_reset_nodes_map();

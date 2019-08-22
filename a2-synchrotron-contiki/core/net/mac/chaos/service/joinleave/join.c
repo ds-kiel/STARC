@@ -128,7 +128,7 @@ static uint16_t complete_slot = 0;
 static uint8_t is_join_round = 0; // only used on initiator
 
 
-node_t free_slots[MAX_NODE_COUNT] = {0};
+node_index_t free_slots[MAX_NODE_COUNT] = {0};
 node_id_t joined_nodes[MAX_NODE_COUNT] = {0};
 uint8_t join_config = 0;
 static join_node_map_entry_t joined_nodes_map[MAX_NODE_COUNT];
@@ -216,110 +216,77 @@ void join_init(){
 }
 
 
-inline void join_merge_data(join_data_t *tx, join_data_t *rx, uint8_t *tx, uint8_t *delta_flag) {
+inline int join_merge_data(join_data_t *tx, join_data_t *rx, uint8_t *delta_flag) {
 
   int diff = 0;
 
-  diff |= (join_data_tx->overflow != join_data_rx->overflow)
-  join_data_tx->overflow |= join_data_rx->overflow;
-  join_data_tx->node_count = 0; // not yet needed
+  diff |= (tx->overflow != rx->overflow);
 
-
+  tx->overflow |= rx->overflow;
+  tx->node_count = 0; // not yet needed
 
   //check if remote and local knowledge differ -> if so: merge
-  uint8_t delta_slots = join_data_tx->slot_count != join_data_rx->slot_count || join_data_tx->slot_filled_count != join_data_rx->slot_filled_count;
+  uint8_t delta_slots =
+          tx->slot_count != rx->slot_count
+          || memcmp(tx->slots, rx->slots, sizeof(rx->slots)) != 0;
 
-  if(!delta_slots){
-    delta_slots = memcmp(join_data_tx->slots, join_data_rx->slots, sizeof(join_data_rx->slots)) != 0;
-  }
+  if (delta_slots) {
 
-  if ( delta_slots ) {
+    // we will use +1 slot to detect overflows!
+    node_id_t merged_ids[sizeof(tx->slots) / sizeof(tx->slots[0]) + 1] = {0};
 
-    // we will use +1 to detect overflows!
-    node_id_t merged_ids[sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]) + 1] = {0};
-    node_t merged_indices[sizeof(join_data_tx->indices) / sizeof(join_data_tx->indices[0]) + 1] = {0};
-    
     uint8_t m = 0;
     uint8_t t = 0;
     uint8_t r = 0;
 
-    node_id_t ids_t[] = join_data_tx->slots;
-    node_id_t ids_r[] = join_data_rx->slots;
+    node_id_t *ids_t = tx->slots;
+    node_id_t *ids_r = rx->slots;
 
-    node_t indices_t[] = join_data_tx->indices;
-    node_t indices_r[] = join_data_rx->indices;
-    
-    uint8_t ct = join_data_tx->slot_count; 
-    uint8_t cr = join_data_rx->slot_count; 
+    uint8_t ct = tx->slot_count; 
+    uint8_t cr = rx->slot_count; 
 
     // We merge both sorted ids
     uint8_t equal_count = 0;
 
-    while((t < ct || r < cr) && m < (sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]) + 1)) {
-      if (t >= ct || (r < cr && ((indices_r[r] > indices_t[t] == 0) || ids_r[r] < ids_t[t]))) {
+    while((t < ct || r < cr) && m < (sizeof(tx->slots) / sizeof(tx->slots[0]) + 1)) {
+      if (t >= ct || (r < cr && ids_r[r] < ids_t[t])) {
         // the rx element r has a higher priority!
         merged_ids[m] = ids_r[r];
-        merged_indices[m] = indices_r[r];
         r++;
-      } else if (r >= cr || (t < ct && ((indices_t[t] > indices_r[r] == 0) || ids_t[t] < ids_r[r]))) {
+      } else if (r >= cr || (t < ct && ids_t[t] < ids_r[r])) {
         // the tx element t has a higher priority!
         merged_ids[m] = ids_t[t];
-        merged_indices[m] = indices_t[t];
         t++;
       } else {
         // we need to check if one has already been assigned an index
-        merge[m] = ids_t[t];
-        // TODO: Chaos index 0 not supported!
-        merged_indices[m] = MAX(indices_t[t], indices_r[r]);
+        merged_ids[m] = ids_t[t];
         equal_count++;
         t++;
         r++;
       }
-
       m++;
-
-     #if 0*FAULTY_NODE_ID
-      //TODO: Enable me again
-      //if( merge[m-1] > FAULTY_NODE_ID && !rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1] ){
-      //    rx_pkt_crc_err[sizeof(rx_pkt_crc_err)-1]=3;
-      //    memcpy(rx_pkt_crc_err, (uint8_t*)join_rx, sizeof(join_t));
-      //  }
-      #endif
     }
 
-    if (delta_flag) {
-      *delta_flag |= equal_count != m;
-    }
 
     if (equal_count != m) {
       diff = 1;
-      *delta |= 1;
+
+      if (delta_flag) {
+        *delta_flag = 1;
+      }
     }
 
     /* New overflow? */
-    if (m >= sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0])) {
-      join_data_tx->overflow = 1;
-      diff |= 2; //arrays differs, so TX
-      merge_size = sizeof(join_data_tx->slots) / sizeof(join_data_tx->slots[0]);
+    if (m >= sizeof(tx->slots) / sizeof(tx->slots[0])) {
+      tx->overflow = 1;
+      diff = 1; //arrays differs, so TX
+      m = sizeof(tx->slots) / sizeof(tx->slots[0]);
     }
-    join_data_tx->slot_count = merge_size;
-    join_data_tx->slot_filled_count = MAX(MAX(join_data_tx->slot_filled_count, join_data_rx->slot_filled_count), join_data_tx->slot_count);
-    memcpy(join_data_tx->slots, merged_ids, sizeof(join_data_tx->slots));
-    memcpy(join_data_tx->indices, merged_indices, sizeof(join_data_tx->indices));
-    if (merge_size > 0) {
-      COOJA_DEBUG_PRINTF("MERGED LISTS with %d", merge[0]);
-    }
-
+    tx->slot_count = m;
+    memcpy(tx->slots, merged_ids, sizeof(tx->slots));
   }
 
   return diff;
-}
-
-inline int join_merge_lists(node_id_t merge[], uint8_t max, node_id_t ids_a[], uint8_t ca, node_id_t ids_b[], uint8_t cb, uint8_t * delta) {
-
-
-
-  return m;
 }
 
 // only executed by initiator
@@ -338,7 +305,7 @@ inline int add_node(node_id_t id, uint8_t chaos_node_count_before_commit) {
 
   // add only if we have have space for it
   if(chaos_node_count < MAX_NODE_COUNT) {
-    node_t chaos_index = free_slots[MAX_NODE_COUNT-1-chaos_node_count];
+    node_index_t chaos_index = free_slots[MAX_NODE_COUNT-1-chaos_node_count];
     joined_nodes[chaos_index] = id;
 
     // joined_nodes_map will be sorted later
@@ -374,7 +341,7 @@ void join_init_free_slots() {
 
   /*i = chaos_node_count;
   while(i < MAX_NODE_COUNT) {
-    node_t chaos_index = free_slots[MAX_NODE_COUNT-1-i];
+    node_index_t chaos_index = free_slots[MAX_NODE_COUNT-1-i];
     printf("Free Slots: %d, %d\n", chaos_index, MAX_NODE_COUNT-1-i);
     ++i;
   }*/
@@ -502,39 +469,8 @@ static chaos_state_t process(uint16_t round_count, uint16_t slot,
           flag_sum += join_tx->flags[i];
         }
 
-        //check if remote and local knowledge differ -> if so: merge
-        uint8_t delta_slots = join_data_tx->slot_count != join_data_rx->slot_count;
-        if(!delta_slots){
-          delta_slots = memcmp(join_data_tx->slots, join_data_rx->slots, sizeof(join_data_rx->slots)) != 0;
-        }
-        if ( delta_slots ) {
-
-          // we will use +1 to detect overflows!
-          node_id_t merged_ids[sizeof(join_data_tx->slots)/sizeof(join_data_tx->slots[0])+1] = {0};
-          uint8_t merged_indices[sizeof(join_data_tx->indices)/sizeof(join_data_tx->indices[0])+1] = {0};
-
-
-          uint8_t merge_size
-
-          uint8_t merge_size = join_merge_lists(
-                  merged_ids,
-                  merged_indices,
-                  sizeof(merged_ids)/sizeof(merged_ids[0]),
-                  join_data_tx->slots,
-                  join_data_tx->slot_count,
-                  join_data_rx->slots,
-                  join_data_rx->slot_count,
-                  &delta);
-
-          /* New overflow? */
-          if (merge_size >= sizeof(join_data_tx->slots)/ sizeof(node_id_t)) {
-            join_data_tx->overflow = 1;
-            delta |= 1; //arrays differs, so TX
-            merge_size = sizeof(join_data_tx->slots)/ sizeof(node_id_t);
-          }
-          join_data_tx->slot_count = merge_size;
-          memcpy(join_data_tx->slots, merged_ids, sizeof(join_data_tx->slots));
-        }
+        // Join merge logic
+        delta |= join_merge_data(join_data_tx, join_data_rx, 0);
       } else {
         //since half of the slots passed, we need to wait for the initiator commit.
         delta = 0;

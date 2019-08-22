@@ -88,6 +88,8 @@ typedef struct __attribute__((packed)) {
 typedef struct __attribute__((packed)) {
     join_data_t join_data;
     merge_commit_value_t value;
+    node_id_t rejoin_slot; // a slot used by the initiator to issue a rejoin to the nodes before the actual commit
+    node_index_t rejoin_index; // the associated index, TODO: Support multiple rejoins
     uint8_t phase;
     uint8_t flags_and_leaves[];
 } merge_commit_t;

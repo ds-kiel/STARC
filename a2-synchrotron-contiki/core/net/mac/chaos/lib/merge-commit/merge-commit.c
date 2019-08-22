@@ -219,8 +219,8 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
           // so we reset everything for this round and behave as a forwarder only!
 
           // BUT we have to clear the flags...
-          tx_leaves[ARR_INDEX] &= ~(1 << ARR_OFFSET);
           tx_flags[ARR_INDEX] &= ~(1 << ARR_OFFSET);
+          tx_leaves[ARR_INDEX] &= ~(1 << ARR_OFFSET);
 
           chaos_has_node_index = 0;
           chaos_node_index = 0;
@@ -272,25 +272,26 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
         if (tx_mc->phase == PHASE_MERGE) {
 
-          // check if we could rejoin the network
-          if( !IS_INITIATOR() && !chaos_has_node_index ){
-            int i;
-            for (i = 0; i < join_data_rx->slot_count; i++) {
-              // TODO: This does not handle the chaos index 0!
-              if (join_data_rx->slots[i] == node_id && join_data_rx->indices[i]) {
-                chaos_node_index = join_data_rx->indices[i];
-                chaos_has_node_index = 1;
-                printf("Rejoined with index %d\n", chaos_node_index);
-                //joined = 1; This is not a real join ;)
-                rejoin_needed = 0;
+          if (tx_mc->rejoin_slot != rx_mc->rejoin_slot) {
+            tx = 1;
 
-                // We set our flags...
-                tx_flags[ARR_INDEX] |= (1 << ARR_OFFSET);
-                break;
-              }
+            // we use our own if we have an index NOOP otherwise
+            if (!tx_mc->rejoin_slot) {
+              tx_mc->rejoin_slot = rx_mc->rejoin_slot;
+              tx_mc->rejoin_index = rx_mc->rejoin_index;
             }
           }
 
+          // check if we could rejoin the network
+          if(!IS_INITIATOR() && !chaos_has_node_index && tx_mc->rejoin_slot == node_id){
+            printf("Rejoined with index %d\n", tx_mc->rejoin_index);
+            chaos_node_index = tx_mc->rejoin_index;
+            chaos_has_node_index = 1;
+            //joined = 1; This is not a real join ;)
+            rejoin_needed = 0;
+            // We set our flag...
+            tx_flags[ARR_INDEX] |= (1 << ARR_OFFSET);
+          }
 
           if (chaos_has_node_index) {
             merge_commit_merge_callback(rx_mc, tx_mc);
@@ -303,7 +304,11 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
           }
 
           // Join logic
-          tx |= join_merge(join_data_tx, join_data_rx);
+          uint8_t join_merge_delta = 0;
+          tx |= join_merge_data(join_data_tx, join_data_rx, &join_merge_delta);
+          if (join_merge_delta) {
+            delta_at_slot = slot_count;
+          }
 
           // Check if we should do the next phase!
           if (IS_INITIATOR()) {
@@ -325,20 +330,23 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
               // first add the nodes
               for (i = 0; i < join_data_tx->slot_count; i++) {
-                // TODO: This does not handle the chaos index 0!
-                if (!join_data_tx->indices[i] && join_data_tx->slots[i]) {
+                if (join_data_tx->slots[i]) {
                   int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
                   if (chaos_index >= 0) {
-                    //printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
+                    printf("Added node %d at index %d\n", join_data_tx->slots[i], chaos_index);
                     join_data_tx->indices[i] = chaos_index;
                     // remove the leave flag
                     tx_leaves[ARR_INDEX_X(chaos_index)] &= ~(1 << (ARR_OFFSET_X(chaos_index)));
                   } else {
                     join_data_tx->overflow |= 1;
-                    join_data_tx->slots[i] = 0; // reset the nodes will use index 0!
+                    join_data_tx->slots[i] = 0; // reset the node index, otherwise the nodes will use index 0!
                   }
                 }
               }
+
+              // Reset the rejoin index
+              tx_mc->rejoin_slot = 0;
+              tx_mc->rejoin_index = 0;
 
               // then remove every node that wants to leave
               for (i = 0; i < MAX_NODE_COUNT; ++i) {
@@ -369,21 +377,18 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
               tx = 1;
               leds_on(LEDS_GREEN);
-            } else {
-              // We check if there are any nodes that only want to rejoin! We need to do it here since we are waiting for their flags
+            } else if (join_merge_delta && !tx_mc->rejoin_slot) {
+              // We check if there are any nodes that only want to rejoin! We need to do it before the commit since we are waiting for their flags
               for (i = 0; i < join_data_tx->slot_count; i++) {
-                if( !join_data_tx->indices[i] && join_data_tx->slots[i] ){
-                  int chaos_index = join_get_index_for_node_id(join_data_tx->slots[i]);
+                node_id_t n = join_data_tx->slots[i];
+                if( n ){
+                  int chaos_index = join_get_index_for_node_id(n);
                   if (chaos_index >= 0) {
-                    //printf("Rejoined node %d at index %d\n", join_data_tx->slots[i], chaos_index);
-                    join_data_tx->indices[i] = chaos_index;
-                    join_data_tx->slot_filled_count++;
+                    printf("Rejoined node %d at index %d\n", n, chaos_index);
                     tx = 1;
-
-
-                    // TODO: WE NEED TO SORT HERE
-                    // AAAAAND We only need to check this, if there were changes in the slots!
-                     // And please recheck the slot merging...
+                    tx_mc->rejoin_slot = n;
+                    tx_mc->rejoin_index = chaos_index;
+                    break;
                   }
                 }
               }
@@ -414,6 +419,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
         // we are behind, check if we could join the network
         if( !chaos_has_node_index ){
           int i;
+          // We have to check all slots since they are not ordered any more
           for (i = 0; i < join_data_rx->slot_count; i++) {
             if (join_data_rx->slots[i] == node_id) {
               chaos_node_index = join_data_rx->indices[i];
