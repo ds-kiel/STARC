@@ -290,7 +290,6 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         }
     }
 
-
     private static void doChaosHandover(ChaosVehicle from, ChaosVehicle to) {
 
         // we swap everything, first the motes

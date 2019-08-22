@@ -138,7 +138,12 @@ abstract class BaseVehicle implements VehicleInterface {
                 int i = curWayPointIndex+1;
 
                 // minus 1 since we do not want the endpoint to be our direct target
-                while(i < waypoints.size()-Lane.STEPS_INTO_LANE) {
+                int max = waypoints.size();
+                // TODO: With the predecessor logic, we dont really need to do this anymore?
+                if (this.targetLane == null || !this.targetLane.isFinalEndLane()) {
+                    max -= Lane.STEPS_INTO_LANE;
+                }
+                while(i < max) {
                     Vector2D possWP = waypoints.get(i);
                     double dist = Vector2D.distance(Physics.closestPointOnLine(body.getCenter(), originDir, possWP), possWP);
                     if (dist < threshold) {
@@ -279,7 +284,7 @@ abstract class BaseVehicle implements VehicleInterface {
     protected void initLane(Lane lane) {
         Collection<Lane> possibleLanes = lane.getEndIntersection().getPossibleLanes(lane);
         // use random lane for now
-        // TODO: Use some planned path!
+        // TODO: Use some planned path through multiple intersections
         targetLane = possibleLanes.stream().skip((int) (possibleLanes.size() * World.RAND.nextFloat())).findAny().get();
 
         this.waypoints = lane.getWayPoints(targetLane);

@@ -17,7 +17,7 @@ public class Lane {
     protected Vector2D endPos;
     protected int endId;
 
-    public static final int STEPS_INTO_LANE = 1;
+    public static final int STEPS_INTO_LANE = 3;
 
     static final int DIR_UP = 0;
     static final int DIR_DOWN = 1;
@@ -131,10 +131,12 @@ public class Lane {
         if (getDirection() == targetLane.getDirection()) {
             // we will try to move straight
             // Move TILES_WIDTH+1 tiles straight
-            for(int i = 0; i <= 6; ++i) {
+            for(int i = 0; i < 6; ++i) {
                 p.add(dirStep);
                 waypoints.add(new Vector2D(p));
             }
+            // add step into the lane
+            p.add(dirStep);
         } else {
             // we compute the "intersection" points between our lane direction and the other one!
             // since we know that they are orthogonal, we can just use the closest point on line
@@ -149,16 +151,17 @@ public class Lane {
             dirStep.scale(Vanet.SCALE);
 
             // Move to the start of the lane
+            p.add(dirStep);
             while(Vector2D.distance(targetLane.getStartPos(), p) > 0.001*Vanet.SCALE) {
-                p.add(dirStep);
                 waypoints.add(new Vector2D(p));
+                p.add(dirStep);
             }
         }
 
         // add more waypoints into the lane
-        for(int i = 0; i < STEPS_INTO_LANE-1 ; ++i) {
-            p.add(dirStep);
+        for(int i = 0; i < STEPS_INTO_LANE ; ++i) {
             waypoints.add(new Vector2D(p));
+            p.add(dirStep);
         }
 
         return waypoints;

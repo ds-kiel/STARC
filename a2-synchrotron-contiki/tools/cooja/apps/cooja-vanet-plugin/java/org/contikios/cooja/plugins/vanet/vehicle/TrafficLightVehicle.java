@@ -16,8 +16,7 @@ public class TrafficLightVehicle extends BaseOrderVehicle {
     }
 
     /**
-     * One might wonder why this is declared here.
-     * The reason for this is to keep driving once we decided to go for it ;)
+     * Keep driving once we decided to go for it ;)
      */
     protected boolean driveThrough = false;
     protected boolean predecessorWasMoving = false;
@@ -107,44 +106,9 @@ public class TrafficLightVehicle extends BaseOrderVehicle {
         return state;
     }
 
-
-    @Override
-    public Vector2D getNextWaypoint() {
-        Vector2D originalWP = null;
-        Vector2D nextWP = null;
-
-        if (curWayPointIndex < waypoints.size()) {
-            originalWP = waypoints.get(curWayPointIndex);
-            nextWP = originalWP;
-
-            Vector2D originDir = Vector2D.diff(body.getCenter(), originalWP);
-
-            if (originDir.length() > 0) {
-                double threshold = 0.1 * Vanet.SCALE;
-                originDir.normalize();
-
-                int i = curWayPointIndex+1;
-
-                // minus 1 since we do not want the endpoint to be our direct target
-                while(i < waypoints.size()) {
-                    Vector2D possWP = waypoints.get(i);
-                    double dist = Vector2D.distance(Physics.closestPointOnLine(body.getCenter(), originDir, possWP), possWP);
-                    if (dist < threshold) {
-                        nextWP = possWP;
-                        ++i;
-                    } else {
-                        break;
-                    }
-                }
-            }
-        }
-        return nextWP;
-    }
-
     @Override
     protected void initLane(Lane lane) {
         super.initLane(lane);
-        waypoints.add(targetLane.getEndPos());
         driveThrough = false;
     }
 
