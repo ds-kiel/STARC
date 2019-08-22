@@ -237,12 +237,13 @@ static uint8_t  mc_complete = 0, mc_phase = 0;
 static uint16_t mc_off_slot;
 static uint16_t mc_round_count_local = 0;
 
+static uint16_t arrival_round = 0;
 
 static void set_own_priority(merge_commit_value_t *val) {
 
   // we need to check if we have a chaos node id
   if (!own_priority && chaos_has_node_index) {
-    own_priority = 0xFFFF-mc_round_count_local; // 0 is no reservation, 0xFFFF is for the ones in the intersection
+    own_priority = 0xFFFF-arrival_round; // 0 is no reservation, 0xFFFF is for the ones in the intersection
     if (own_priority == 0xFFFF) {
       own_priority = 0xFFFF-1;
     }
@@ -303,7 +304,9 @@ const uint8_t slots_per_msg = 50;
 #endif
 
 
-printf("CONFIG %d\n", join_get_config());
+//printf("CONFIG %d\n", join_get_config());
+
+    arrival_round = mc_round_count_local;
 
     if (mc_phase == PHASE_COMMIT) {
 
