@@ -82,6 +82,15 @@
 #define ROUND_START_FROM_SLOT(t_sfd_actual, slot_number, t_slot_length) \
 ((t_sfd_actual) - (slot_number) * ((t_slot_length)))
 
+
+#if CHAOS_DYNAMIC_INITIATOR
+  uint8_t chaos_is_initiator = 0;
+  void chaos_set_is_initiator(uint8_t v) {
+    chaos_is_initiator = v;
+  }
+#endif
+
+
 /* local state */
 /* allocate tx, rx packets as uint32_t arrays to guarantee alignment */
 static uint32_t tx_packet_32t[(RADIO_MAX_PACKET_LEN + 3)/ 4];

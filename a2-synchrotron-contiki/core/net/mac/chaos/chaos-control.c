@@ -374,6 +374,7 @@ PROCESS_THREAD(chaos_process, ev, data)
   chaos_pre_processing(NULL);
   COOJA_DEBUG_LINE();
 
+  IS_INITIATOR_INIT();
   // Pausse to give other proceses a chance to run before we initialize chaos
   PROCESS_PAUSE();
   printf("IS_INITIATOR %d\n", IS_INITIATOR());
