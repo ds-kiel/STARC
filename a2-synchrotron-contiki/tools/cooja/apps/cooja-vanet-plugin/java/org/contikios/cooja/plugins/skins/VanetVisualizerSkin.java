@@ -524,37 +524,31 @@ public class VanetVisualizerSkin implements VisualizerSkin {
         if (world != null) {
             VehicleInterface v = world.getVehicle(mote);
 
-            if (v != null) {
+            if (v == null || v.getState() != VehicleInterface.STATE_INIT) {
+                VarMemory moteMemory = new VarMemory(mote.getMemory());
 
-                if (v.getState() != VehicleInterface.STATE_INIT) {
-                    VarMemory moteMemory = new VarMemory(mote.getMemory());
+                try {
+                    byte isInitiator = moteMemory.getByteValueOf("chaos_is_initiator");
+                    byte hasNodeIndex = moteMemory.getByteValueOf("chaos_has_node_index");
 
-                    try {
-                        byte hasNodeIndex = moteMemory.getByteValueOf("chaos_has_node_index");
-
-                        if (hasNodeIndex != 0) {
-                            colors = new Color[1];
-                            colors[0] = Color.LIGHT_GRAY;
-                        }
-                    } catch (UnknownVariableException e) {
-                        //e.printStackTrace();
-                        // TODO check before trying to access the memory...
-                    }
-                } else {
-                    // Set color of unitinialized nodes
-                    //Color transparent = new Color(0,0,0,0);
-                    //colors = new Color[2];
-                    //colors[0] = transparent;
-                    //colors[1] = transparent;
-                }
-
-
-                // mark the cars for 10 secs
-                if (v.getBody() != null) {
-                    if (v.getBody().hasCollision(world.getCurrentMS()- 10 * 1000, world.getCurrentMS())) {
+                    if (isInitiator != 0) {
                         colors = new Color[1];
-                        colors[0] = Color.RED;
+                        colors[0] = Color.CYAN;
+                    } else if (hasNodeIndex != 0) {
+                        colors = new Color[1];
+                        colors[0] = Color.LIGHT_GRAY;
                     }
+                } catch (UnknownVariableException e) {
+                    //e.printStackTrace();
+                    // TODO check before trying to access the memory...
+                }
+            }
+
+            // mark the cars for 10 secs
+            if (v != null && v.getBody() != null) {
+                if (v.getBody().hasCollision(world.getCurrentMS()- 10 * 1000, world.getCurrentMS())) {
+                    colors = new Color[1];
+                    colors[0] = Color.RED;
                 }
             }
         }
