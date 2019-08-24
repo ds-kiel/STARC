@@ -68,6 +68,9 @@
 #define PHASE_MERGE 4
 #define PHASE_COMMIT 8
 
+#define TYPE_ELECTION_AND_HANDOVER 0
+#define TYPE_COORDINATION 1
+
 #ifndef MERGE_COMMIT_VALUE_STRUCT_CONTENT
 #define MERGE_COMMIT_VALUE_STRUCT_CONTENT uint32_t x;
 #endif
@@ -86,11 +89,23 @@ typedef struct __attribute__((packed)) {
 
 
 typedef struct __attribute__((packed)) {
-    join_data_t join_data;
-    merge_commit_value_t value;
+
+    union {
+        uint8_t control_flags;
+        struct{
+            uint8_t                 //control flags
+                    type :2,        // The type of the round, coordination or election
+                    phase :7;       // The current phase of the round
+        };
+    };
+
     node_id_t rejoin_slot; // a slot used by the initiator to issue a rejoin to the nodes before the actual commit
     node_index_t rejoin_index; // the associated index, TODO: Support multiple rejoins
-    uint8_t phase;
+    join_data_t join_data;
+    union {
+        node_id_t joined_nodes[MAX_NODE_COUNT];
+        merge_commit_value_t value;
+    };
     uint8_t flags_and_leaves[];
 } merge_commit_t;
 

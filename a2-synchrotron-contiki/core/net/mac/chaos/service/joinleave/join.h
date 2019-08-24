@@ -106,8 +106,8 @@ typedef struct __attribute__((packed)) {
 } join_node_map_entry_t;
 
 typedef struct __attribute__((packed)) {
+    uint16_t config;
     uint8_t node_count;
-    uint8_t config;
     union {
         uint8_t commit_field;
         struct{
