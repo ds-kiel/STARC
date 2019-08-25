@@ -525,7 +525,6 @@ static void mc_round_begin(const uint16_t round_count, const uint8_t id){
     chaos_multichannel_set_current_channel(wanted_channel);
   }
 
-  printf("Starting round with coord priority %x and election priority %x \n", mc_commited_value.priorities[chaos_node_index], own_priority);
   merge_commit_wanted_election_priority = own_priority;
 
   mc_complete = merge_commit_round_begin(round_count, id, &mc_commited_value, &mc_phase, &mc_type, &mc_flags);
