@@ -54,7 +54,7 @@ public class ChaosStatsHandler {
     }
 
     private void handleSlotsMsg(List<Byte> msg) {
-        final int sizePerSlot = 5;
+        final int sizePerSlot = 7;
 
         int msgSlots = msg.size() / sizePerSlot;
 
@@ -65,8 +65,10 @@ public class ChaosStatsHandler {
             int phase = Byte.toUnsignedInt(msg.remove(0));
             int has_node_index = Byte.toUnsignedInt(msg.remove(0));
             int node_index = Byte.toUnsignedInt(msg.remove(0));
+            int type = Byte.toUnsignedInt(msg.remove(0));
+            int isInitiator = Byte.toUnsignedInt(msg.remove(0));
 
-            String logMsg = String.format("%d, %d, %d, %d, %d, %d, %d",  round, receivedSlots, phase, node_count, flag_progress, has_node_index, node_index);
+            String logMsg = String.format("%d, %d, %d, %d, %d, %d, %d, %d, %d",  round, receivedSlots, phase, node_count, flag_progress, has_node_index, node_index, type, isInitiator);
             buffer.add(
                 logMsg
             );

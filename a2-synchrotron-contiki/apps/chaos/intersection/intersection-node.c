@@ -233,7 +233,7 @@ static merge_commit_value_t mc_value;
 static merge_commit_value_t mc_commited_value;
 static merge_commit_value_t mc_last_commited_value;
 static uint8_t* mc_flags;
-static uint8_t  mc_complete = 0, mc_phase = 0;
+static uint8_t  mc_complete = 0, mc_phase = 0, mc_type = 0;
 static uint16_t mc_off_slot;
 static uint16_t mc_round_count_local = 0;
 
@@ -308,7 +308,7 @@ const uint8_t slots_per_msg = 50;
 
     arrival_round = mc_round_count_local;
 
-    if (mc_phase == PHASE_COMMIT) {
+    if (mc_phase == PHASE_COMMIT && mc_type == TYPE_COORDINATION) {
 
       if (merge_commit_has_left()) {
         send_str("left");
@@ -504,9 +504,11 @@ PROCESS_THREAD(main_process, ev, data)
 
   // we initialize the chaos channel here!
 
-  if (IS_INITIATOR()) {
+  merge_commit_wanted_type = TYPE_COORDINATION; // all want to do normal coordination
+  if(node_id <= CHAOS_INITIATORS) {
     wanted_channel = 11+node_id-1;
     chaos_multichannel_set_current_channel(wanted_channel);
+    own_priority = 0;
   }
 
   process_start(&comm_process, NULL);
@@ -522,24 +524,15 @@ static void mc_round_begin(const uint16_t round_count, const uint8_t id){
     chaos_multichannel_set_current_channel(wanted_channel);
   }
 
-  printf("Starting round with priority %x\n", mc_commited_value.priorities[chaos_node_index]);
+  printf("Starting round with coord priority %x and election priority %x \n", mc_commited_value.priorities[chaos_node_index], own_priority);
+  merge_commit_wanted_election_priority = own_priority;
 
-  mc_complete = merge_commit_round_begin(round_count, id, &mc_commited_value, &mc_phase, &mc_flags);
+  mc_complete = merge_commit_round_begin(round_count, id, &mc_commited_value, &mc_phase, &mc_type, &mc_flags);
   mc_off_slot = merge_commit_get_off_slot();
   mc_round_count_local = round_count;
   process_poll(&mc_process);
 }
 
-
-int comp_node_with_priority (const void * a, const void * b)
-{
-  if (*(uint32_t*) a < *(uint32_t*) b) {
-    return -1;
-  } else {
-    // we don't care
-    return 1;
-  }
-}
 
 void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
 
@@ -600,40 +593,3 @@ void merge_commit_merge_callback(merge_commit_t* rx_mc, merge_commit_t* tx_mc) {
     time_diff = endTime-start;
   }*/
 }
-
-
-/* TODO Add test case
-
-  static char comm_test[100];
-
-  static char current_test = 0;// '?';
-  static char test_buf[sizeof(comm_test)];
-
-  // TODO: Add me as unit test!
-  static int test_size = 0;
-
-  while(1) {
-    //memset(comm_test, current_test, sizeof(comm_test));
-
-    int i = 0;
-    for(i = 0; i < sizeof(comm_test); ++i) {
-      comm_test[i] = rand() % 256;
-    }
-    test_size = rand() % (sizeof(comm_test)+1);
-
-
-    send_data(comm_test, test_size);
-
-    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message && data != NULL);
-
-        printf("received line: %d %s ", strlen((char *)data), (char *)data);
-        current_test++;
-
-    int size = decode_data(test_buf, (const char *) data);
-printf(" decoded %d  %d \n", size, sizeof(comm_test)  );
-
-if(!size == sizeof(comm_test) || memcmp(comm_test, test_buf, test_size)) {
-printf(" ERROR %d vs %d \n", comm_test[0], test_buf[0]);
-}
-  }
- */

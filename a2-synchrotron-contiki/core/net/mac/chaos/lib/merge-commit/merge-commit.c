@@ -148,6 +148,8 @@ static uint8_t joined, left, rejoin_needed, was_initiator = 0;
 
 static uint8_t join_masks[FLAGS_LEN];
 uint8_t merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE;
+uint8_t merge_commit_wanted_type = TYPE_UNKNOWN;
+uint8_t merge_commit_wanted_election_priority = 0;
 
 int merge_commit_get_flags_length() {
   return FLAGS_ESTIMATE;
@@ -181,6 +183,7 @@ inline void handle_advanced_stats(merge_commit_t *tx_mc, uint16_t slot_count) {
     slot_stats.node_count = chaos_node_count;
     slot_stats.phase = tx_mc->phase;
     slot_stats.type = tx_mc->type;
+    slot_stats.is_initiator = IS_INITIATOR();
 
     uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
     uint8_t i;
@@ -205,7 +208,7 @@ inline void force_rejoin(uint8_t* tx_flags, uint8_t* tx_leaves) {
     // if we are the initiator, we reset everything
     // if we are, then probably another initiator has commited without our knowledge
     if (IS_INITIATOR()) {
-      // TODO: implement me!
+      chaos_set_is_initiator(0);
       printf("Initiator is rejoining\n");
     }
 
@@ -286,8 +289,9 @@ inline uint8_t handle_rejoin(merge_commit_t* tx_mc, merge_commit_t* rx_mc) {
   return tx;
 }
 
-inline uint8_t initiator_try_rejoin_node(uint8_t *tx_mc, join_data_t* join_data_tx) {
+inline uint8_t initiator_try_rejoin_node(merge_commit_t *tx_mc, join_data_t* join_data_tx) {
   uint8_t tx = 0;
+  int i;
 
   if (IS_INITIATOR() && !tx_mc->rejoin_slot) {
     // We check if there are any nodes that only want to rejoin! We need to do it before the commit since we are waiting for their flags
@@ -309,7 +313,6 @@ inline uint8_t initiator_try_rejoin_node(uint8_t *tx_mc, join_data_t* join_data_
 }
 
 inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, merge_commit_t* tx_mc, merge_commit_t* rx_mc) {
-  // TODO: BEFORE COMMIT: if we have been elected, we set ourself as the new initiator (in the commit)
 
   uint8_t* tx_leaves = merge_commit_get_leaves(tx_mc);
   uint8_t* rx_leaves = merge_commit_get_leaves(rx_mc);
@@ -321,6 +324,21 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
   join_data_t* join_data_rx = &rx_mc->join_data;
 
   uint8_t tx = 0;
+
+
+  // we got a matching config and matching type, nice!
+  // we now convert our own round type if needed
+  if (tx_mc->type == TYPE_UNKNOWN) {
+    // in case of an election, we need to prepare things
+    // first we reset everything!
+    memset(&tx_mc->election, 0, MAX(sizeof(tx_mc->election), sizeof(tx_mc->value)));
+    tx_mc->type = TYPE_ELECTION_AND_HANDOVER;
+
+    if (chaos_has_node_index) {
+      tx_mc->election.leader_node_id = node_id;
+      tx_mc->election.priority = merge_commit_wanted_election_priority; // it is okay to set this here, because we set it once, wont be changed afterwards
+    }
+  }
 
   //be careful: do not mix the different phases
   if (tx_mc->phase == rx_mc->phase) {
@@ -334,58 +352,55 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
 
       tx |= handle_rejoin(tx_mc, rx_mc);
 
-      if (chaos_has_node_index) {
-        //TODO: IMPLEMENT ME
-      } else {
-        // we compare the new election value
-        //TODO: IMPLEMENT ME
-        //if (memcmp(&tx_mc->value, &rx_mc->value, sizeof(merge_commit_value_t)) != 0) {
-        //  memcpy(&tx_mc->value, &rx_mc->value, sizeof(merge_commit_value_t));
-        //  tx = 1;
-        //}
-      }
-
-      // Join logic, we need to to it for the rejoin
+      // Join logic, we need to do it for the rejoin
       uint8_t join_merge_delta = 0;
       tx |= join_merge_data(join_data_tx, join_data_rx, &join_merge_delta);
       if (join_merge_delta) {
         delta_at_slot = slot_count;
       }
 
-      if (IS_INITIATOR()) {
-        if (flags_complete &&
-            (slot_count >= MERGE_COMMIT_MAX_COMMIT_SLOT
-             || (COMMIT_THRESHOLD && delta_at_slot > 0 &&
-                 slot_count >= delta_at_slot + COMMIT_THRESHOLD))) {
-          //LEDS_ON(LEDS_RED);
-          memset(tx_flags, 0, merge_commit_get_flags_length());
-          tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
+      if (tx_mc->election.priority != rx_mc->election.priority) {
+        tx = 1;
+        if (tx_mc->election.priority < rx_mc->election.priority) {
+          tx_mc->election.priority = rx_mc->election.priority;
+          tx_mc->election.leader_node_id = rx_mc->election.leader_node_id;
+        } // else we keep our value ;)
+      } else if (tx_mc->election.leader_node_id < rx_mc->election.leader_node_id) {
+        tx = 1;
+        tx_mc->election.leader_node_id = rx_mc->election.leader_node_id;
+      }
 
-          // Next phase \o/
-          tx_mc->phase = PHASE_COMMIT;
-
-          uint8_t chaos_node_count_before_commit = chaos_node_count;
-
-          // Reset the rejoin index
-          tx_mc->rejoin_slot = 0;
-          tx_mc->rejoin_index = 0;
-
-          // we also need to update our join masks ;)
-          // TODO: Not really since they should not have changed
-          for (i = 0; i < FLAGS_LEN; i++) {
-            join_masks[i] |= ~tx_leaves[i];
-          }
-
-          //update phase and node_count
-          join_data_tx->node_count = chaos_node_count;
-          join_data_tx->commit = 1;
-
-          tx = 1;
-          leds_on(LEDS_GREEN);
-        } else if (join_merge_delta) {
-          // We check if there are any nodes that only want to rejoin! We need to do it before the commit since we are waiting for their flags
-          tx |= initiator_try_rejoin_node(tx_mc, join_data_tx);
+      uint8_t i = 0;
+      for(i = 0; i < MAX_NODE_COUNT; ++i) {
+        tx |= tx_mc->election.joined_nodes[i] != rx_mc->election.joined_nodes[i];
+        // copy slot to our joined nodes list, if
+        if (tx_mc->election.joined_nodes[i] == 0) {
+          tx_mc->election.joined_nodes[i] = rx_mc->election.joined_nodes[i];
         }
+      }
+
+      if (chaos_has_node_index && tx_mc->election.leader_node_id == node_id && flags_complete && tx_mc->election.joined_nodes[chaos_node_index] == node_id) {
+
+        printf("Commiting election\n");
+        chaos_set_is_initiator(1); // We are now the new initiator :) YEAH!
+        // We commit!
+        memset(tx_flags, 0, merge_commit_get_flags_length());
+        tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
+
+        // Next phase \o/
+        tx_mc->phase = PHASE_COMMIT;
+
+        // Reset the rejoin index
+        tx_mc->rejoin_slot = 0;
+        tx_mc->rejoin_index = 0;
+
+        join_data_tx->node_count = chaos_node_count;
+        join_data_tx->commit = 1;
+        tx = 1;
+        leds_on(LEDS_GREEN);
+      } else if (join_merge_delta) {
+        // We check if there are any nodes that only want to rejoin! We need to do it before the commit since we are waiting for their flags
+        tx |= initiator_try_rejoin_node(tx_mc, join_data_tx);
       }
     } else if (tx_mc->phase == PHASE_COMMIT) {
       if (flags_complete) {
@@ -403,18 +418,12 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
     }
   } else if (tx_mc->phase < rx_mc->phase) {
     // received phase is more advanced than local one -> switch to received state (and set own flags)
-    // TODO: COPY EVERYTHING
-    //memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_and_leaves_overall_length());
-    //WHAT ABOUT THIS? chaos_node_count = join_data_rx->node_count;
-
-    int i;
-    // we also need to update our join masks ;)
-    for(i = 0; i < FLAGS_LEN; i++) {
-      join_masks[i] |= ~tx_leaves[i];
+    memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_and_leaves_overall_length());
+    // mark our participation
+    if (chaos_has_node_index) {
+      tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
     }
-
     tx = 1;
-    //leds_on(LEDS_BLUE);
   } else {//tx_mc_pc->phase > rx_mc_pc->phase
     //local phase is more advanced. Drop received one and just transmit to allow others to catch up
     tx = 1;
@@ -437,6 +446,10 @@ inline uint8_t handle_coordination_round(uint16_t round_count, uint16_t slot_cou
 
   uint8_t tx = 0;
 
+  if (tx_mc->type == TYPE_UNKNOWN) {
+    tx_mc->type = TYPE_COORDINATION; // everything is already prepared :)
+  }
+
   //be careful: do not mix the different phases
   if (tx_mc->phase == rx_mc->phase) {
     // same phase
@@ -448,16 +461,7 @@ inline uint8_t handle_coordination_round(uint16_t round_count, uint16_t slot_cou
     if (tx_mc->phase == PHASE_MERGE) {
 
       tx |= handle_rejoin(tx_mc, rx_mc);
-
-      if (chaos_has_node_index) {
-        merge_commit_merge_callback(rx_mc, tx_mc);
-      } else {
-        // we compare the new commit value
-        if (memcmp(&tx_mc->value, &rx_mc->value, sizeof(merge_commit_value_t)) != 0) {
-          memcpy(&tx_mc->value, &rx_mc->value, sizeof(merge_commit_value_t));
-          tx = 1;
-        }
-      }
+      merge_commit_merge_callback(rx_mc, tx_mc);
 
       // Join logic, TODO: If the nodes wanting to join have higher ids, we might never have a node rejoined!
       // But: They could persist that they want to rejoin and set a flag, or use the rejoin slot(s) directly.
@@ -486,6 +490,7 @@ inline uint8_t handle_coordination_round(uint16_t round_count, uint16_t slot_cou
           uint8_t chaos_node_count_before_commit = chaos_node_count;
 
           // first add the nodes
+          int i;
           for (i = 0; i < join_data_tx->slot_count; i++) {
             if (join_data_tx->slots[i]) {
               int chaos_index = add_node(join_data_tx->slots[i], chaos_node_count_before_commit);
@@ -610,10 +615,7 @@ inline uint8_t handle_coordination_round(uint16_t round_count, uint16_t slot_cou
 inline uint8_t handle_received_packet(uint16_t round_count, uint16_t slot_count, merge_commit_t* tx_mc, merge_commit_t* rx_mc) {
 
   uint8_t* tx_leaves = merge_commit_get_leaves(tx_mc);
-  uint8_t* rx_leaves = merge_commit_get_leaves(rx_mc);
-
   uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
-  uint8_t* rx_flags = merge_commit_get_flags(rx_mc);
 
   join_data_t* join_data_tx = &tx_mc->join_data;
   join_data_t* join_data_rx = &rx_mc->join_data;
@@ -621,7 +623,8 @@ inline uint8_t handle_received_packet(uint16_t round_count, uint16_t slot_count,
   uint8_t tx = 0;
 
   // we now check if the transmitted join config and round type matches with ours
-  if (join_get_config() < join_data_rx->config || tx_mc->type < rx_mc->type ) {
+  // we also need to rejoin, in case that we have overriden our coordination data with election data
+  if (join_get_config() < join_data_rx->config || (tx_mc->type != TYPE_UNKNOWN  && tx_mc->type < rx_mc->type)) {
     printf("Configuration mismatch mine: %d, theirs: %d\n", join_get_config(), join_data_rx->config);
     // we force a rejoin and also reset the flags in our packet
     force_rejoin(tx_flags, tx_leaves);
@@ -632,15 +635,15 @@ inline uint8_t handle_received_packet(uint16_t round_count, uint16_t slot_count,
 
     memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_and_leaves_overall_length());
     tx = 1;
-  } else if (join_get_config() > join_data_rx->config || tx_mc->type < rx_mc->type) {
+  } else if (join_get_config() > join_data_rx->config || rx_mc->type < tx_mc->type) {
     // the received package is old
     tx = 1; // ignore it and retransmit!
   } else {
-    // we got a matching config and matching type, nice!
-    if (tx_mc->type == TYPE_ELECTION_AND_HANDOVER) {
+
+    if (rx_mc->type == TYPE_ELECTION_AND_HANDOVER) {
       tx = handle_election_round(round_count, slot_count, tx_mc, rx_mc);
     } else {
-      tx = handle_coordination_round(round_count, slot_count, tx_mc, rx_mc)
+      tx = handle_coordination_round(round_count, slot_count, tx_mc, rx_mc);
     }
   }
   return tx;
@@ -650,15 +653,11 @@ static chaos_state_t
 process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, int chaos_txrx_success, size_t payload_length, uint8_t* rx_payload, uint8_t* tx_payload, uint8_t** app_flags)
 {
 
-  //int start = RTIMER_NOW();
+  LEDS_ON(LEDS_RED);
   merge_commit_t* tx_mc = (merge_commit_t*)tx_payload;
   merge_commit_t* rx_mc = (merge_commit_t*)rx_payload;
 
   chaos_state_t next_state = CHAOS_RX;
-
-  /* the application reports a packet coming from the initiator, so we can synchronize on it;
-  * e.g., we got a phase transition that only the initiator can issue */
-  int request_sync = 0;
 
   if( IS_INITIATOR() && current_state == CHAOS_INIT ){
     next_state = CHAOS_TX; //for the first tx of the initiator: no increase of tx_count here
@@ -669,6 +668,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
     // check if the transmission was successful
     if (chaos_txrx_success) {
       got_valid_rx = 1;
+
       uint8_t tx = handle_received_packet(round_count, slot_count, tx_mc, rx_mc);
       if(tx){
         next_state = CHAOS_TX;
@@ -707,17 +707,17 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
     tx_flags_final = tx_mc->flags_and_leaves;
     off_slot = slot_count;
 
+    // check what has changed, maybe the initator changed?
+    if (!IS_INITIATOR() && was_initiator) {
+      // cleanup our lists!
+      memset(&joined_nodes, 0, sizeof(joined_nodes));
+    } else if (IS_INITIATOR() && !was_initiator && tx_mc->type == TYPE_ELECTION_AND_HANDOVER) {
+      // we are the new initiator. Nice!
+      // copy everything to our chaos list
+      memcpy(&joined_nodes, tx_mc->election.joined_nodes, sizeof(joined_nodes));
+    }
 
-
-    if (IS_INITIATOR()) {
-
-      // TODO: Check here if this was type handover
-      // if it was commited, we remove ourself as the initiator
-      // otherwise Caution: we can not change back to coordination round on our own
-      // if we are still the initiator, no problem -> just start the coordination round ;)
-      // TODO: Let the central node do elections only! as soon as another vehicle or more come,
-      // they should be joined and elected in the next round!
-
+    if (IS_INITIATOR() || was_initiator) {
       //sort joined_nodes_map to speed up search (to enable the use of binary search) when adding new nodes
       join_reset_nodes_map();
       join_init_free_slots();
@@ -735,6 +735,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
 
   /* Advanced statistics */
   handle_advanced_stats(tx_mc, slot_count);
+  LEDS_OFF(LEDS_RED);
   return next_state;
 }
 
@@ -750,8 +751,9 @@ uint16_t merge_commit_get_off_slot(){
   return off_slot;
 }
 
-int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, merge_commit_value_t* merge_commit_value, uint8_t* phase, uint8_t** final_flags)
+int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, merge_commit_value_t* merge_commit_value, uint8_t* phase, uint8_t* type, uint8_t** final_flags)
 {
+  LEDS_ON(LEDS_RED);
   did_tx = 0;
   has_initial_join_masks = 0;
   got_valid_rx = 0;
@@ -777,8 +779,40 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   restart_threshold = chaos_random_generator_fast() % (CHAOS_RESTART_MAX - CHAOS_RESTART_MIN) + CHAOS_RESTART_MIN;
 
   memset(&mc_local, 0, sizeof(mc_local));
-  memcpy(&mc_local.mc.value, merge_commit_value, sizeof(merge_commit_value_t));
-  mc_local.mc.phase = PHASE_MERGE;
+  mc_local.mc.phase = PHASE_MERGE; // valid for both the election and coordination
+
+  // we never want an unknown type
+  if (merge_commit_wanted_type != TYPE_COORDINATION && merge_commit_wanted_type != TYPE_ELECTION_AND_HANDOVER) {
+     merge_commit_wanted_type = TYPE_COORDINATION;
+  }
+
+  if (IS_INITIATOR()) {
+
+    if(merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE) {
+      mc_local.mc.type = TYPE_ELECTION_AND_HANDOVER; // We need to do a handover before we can leave!
+    } else {
+      mc_local.mc.type = merge_commit_wanted_type;
+    }
+    printf("Starting round %d\n", mc_local.mc.type);
+  } else {
+    mc_local.mc.type == TYPE_UNKNOWN; // only the initiator may init the type ;)
+  }
+
+  // but not sure which type yet
+  if (chaos_has_node_index && (mc_local.mc.type == TYPE_UNKNOWN || mc_local.mc.type == TYPE_COORDINATION)) {
+    // We prepare for the coordination round :)
+    memcpy(&mc_local.mc.value, merge_commit_value, sizeof(merge_commit_value_t));
+  } else if(mc_local.mc.type == TYPE_ELECTION_AND_HANDOVER) {
+
+    // we save the priority
+    mc_local.mc.election.leader_node_id = node_id;
+    mc_local.mc.election.priority = merge_commit_wanted_election_priority;
+
+    // and we copy the chaos node list, if we think we are the initiator
+    if (IS_INITIATOR()) {
+      memcpy(&mc_local.mc.election.joined_nodes, joined_nodes, sizeof(joined_nodes));
+    }
+  }
 
 
   // initialize the masks
@@ -833,12 +867,14 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
     }
   }
 
+  LEDS_OFF(LEDS_RED);
   chaos_round(round_number, app_id, (const uint8_t const*)&mc_local, sizeof(mc_local.mc) + merge_commit_get_flags_and_leaves_overall_length(), MERGE_COMMIT_SLOT_LEN_DCO, MERGE_COMMIT_ROUND_MAX_SLOTS, merge_commit_get_flags_length(), process);
   memcpy(&mc_local.mc.flags_and_leaves, tx_flags_final, merge_commit_get_flags_and_leaves_overall_length());
 
   memcpy(merge_commit_value, &mc_local.mc.value, sizeof(merge_commit_value_t));
   *final_flags = mc_local.flags_and_leaves;
   *phase = mc_local.mc.phase;
+  *type = mc_local.mc.type;
   return completion_slot;
 }
 

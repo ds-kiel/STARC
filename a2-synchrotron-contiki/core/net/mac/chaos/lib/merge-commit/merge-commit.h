@@ -68,8 +68,9 @@
 #define PHASE_MERGE 4
 #define PHASE_COMMIT 8
 
-#define TYPE_ELECTION_AND_HANDOVER 0
-#define TYPE_COORDINATION 1
+#define TYPE_UNKNOWN 0
+#define TYPE_ELECTION_AND_HANDOVER 1
+#define TYPE_COORDINATION 2
 
 #ifndef MERGE_COMMIT_VALUE_STRUCT_CONTENT
 #define MERGE_COMMIT_VALUE_STRUCT_CONTENT uint32_t x;
@@ -87,6 +88,12 @@ typedef struct __attribute__((packed)) {
     MERGE_COMMIT_VALUE_STRUCT_CONTENT
 } merge_commit_value_t;
 
+typedef struct __attribute__((packed)) {
+  node_id_t leader_node_id;
+  uint16_t  priority;
+  node_id_t joined_nodes[MAX_NODE_COUNT];
+} merge_commit_election_t;
+
 
 typedef struct __attribute__((packed)) {
 
@@ -103,7 +110,7 @@ typedef struct __attribute__((packed)) {
     node_index_t rejoin_index; // the associated index, TODO: Support multiple rejoins
     join_data_t join_data;
     union {
-        node_id_t joined_nodes[MAX_NODE_COUNT];
+        merge_commit_election_t election;
         merge_commit_value_t value;
     };
     uint8_t flags_and_leaves[];
@@ -115,8 +122,10 @@ typedef struct __attribute__((packed)) {
 #define MERGE_COMMIT_WANTED_JOIN_STATE_JOIN 1
 
 extern uint8_t merge_commit_wanted_join_state;
+extern uint8_t merge_commit_wanted_type;
+extern uint8_t merge_commit_wanted_election_priority;
 
-int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, merge_commit_value_t* merge_commit_value, uint8_t* phase, uint8_t** final_flags);
+int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, merge_commit_value_t* merge_commit_value, uint8_t* phase, uint8_t* type, uint8_t** final_flags);
 
 int merge_commit_is_pending(const uint16_t round_count);
 
@@ -132,7 +141,6 @@ int merge_commit_agreed();
 int merge_commit_did_tx();
 
 
-
 #if MERGE_COMMIT_ADVANCED_STATS
 
 typedef struct __attribute__((packed)) {
@@ -142,6 +150,7 @@ typedef struct __attribute__((packed)) {
   uint8_t has_node_index;
   uint8_t node_index;
   uint8_t type; // TODO: We could add this to the phase to save some space
+  uint8_t is_initiator; // TODO: We could add this to the phase to save some space
   //  num_reservations??!?
   //  num_joins ?
   //  num_leaves ?
