@@ -421,6 +421,14 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
     if (chaos_has_node_index) {
       tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
     }
+
+    if (IS_INITIATOR() && tx_mc->election.leader_node_id != node_id) {
+      // Whoops! Seems like another one just got the lead ;)
+      // So we will remove ourself as the leader...
+      chaos_set_is_initiator(0);
+    }
+
+
     tx = 1;
   } else {//tx_mc_pc->phase > rx_mc_pc->phase
     //local phase is more advanced. Drop received one and just transmit to allow others to catch up
@@ -640,7 +648,6 @@ inline uint8_t handle_received_packet(uint16_t round_count, uint16_t slot_count,
     // the received package is old
     tx = 1; // ignore it and retransmit!
   } else {
-
     if (rx_mc->type == TYPE_ELECTION_AND_HANDOVER) {
       tx = handle_election_round(round_count, slot_count, tx_mc, rx_mc);
     } else {
@@ -711,11 +718,13 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
     // check what has changed, maybe the initator changed?
     if (!IS_INITIATOR() && was_initiator) {
       // cleanup our lists!
+      chaos_node_count = 0;
       memset(&joined_nodes, 0, sizeof(joined_nodes));
     } else if (IS_INITIATOR() && !was_initiator && tx_mc->type == TYPE_ELECTION_AND_HANDOVER) {
       // we are the new initiator. Nice!
       // copy everything to our chaos list
       memcpy(&joined_nodes, tx_mc->election.joined_nodes, sizeof(joined_nodes));
+      printf("DEBUG I AM THE NEW INITIATOR\n");
     }
 
     if (IS_INITIATOR() || was_initiator) {
@@ -793,6 +802,7 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
     } else {
       mc_local.mc.type = merge_commit_wanted_type;
     }
+    printf("DEBUG starting %d\n", mc_local.mc.type);
   } else {
     mc_local.mc.type == TYPE_UNKNOWN; // only the initiator may init the type ;)
   }

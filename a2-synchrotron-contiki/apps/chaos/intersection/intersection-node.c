@@ -304,55 +304,66 @@ const uint8_t slots_per_msg = 50;
 #endif
 
 
-//printf("CONFIG %d\n", join_get_config());
+    if(node_id <= CHAOS_INITIATORS) {
 
-    arrival_round = mc_round_count_local;
-
-    if (mc_phase == PHASE_COMMIT && mc_type == TYPE_COORDINATION) {
-
-      if (merge_commit_has_left()) {
-        send_str("left");
-      } else if (merge_commit_has_joined()) {
-        printf("#VANET joined");
-        uint8_t tmp = (chaos_node_index)&0xFF;
-        send_data_part((char*)&tmp, 1);
-        putchar('\n');
+      printf("After round num: %d, wanted: %d\n", chaos_node_count, merge_commit_wanted_type);
+      if (chaos_node_count > 1) {
+        // as soon as the central node is initiator and multiple nodes are in the network, it will try to do a handover...
+        merge_commit_wanted_type = TYPE_ELECTION_AND_HANDOVER;
+      } else {
+        merge_commit_wanted_type = TYPE_COORDINATION;
       }
 
+    } else {
+      arrival_round = mc_round_count_local;
+      if (mc_phase == PHASE_COMMIT && mc_type == TYPE_COORDINATION) {
 
-      if(chaos_has_node_index){
-        printf("Commit completed\n");
-        printf("OFFSLOT: %d\n", mc_off_slot);
+        if (merge_commit_has_left()) {
+          send_str("left");
+        } else if (merge_commit_has_joined()) {
+          printf("#VANET joined");
+          uint8_t tmp = (chaos_node_index)&0xFF;
+          send_data_part((char*)&tmp, 1);
+          putchar('\n');
+        }
 
-        printf("own reserv.size %d\n", own_reservation.size);
 
-        //print_tiles(&mc_commited_value);
+        if(chaos_has_node_index){
+          printf("Commit completed\n");
+          printf("OFFSLOT: %d\n", mc_off_slot);
 
-        // Set latest known commit value
-        memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
+          printf("own reserv.size %d\n", own_reservation.size);
 
-        if (path_is_reserved(&mc_commited_value, &own_reservation, chaos_node_index+1)) {
-          own_priority = 0xFFFF; // we do not want that any other node intercepts our request...
-          set_own_priority(&mc_value); // we need to set this!
-          send_str("accepted"); // ack the new reservation
-          printf("Node id %d was accepted\n", node_id);
-        } else if (own_reservation.size > 0 && !path_is_reserved(&mc_value, &own_reservation, chaos_node_index+1)){
-          // TODO: At this point, we really just want to find ANY way ;)
-          // Add this with a parameter
-          if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1)) {
-            reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
-            set_own_priority(&mc_value);
-            printf("Try to reserve path with priority %x: \n", own_priority);
-            //print_tiles(&mc_value);
+          //print_tiles(&mc_commited_value);
+
+          // Set latest known commit value
+          memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
+
+          if (path_is_reserved(&mc_commited_value, &own_reservation, chaos_node_index+1)) {
+            own_priority = 0xFFFF; // we do not want that any other node intercepts our request...
+            set_own_priority(&mc_value); // we need to set this!
+            send_str("accepted"); // ack the new reservation
+            printf("Node id %d was accepted\n", node_id);
+          } else if (own_reservation.size > 0 && !path_is_reserved(&mc_value, &own_reservation, chaos_node_index+1)){
+            // TODO: At this point, we really just want to find ANY way ;)
+            // Add this with a parameter
+            if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1)) {
+              reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
+              set_own_priority(&mc_value);
+              printf("Try to reserve path with priority %x: \n", own_priority);
+              //print_tiles(&mc_value);
+            }
           }
+        } else {
+          // we are not part of the network
+          printf("{rd %u res} mc: waiting to join, n: %u\n", mc_round_count_local, chaos_node_count);
         }
       } else {
-        // we are not part of the network
-        printf("{rd %u res} mc: waiting to join, n: %u\n", mc_round_count_local, chaos_node_count);
+          printf("Commit NOT completed\n");
       }
-    } else {
-        printf("Commit NOT completed\n");
     }
+
+
 
     // Notify round end to simulation, to be able to remove vehicles...
     send_str("round_end");
@@ -508,7 +519,7 @@ PROCESS_THREAD(main_process, ev, data)
   if(node_id <= CHAOS_INITIATORS) {
     wanted_channel = 11+node_id-1;
     chaos_multichannel_set_current_channel(wanted_channel);
-    own_priority = 0;
+    own_priority = 0xFFFF; // The election property is the min of that, so we set this as high as possible
     merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_JOIN; // they want to be always part of the network
   }
 
@@ -525,7 +536,7 @@ static void mc_round_begin(const uint16_t round_count, const uint8_t id){
     chaos_multichannel_set_current_channel(wanted_channel);
   }
 
-  merge_commit_wanted_election_priority = own_priority;
+  merge_commit_wanted_election_priority = 0xFFFF-own_priority;
 
   mc_complete = merge_commit_round_begin(round_count, id, &mc_commited_value, &mc_phase, &mc_type, &mc_flags);
   mc_off_slot = merge_commit_get_off_slot();
