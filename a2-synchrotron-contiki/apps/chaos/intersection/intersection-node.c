@@ -509,6 +509,7 @@ PROCESS_THREAD(main_process, ev, data)
     wanted_channel = 11+node_id-1;
     chaos_multichannel_set_current_channel(wanted_channel);
     own_priority = 0;
+    merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_JOIN; // they want to be always part of the network
   }
 
   process_start(&comm_process, NULL);
