@@ -209,7 +209,6 @@ inline void force_rejoin(uint8_t* tx_flags, uint8_t* tx_leaves) {
     // if we are, then probably another initiator has commited without our knowledge
     if (IS_INITIATOR()) {
       chaos_set_is_initiator(0);
-      printf("Initiator is rejoining\n");
     }
 
     // BUT we have to clear the flags...
@@ -225,7 +224,7 @@ inline void force_rejoin(uint8_t* tx_flags, uint8_t* tx_leaves) {
 }
 
 
-inline uint8_t merge_flags(uint8_t* tx_flags,uint8_t* tx_leaves, uint8_t* rx_flags, uint8_t* rx_leaves,
+inline uint8_t merge_flags(uint8_t* tx_flags, uint8_t* tx_leaves, uint8_t* rx_flags, uint8_t* rx_leaves,
                           uint8_t *flags_complete_ref, uint8_t *rx_complete_ref) {
   int i;
   uint8_t rx_complete = 1;
@@ -381,7 +380,6 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
 
       if (chaos_has_node_index && tx_mc->election.leader_node_id == node_id && flags_complete && tx_mc->election.joined_nodes[chaos_node_index] == node_id) {
 
-        printf("Commiting election\n");
         chaos_set_is_initiator(1); // We are now the new initiator :) YEAH!
         // We commit!
         memset(tx_flags, 0, merge_commit_get_flags_length());
@@ -435,6 +433,7 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
 
 inline uint8_t handle_coordination_round(uint16_t round_count, uint16_t slot_count, merge_commit_t* tx_mc, merge_commit_t* rx_mc) {
 
+
   uint8_t* tx_leaves = merge_commit_get_leaves(tx_mc);
   uint8_t* rx_leaves = merge_commit_get_leaves(rx_mc);
 
@@ -473,6 +472,8 @@ inline uint8_t handle_coordination_round(uint16_t round_count, uint16_t slot_cou
       }
 
       if (IS_INITIATOR()) {
+
+
         if (flags_complete &&
             (slot_count >= MERGE_COMMIT_MAX_COMMIT_SLOT
              || (COMMIT_THRESHOLD && delta_at_slot > 0 &&
@@ -668,7 +669,6 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
     // check if the transmission was successful
     if (chaos_txrx_success) {
       got_valid_rx = 1;
-
       uint8_t tx = handle_received_packet(round_count, slot_count, tx_mc, rx_mc);
       if(tx){
         next_state = CHAOS_TX;
@@ -704,6 +704,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
   if(end){
     memcpy(&mc_local.mc.value, &tx_mc->value, sizeof(merge_commit_value_t));
     mc_local.mc.phase = tx_mc->phase;
+    mc_local.mc.type = tx_mc->type;
     tx_flags_final = tx_mc->flags_and_leaves;
     off_slot = slot_count;
 
@@ -787,13 +788,11 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   }
 
   if (IS_INITIATOR()) {
-
     if(merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE) {
       mc_local.mc.type = TYPE_ELECTION_AND_HANDOVER; // We need to do a handover before we can leave!
     } else {
       mc_local.mc.type = merge_commit_wanted_type;
     }
-    printf("Starting round %d\n", mc_local.mc.type);
   } else {
     mc_local.mc.type == TYPE_UNKNOWN; // only the initiator may init the type ;)
   }
@@ -827,11 +826,8 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
     /* set my flag */
     uint8_t* flags = merge_commit_get_flags(&mc_local.mc);
     flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
-
-    if (IS_INITIATOR()) {
-      mc_local.mc.join_data.config = join_get_config(); // set initial join configuration
-    }
   }
+  mc_local.mc.join_data.config = join_get_config(); // set initial join configuration
 
   uint8_t* leaves = merge_commit_get_leaves(&mc_local.mc);
 
@@ -875,6 +871,7 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   *final_flags = mc_local.flags_and_leaves;
   *phase = mc_local.mc.phase;
   *type = mc_local.mc.type;
+
   return completion_slot;
 }
 
