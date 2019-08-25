@@ -262,7 +262,7 @@ PROCESS_BEGIN();
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
 
-#ifdef MERGE_COMMIT_ADVANCED_STATS
+#if MERGE_COMMIT_ADVANCED_STATS
 
 const uint8_t slots_per_msg = 50;
   // Start Message
