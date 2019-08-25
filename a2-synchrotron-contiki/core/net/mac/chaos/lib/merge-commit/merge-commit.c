@@ -364,7 +364,7 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
           tx_mc->election.priority = rx_mc->election.priority;
           tx_mc->election.leader_node_id = rx_mc->election.leader_node_id;
         } // else we keep our value ;)
-      } else if (tx_mc->election.leader_node_id < rx_mc->election.leader_node_id) {
+      } else if (tx_mc->election.leader_node_id > rx_mc->election.leader_node_id) {
         tx = 1;
         tx_mc->election.leader_node_id = rx_mc->election.leader_node_id;
       }

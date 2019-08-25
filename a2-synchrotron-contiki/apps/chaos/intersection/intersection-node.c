@@ -307,8 +307,9 @@ const uint8_t slots_per_msg = 50;
     if(node_id <= CHAOS_INITIATORS) {
 
       printf("After round num: %d, wanted: %d\n", chaos_node_count, merge_commit_wanted_type);
-      if (chaos_node_count > 1) {
+      if (chaos_node_count > 1 && !(mc_phase == PHASE_COMMIT && mc_type == TYPE_ELECTION_AND_HANDOVER)) {
         // as soon as the central node is initiator and multiple nodes are in the network, it will try to do a handover...
+        // but we dont force it... in case, we just did a handover commit, we run a coordination round next
         merge_commit_wanted_type = TYPE_ELECTION_AND_HANDOVER;
       } else {
         merge_commit_wanted_type = TYPE_COORDINATION;
@@ -519,7 +520,7 @@ PROCESS_THREAD(main_process, ev, data)
   if(node_id <= CHAOS_INITIATORS) {
     wanted_channel = 11+node_id-1;
     chaos_multichannel_set_current_channel(wanted_channel);
-    own_priority = 0xFFFF; // The election property is the min of that, so we set this as high as possible
+    own_priority = 0xFFFE; // The election property is the min of that, so we set this as high as possible, but lower than passing vehicles...
     merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_JOIN; // they want to be always part of the network
   }
 
