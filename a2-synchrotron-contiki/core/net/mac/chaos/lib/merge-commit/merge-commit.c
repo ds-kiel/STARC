@@ -633,25 +633,41 @@ inline uint8_t handle_received_packet(uint16_t round_count, uint16_t slot_count,
 
   // we now check if the transmitted join config and round type matches with ours
   // we also need to rejoin, in case that we have overriden our coordination data with election data
-  if (join_get_config() < join_data_rx->config || (tx_mc->type != TYPE_UNKNOWN  && tx_mc->type < rx_mc->type)) {
+  // But: if we were elected, we cant rejoin, since we are the initiator now...
+  if (join_get_config() < join_data_rx->config) {
     printf("Configuration mismatch mine: %d, theirs: %d\n", join_get_config(), join_data_rx->config);
     // we force a rejoin and also reset the flags in our packet
     force_rejoin(tx_flags, tx_leaves);
     // after mismatch and rejoin, we can use the new config value too
     join_set_config(join_data_rx->config);
     join_data_tx->config = join_get_config();
-    // since our whole packet may be invalid, we copy everything from the received one!
 
+    // since our whole packet may be invalid, we copy everything from the received one!
     memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_and_leaves_overall_length());
     tx = 1;
-  } else if (join_get_config() > join_data_rx->config || rx_mc->type < tx_mc->type) {
-    // the received package is old
-    tx = 1; // ignore it and retransmit!
+  } else if (join_get_config() > join_data_rx->config) {
+    tx = 1; // ignore packet, it is outdated
   } else {
-    if (rx_mc->type == TYPE_ELECTION_AND_HANDOVER) {
-      tx = handle_election_round(round_count, slot_count, tx_mc, rx_mc);
+    // configuration is correct
+    if (tx_mc->type == TYPE_ELECTION_AND_HANDOVER && rx_mc->type == TYPE_COORDINATION) {
+      // the newly elected initiator ignores all coordination packets, while in its election round
+      if (!was_initiator && IS_INITIATOR()) {
+        tx = 1;
+      } else {
+        tx = 1;
+        // all other nodes will switch from election to handover, but they don't participate directly (since they have overriden their value)
+        memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_and_leaves_overall_length());
+      }
+    } else if (tx_mc->type == TYPE_COORDINATION && rx_mc->type == TYPE_ELECTION_AND_HANDOVER) {
+      // the received package is old (configs were already checked)
+      tx = 1; // ignore it and retransmit!
     } else {
-      tx = handle_coordination_round(round_count, slot_count, tx_mc, rx_mc);
+      // in this case, our own typ is either the same as the receied one, or unknown :)
+      if (rx_mc->type == TYPE_ELECTION_AND_HANDOVER) {
+        tx = handle_election_round(round_count, slot_count, tx_mc, rx_mc);
+      } else {
+        tx = handle_coordination_round(round_count, slot_count, tx_mc, rx_mc);
+      }
     }
   }
   return tx;
