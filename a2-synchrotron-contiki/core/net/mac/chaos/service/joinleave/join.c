@@ -358,6 +358,7 @@ void join_reset_nodes_map() {
       map_count++;
     }
   }
+  chaos_node_count = map_count;
 
   join_do_sort_joined_nodes_map();
 }

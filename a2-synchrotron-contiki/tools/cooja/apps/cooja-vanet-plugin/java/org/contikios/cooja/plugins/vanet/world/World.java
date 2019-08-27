@@ -51,35 +51,13 @@ public class World {
         this.physics = new Physics();
         this.transportNetwork = new TransportNetwork(networkWidth, networkHeight, intersectionType);
         this.vehicleManager = new VehicleManager(this, intersectionType);
-        this.idGenerator = new IDGenerator(1, (2^16)-1);
+        this.idGenerator = new IDGenerator(1, 2^16);
 
         this.leftTurnRate = leftTurnRate;
         this.rightTurnRate = rightTurnRate;
 
-        // TODO: This is implementation specific
         // we remove all nodes
         Arrays.stream(simulation.getMotes()).forEach(simulation::removeMote);
-        // we place the initial nodes onto the intersections
-
-        if (intersectionType == TransportNetwork.INTERSECTION_TYPE_DECENTRALIZED) {
-            placeInitiators();
-        }
-    }
-
-    protected void placeInitiators() {
-
-        this.getTransportNetwork().getIntersections().forEach(
-                i -> {
-                    Mote m = initiatorMoteType.generateMote(simulation);
-                    Integer id = idGenerator.next();
-                    if (id != null) {
-                        Vector2D c = i.getCenter();
-                        m.getInterfaces().getMoteID().setMoteID(id);
-                        m.getInterfaces().getPosition().setCoordinates(c.getX(), c.getY(), 0);
-                        simulation.addMote(m);
-                    }
-                }
-        );
     }
 
     public TiledMapHandler getMapHandler() {
@@ -158,10 +136,13 @@ public class World {
         for (int i = 0; i < wanted; ++i) {
             Mote m = vehicleMoteType.generateMote(simulation);
             Integer id = idGenerator.next();
+            System.out.println(id);
             if (id != null) {
                 m.getInterfaces().getMoteID().setMoteID(id);
                 initVehicle(m);
                 simulation.addMote(m);
+            } else {
+                break; // no free ids yet
             }
         }
     }

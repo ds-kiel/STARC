@@ -364,7 +364,10 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
           tx_mc->election.priority = rx_mc->election.priority;
           tx_mc->election.leader_node_id = rx_mc->election.leader_node_id;
         } // else we keep our value ;)
-      } else if (tx_mc->election.leader_node_id > rx_mc->election.leader_node_id) {
+      } else if (tx_mc->election.leader_node_id < rx_mc->election.leader_node_id) {
+        // we need to use the highest here, otherwise node id 0 would be elected :)
+        // If we want to use the lowest id, then we will also have to copy
+        // the leader_node_id and priority when initializing the election packet
         tx = 1;
         tx_mc->election.leader_node_id = rx_mc->election.leader_node_id;
       }
@@ -378,9 +381,15 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
         }
       }
 
+      //printf("checking %d, %d\n",node_id, tx_mc->election.leader_node_id);
       if (chaos_has_node_index && tx_mc->election.leader_node_id == node_id && flags_complete && tx_mc->election.joined_nodes[chaos_node_index] == node_id) {
 
+        //printf("DEBUG I AM THE NEW INITIATOR\n");
         chaos_set_is_initiator(1); // We are now the new initiator :) YEAH!
+
+        // copy everything to our chaos list
+        memcpy(&joined_nodes, tx_mc->election.joined_nodes, sizeof(joined_nodes));
+
         // We commit!
         memset(tx_flags, 0, merge_commit_get_flags_length());
         tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
@@ -391,6 +400,26 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
         // Reset the rejoin index
         tx_mc->rejoin_slot = 0;
         tx_mc->rejoin_index = 0;
+
+        // then remove every node that wants to leave
+        // BUT: Not our own ;)
+        tx_leaves[ARR_INDEX] &= ~(1 << (ARR_OFFSET));
+        for (i = 0; i < MAX_NODE_COUNT; ++i) {
+          node_id_t nid = joined_nodes[i];
+
+          //printf("leaves check  %d %d %d (%d, %d) %d\n", i, nid, (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) == 0, ARR_INDEX_X(i), ARR_OFFSET_X(i), tx_leaves[ARR_INDEX_X(i)]);
+
+          if (nid != 0) {
+            // check if node wants to leave
+
+            if (tx_leaves[ARR_INDEX_X(i)] & (1 << (ARR_OFFSET_X(i)))) {
+              // node has left! -> remove it
+              //printf("Removing node %d with index %d\n", nid, i);
+              joined_nodes[i] = 0;
+              chaos_node_count--;
+            }
+          }
+        }
 
         join_data_tx->node_count = chaos_node_count;
         join_data_tx->commit = 1;
@@ -417,10 +446,6 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
   } else if (tx_mc->phase < rx_mc->phase) {
     // received phase is more advanced than local one -> switch to received state (and set own flags)
     memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_and_leaves_overall_length());
-    // mark our participation
-    if (chaos_has_node_index) {
-      tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
-    }
 
     if (IS_INITIATOR() && tx_mc->election.leader_node_id != node_id) {
       // Whoops! Seems like another one just got the lead ;)
@@ -428,6 +453,18 @@ inline uint8_t handle_election_round(uint16_t round_count, uint16_t slot_count, 
       chaos_set_is_initiator(0);
     }
 
+    chaos_node_count = join_data_rx->node_count;
+
+    // check if we could leave the network!
+    if (chaos_has_node_index) {
+      tx_flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
+      // we now check if we have successfully left
+      if (tx_leaves[ARR_INDEX] & (1 << (ARR_OFFSET))) {
+        chaos_has_node_index = 0; // we need to join again!
+        chaos_node_index = 0;
+        left = 1;
+      }
+    }
 
     tx = 1;
   } else {//tx_mc_pc->phase > rx_mc_pc->phase
@@ -480,11 +517,9 @@ inline uint8_t handle_coordination_round(uint16_t round_count, uint16_t slot_cou
       }
 
       if (IS_INITIATOR()) {
-
-
         if (flags_complete &&
             (slot_count >= MERGE_COMMIT_MAX_COMMIT_SLOT
-             || (COMMIT_THRESHOLD && delta_at_slot > 0 &&
+             || (COMMIT_THRESHOLD && /*delta_at_slot > 0 && */
                  slot_count >= delta_at_slot + COMMIT_THRESHOLD))) {
           //LEDS_ON(LEDS_RED);
           memset(tx_flags, 0, merge_commit_get_flags_length());
@@ -520,6 +555,9 @@ inline uint8_t handle_coordination_round(uint16_t round_count, uint16_t slot_cou
           tx_mc->rejoin_index = 0;
 
           // then remove every node that wants to leave
+          // BUT: Not our own ;)
+          tx_leaves[ARR_INDEX] &= ~(1 << (ARR_OFFSET));
+
           for (i = 0; i < MAX_NODE_COUNT; ++i) {
             node_id_t nid = joined_nodes[i];
 
@@ -541,10 +579,6 @@ inline uint8_t handle_coordination_round(uint16_t round_count, uint16_t slot_cou
           for (i = 0; i < FLAGS_LEN; i++) {
             join_masks[i] |= ~tx_leaves[i];
           }
-
-          //update phase and node_count
-          join_data_tx->node_count = chaos_node_count;
-          join_data_tx->commit = 1;
 
           tx = 1;
           leds_on(LEDS_GREEN);
@@ -634,8 +668,16 @@ inline uint8_t handle_received_packet(uint16_t round_count, uint16_t slot_count,
   // we now check if the transmitted join config and round type matches with ours
   // we also need to rejoin, in case that we have overriden our coordination data with election data
   // But: if we were elected, we cant rejoin, since we are the initiator now...
+
+  // if we are not part of a network yet and this is our first packet, we will reuse the received configuration
+  // this prevents that we will destroy newly created networks with a lower config value ;)
+  if (!chaos_has_node_index && tx_mc->type == TYPE_UNKNOWN) {
+    join_set_config(join_data_rx->config);
+    join_data_tx->config = join_get_config();
+  }
+
   if (join_get_config() < join_data_rx->config) {
-    printf("Configuration mismatch mine: %d, theirs: %d\n", join_get_config(), join_data_rx->config);
+    //printf("Configuration mismatch mine: %d, theirs: %d\n", join_get_config(), join_data_rx->config);
     // we force a rejoin and also reset the flags in our packet
     force_rejoin(tx_flags, tx_leaves);
     // after mismatch and rejoin, we can use the new config value too
@@ -734,13 +776,7 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
     // check what has changed, maybe the initator changed?
     if (!IS_INITIATOR() && was_initiator) {
       // cleanup our lists!
-      chaos_node_count = 0;
       memset(&joined_nodes, 0, sizeof(joined_nodes));
-    } else if (IS_INITIATOR() && !was_initiator && tx_mc->type == TYPE_ELECTION_AND_HANDOVER) {
-      // we are the new initiator. Nice!
-      // copy everything to our chaos list
-      memcpy(&joined_nodes, tx_mc->election.joined_nodes, sizeof(joined_nodes));
-      printf("DEBUG I AM THE NEW INITIATOR\n");
     }
 
     if (IS_INITIATOR() || was_initiator) {
@@ -813,14 +849,29 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
   }
 
   if (IS_INITIATOR()) {
+    rejoin_needed = 0;
+
     if(merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE) {
-      mc_local.mc.type = TYPE_ELECTION_AND_HANDOVER; // We need to do a handover before we can leave!
+      if (chaos_node_count > 1) {
+        mc_local.mc.type = TYPE_ELECTION_AND_HANDOVER;
+        // We need to do a handover before we can leave!
+        // Problem: If there is another node trying to leave, it should not need to be elected...
+        // TODO: Do not put the node id in the eleciton packet, in case they dont want to be elected
+        // TODO: If the election round failed, we schedule a coordination round next
+      } else {
+        // we can just leave ;)
+        chaos_set_is_initiator(0);
+        mc_local.mc.type = TYPE_UNKNOWN; // only an initiator may init the type ;)
+        chaos_has_node_index = 0;
+        left = 1;
+        chaos_node_count = 0;
+
+      }
     } else {
       mc_local.mc.type = merge_commit_wanted_type;
     }
-    printf("DEBUG starting %d\n", mc_local.mc.type);
   } else {
-    mc_local.mc.type == TYPE_UNKNOWN; // only the initiator may init the type ;)
+    mc_local.mc.type = TYPE_UNKNOWN; // only the initiator may init the type ;)
   }
 
   // but not sure which type yet
@@ -833,6 +884,7 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
     mc_local.mc.election.leader_node_id = node_id;
     mc_local.mc.election.priority = merge_commit_wanted_election_priority;
 
+    //printf("Init leader node id %d, %d\n",mc_local.mc.election.leader_node_id,mc_local.mc.election.priority);
     // and we copy the chaos node list, if we think we are the initiator
     if (IS_INITIATOR()) {
       memcpy(&mc_local.mc.election.joined_nodes, joined_nodes, sizeof(joined_nodes));
@@ -852,8 +904,8 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
     /* set my flag */
     uint8_t* flags = merge_commit_get_flags(&mc_local.mc);
     flags[ARR_INDEX] |= 1 << (ARR_OFFSET);
+    mc_local.mc.join_data.config = join_get_config(); // we only include our current config in case that we have a chaos index
   }
-  mc_local.mc.join_data.config = join_get_config(); // set initial join configuration
 
   uint8_t* leaves = merge_commit_get_leaves(&mc_local.mc);
 
@@ -876,17 +928,17 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
       leaves[i] = ~join_masks[i]; // mark left nodes
     }
 
-  } else {
+  }
 
-    // we think that all nodes are present from the beginning
-    if (chaos_has_node_index && merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE) {
-      // we try to leave the network, so we remove us
-      leaves[ARR_INDEX] = (1 << (ARR_OFFSET));
-    } else if (!chaos_has_node_index && (rejoin_needed || merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_JOIN)){
-      // we try to join the network
-      mc_local.mc.join_data.slots[0] = node_id;
-      mc_local.mc.join_data.slot_count = 1;
-    }
+  // we think that all nodes are present from the beginning
+  if (chaos_has_node_index && merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE) {
+    // we try to leave the network, so we remove us
+    leaves[ARR_INDEX] |= (1 << (ARR_OFFSET));
+    //printf("Trying to leave \n");
+  } else if (!IS_INITIATOR() && !chaos_has_node_index && (rejoin_needed || merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_JOIN)){
+    // we try to join the network
+    mc_local.mc.join_data.slots[0] = node_id;
+    mc_local.mc.join_data.slot_count = 1;
   }
 
   LEDS_OFF(LEDS_RED);

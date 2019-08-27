@@ -36,7 +36,6 @@
  *         Beshr Al Nahas <beshr@chalmers.se>
  *         Olaf Landsiedel <olafl@chalmers.se>
  *         Patrick Rathje <mail@patrickrathje.de>
- *
  */
 
 #include "contiki.h"
@@ -45,9 +44,6 @@
 #include "dev/serial-line.h"
 #include <stdlib.h>
 
-#undef INITIATOR_NODE
-#define INITIATOR_NODE 1
-
 #include "chaos-control.h"
 #include "node.h"
 
@@ -55,14 +51,9 @@
 #include "merge-commit.h"
 #include "random.h"
 
-#define REPEAT 1
-#define MOVE_INTERVAL CLOCK_SECOND/10
-
-
 
 uint8_t wanted_channel;
 
-// TODO: We need to really test these functions!!
 int decode_data( char * dest, const char * source) {
 
   int initial_size = strlen(source);
@@ -97,9 +88,6 @@ int decode_data( char * dest, const char * source) {
       res_size++;
     }
   }
-
-  //TODO: test if the newline character is included in the message
-
   return res_size;
 }
 
@@ -303,69 +291,63 @@ const uint8_t slots_per_msg = 50;
   printf("#VANET MC-STATS-END\n");
 #endif
 
+  arrival_round = mc_round_count_local;
 
-    if(node_id <= CHAOS_INITIATORS) {
+  uint8_t completed = mc_phase == PHASE_COMMIT || (IS_INITIATOR() && chaos_node_count <= 1);
 
-      printf("After round num: %d, wanted: %d\n", chaos_node_count, merge_commit_wanted_type);
-      if (chaos_node_count > 1 && !(mc_phase == PHASE_COMMIT && mc_type == TYPE_ELECTION_AND_HANDOVER)) {
-        // as soon as the central node is initiator and multiple nodes are in the network, it will try to do a handover...
-        // but we dont force it... in case, we just did a handover commit, we run a coordination round next
-        merge_commit_wanted_type = TYPE_ELECTION_AND_HANDOVER;
-      } else {
-        merge_commit_wanted_type = TYPE_COORDINATION;
-      }
+  if (merge_commit_has_left()) {
+    send_str("left");
+  }
 
-    } else {
-      arrival_round = mc_round_count_local;
-      if (mc_phase == PHASE_COMMIT && mc_type == TYPE_COORDINATION) {
+  if (mc_type == TYPE_COORDINATION && completed) {
 
-        if (merge_commit_has_left()) {
-          send_str("left");
-        } else if (merge_commit_has_joined()) {
-          printf("#VANET joined");
-          uint8_t tmp = (chaos_node_index)&0xFF;
-          send_data_part((char*)&tmp, 1);
-          putchar('\n');
-        }
-
-
-        if(chaos_has_node_index){
-          printf("Commit completed\n");
-          printf("OFFSLOT: %d\n", mc_off_slot);
-
-          printf("own reserv.size %d\n", own_reservation.size);
-
-          //print_tiles(&mc_commited_value);
-
-          // Set latest known commit value
-          memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
-
-          if (path_is_reserved(&mc_commited_value, &own_reservation, chaos_node_index+1)) {
-            own_priority = 0xFFFF; // we do not want that any other node intercepts our request...
-            set_own_priority(&mc_value); // we need to set this!
-            send_str("accepted"); // ack the new reservation
-            printf("Node id %d was accepted\n", node_id);
-          } else if (own_reservation.size > 0 && !path_is_reserved(&mc_value, &own_reservation, chaos_node_index+1)){
-            // TODO: At this point, we really just want to find ANY way ;)
-            // Add this with a parameter
-            if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1)) {
-              reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
-              set_own_priority(&mc_value);
-              printf("Try to reserve path with priority %x: \n", own_priority);
-              //print_tiles(&mc_value);
-            }
-          }
-        } else {
-          // we are not part of the network
-          printf("{rd %u res} mc: waiting to join, n: %u\n", mc_round_count_local, chaos_node_count);
-        }
-      } else {
-          printf("Commit NOT completed\n");
-      }
+    if (merge_commit_has_joined()) {
+      printf("#VANET joined");
+      uint8_t tmp = (chaos_node_index)&0xFF;
+      send_data_part((char*)&tmp, 1);
+      putchar('\n');
     }
 
 
+    if(chaos_has_node_index){
+      printf("Commit completed\n");
+      printf("OFFSLOT: %d\n", mc_off_slot);
 
+      printf("own reserv.size %d\n", own_reservation.size);
+
+      //print_tiles(&mc_commited_value);
+
+      // Set latest known commit value
+      memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
+
+      if (path_is_reserved(&mc_commited_value, &own_reservation, chaos_node_index+1)) {
+        own_priority = 0xFFFF; // we do not want that any other node intercepts our request...
+        set_own_priority(&mc_value); // we need to set this!
+        send_str("accepted"); // ack the new reservation
+        printf("Node id %d was accepted\n", node_id);
+      } else if (own_reservation.size > 0 && !path_is_reserved(&mc_value, &own_reservation, chaos_node_index+1)){
+        // TODO: At this point, we really just want to find ANY way ;)
+        // Add this with a parameter
+        if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1)) {
+          reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
+          set_own_priority(&mc_value);
+          printf("Try to reserve path with priority %x: \n", own_priority);
+          //print_tiles(&mc_value);
+        }
+      }
+    } else {
+      // we are not part of the network
+      printf("{rd %u res} mc: waiting to join, n: %u\n", mc_round_count_local, chaos_node_count);
+    }
+  } else {
+      printf("Commit NOT completed\n");
+  }
+
+
+    // Notify vehicle about our initiator status, to coordinate the network creation
+    if (IS_INITIATOR()) {
+      send_str("is_initiator");
+    }
     // Notify round end to simulation, to be able to remove vehicles...
     send_str("round_end");
   }
@@ -381,7 +363,6 @@ PROCESS_THREAD(comm_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  // TODO: This could be reduced
   static char comm_buf[SERIAL_LINE_CONF_BUFSIZE];
   memset(&mc_last_commited_value, 0, sizeof(merge_commit_value_t));
 
@@ -402,44 +383,22 @@ PROCESS_THREAD(comm_process, ev, data)
 
     printf("decoded %d\n with id %c\n", msg_size, msg_id);
 
-    if (msg_id == 'J') {
+    if (msg_id == 'I') {
+      // set as initiator -> create a new network
+      chaos_set_is_initiator(1);
+      // and init the network ;)
+      join_init();
+      printf("#VANET joined");
+      uint8_t tmp = (chaos_node_index)&0xFF;
+      send_data_part((char*)&tmp, 1);
+      putchar('\n');
+    } else if (msg_id == 'J') {
       merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_JOIN;
       printf("Trying to join network\n");
     } else if(msg_id == 'L') {
       merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE;
       printf("Trying to leave network\n");
-    } /*else if(msg_id == 'Q') {
-
-      // TODO: We should not quit immediately! we should quit only after the round?!?
-      // Easier solution would be to switch directly in the round! might work=?!?
-      chaos_has_node_index = 0; // we remove ourself from the network
-      merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE;
-      printf("Quitting the network\n");
-    } else if(msg_id == 'H' && msg_size >= 3) {
-
-      // TODO: WE CANNOT SET THE INDEX DIRECTLY, THIS WOULD AFFECT OUR CURRENT ROUND
-      chaos_node_index = msg_data[0]; // we init ourself with the chaos index
-      chaos_has_node_index = 1;
-      merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_JOIN;
-
-      // we offset the msg size and data
-      msg_size -= 3;
-      msg_data += 3;
-
-      printf("Got handover reservation with size %d: ", msg_size);
-      own_priority = 1;
-
-      // copy that reservation to our own
-      own_reservation.size = msg_size;
-      memcpy(own_reservation.tiles, msg_data, msg_size);
-
-      // clean current commit value
-      memset(&mc_value, 0, sizeof(merge_commit_value_t));
-
-      reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
-      set_own_priority(&mc_value);
-    } */
-    else if(msg_id == 'C' && msg_size == 1) {
+    } else if(msg_id == 'C' && msg_size == 1) {
       wanted_channel = msg_data[0];
       printf("Trying to change channel to %d\n", wanted_channel);
       if (!get_round_synced()) {
@@ -517,12 +476,6 @@ PROCESS_THREAD(main_process, ev, data)
   // we initialize the chaos channel here!
 
   merge_commit_wanted_type = TYPE_COORDINATION; // all want to do normal coordination
-  if(node_id <= CHAOS_INITIATORS) {
-    wanted_channel = 11+node_id-1;
-    chaos_multichannel_set_current_channel(wanted_channel);
-    own_priority = 0xFFFE; // The election property is the min of that, so we set this as high as possible, but lower than passing vehicles...
-    merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_JOIN; // they want to be always part of the network
-  }
 
   process_start(&comm_process, NULL);
   process_start(&mc_process, NULL);
@@ -538,6 +491,12 @@ static void mc_round_begin(const uint16_t round_count, const uint8_t id){
   }
 
   merge_commit_wanted_election_priority = 0xFFFF-own_priority;
+  if (merge_commit_wanted_election_priority + own_reservation.size < merge_commit_wanted_election_priority) {
+    merge_commit_wanted_election_priority = 0xFFFF;
+  } else {
+    merge_commit_wanted_election_priority += own_reservation.size;
+  }
+
 
   mc_complete = merge_commit_round_begin(round_count, id, &mc_commited_value, &mc_phase, &mc_type, &mc_flags);
   mc_off_slot = merge_commit_get_off_slot();

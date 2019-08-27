@@ -2,6 +2,7 @@ package org.contikios.cooja.plugins.vanet.vehicle;
 
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.plugins.Vanet;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.ChaosIntersection;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TiledMapHandler;
 import org.contikios.cooja.plugins.vanet.vehicle.platoon.ChaosPlatoon;
@@ -13,6 +14,8 @@ import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 import java.util.*;
 
 public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicle {
+
+    private static final long INITIATOR_TIMEOUT = 5000;
 
     public class ChaosNetworkState {
         int chaosIndex = -1;
@@ -64,6 +67,26 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
             msg = messageProxy.receive();
         }
 
+        if (state == STATE_WAITING && this.currentIntersection instanceof ChaosIntersection) {
+            ChaosIntersection chaosIntersection = (ChaosIntersection) this.currentIntersection;
+
+            if (chaosIntersection.getLastInitiatorRound() + INITIATOR_TIMEOUT <= world.getCurrentMS()) {
+                // first send the wanted channel
+                byte[] bytes = new byte[2];
+                bytes[0] = 'C';
+                bytes[1] = (byte)((currentIntersection.getId()+11)&0xFF);
+                messageProxy.send(bytes);
+
+                // then send the network creation!
+                bytes = new byte[1];
+                bytes[0] = 'I';
+                messageProxy.send(bytes);
+
+                chaosIntersection.setLastInitiatorRound(world.getCurrentMS());
+                System.out.println(id + " is initating");
+            }
+        }
+
         super.step(delta);
         handleReservation();
     }
@@ -79,7 +102,6 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
             // Change the channel to the one for the intersection
             byte[] bytes = new byte[2];
             bytes[0] = 'C';
-            //TODO: Check that this does not overflow
             bytes[1] = (byte)((currentIntersection.getId()+11)&0xFF);
             messageProxy.send(bytes);
             return STATE_QUEUING;
@@ -248,8 +270,11 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
     protected void handleMessage(byte[] msg) {
         //System.out.println(new String(msg));
 
+
         if (chaosStatsHandler.supports(msg)) {
             chaosStatsHandler.handle(msg);
+        } else if (new String(msg).equals("is_initiator") && currentIntersection instanceof ChaosIntersection) {
+            ((ChaosIntersection) currentIntersection).setLastInitiatorRound(world.getCurrentMS());
         } else if (state == STATE_INIT && new String(msg).equals("init")) {
             init();
             state = STATE_INITIALIZED;

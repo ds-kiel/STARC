@@ -1,6 +1,7 @@
 package org.contikios.cooja.plugins.vanet.transport_network;
 
 import org.contikios.cooja.plugins.Vanet;
+import org.contikios.cooja.plugins.vanet.transport_network.intersection.ChaosIntersection;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Intersection;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TrafficLightIntersection;
@@ -44,7 +45,7 @@ public class TransportNetwork {
                 if (intersectionType == INTERSECTION_TYPE_TRAFFIC_LIGHTS) {
                     newIntersection = new TrafficLightIntersection(id, new Vector2D(offsetX, offsetY));
                 } else {
-                    newIntersection = new Intersection(id, new Vector2D(offsetX, offsetY));
+                    newIntersection = new ChaosIntersection(id, new Vector2D(offsetX, offsetY));
                 }
                 this.intersections[y*width+x] = newIntersection;
                 this.connectLeft(x, y);

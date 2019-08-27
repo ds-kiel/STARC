@@ -18,7 +18,8 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 #$(info initiator is [$(initiators)])
 
-CFLAGS += -D CHAOS_INITIATORS=$(initiators)
+#CFLAGS += -D CHAOS_INITIATORS=$(initiators)
+CFLAGS += -D CHAOS_INITIATORS=0
 
 CONTIKI = ../../..
 include $(CONTIKI)/Makefile.include

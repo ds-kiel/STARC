@@ -11,9 +11,10 @@ public class IDGenerator {
     HashSet<Integer> used;
     Supplier<Stream<Integer>> idStreamSupplier;
 
+
+
     public IDGenerator(int start, Integer end, Collection<Integer> used) {
         this.used = new HashSet<>(used);
-
 
         AtomicInteger n = new AtomicInteger(start);
         idStreamSupplier = new Supplier<Stream<Integer>>() {
@@ -21,7 +22,7 @@ public class IDGenerator {
             public Stream<Integer> get() {
                 Stream<Integer> s = Stream.generate(n::getAndIncrement);
                 if (end != null) {
-                    s = s.limit(end-start+1);
+                    s = s.limit(Math.max(end-n.get(),0));
                 }
                 return s;
             }
@@ -38,6 +39,7 @@ public class IDGenerator {
     }
 
     Integer next() {
+
         Stream<Integer> stream = Stream.concat(freed.stream(), idStreamSupplier.get());
         Integer val = stream
                         .filter(f -> !used.contains(f))
