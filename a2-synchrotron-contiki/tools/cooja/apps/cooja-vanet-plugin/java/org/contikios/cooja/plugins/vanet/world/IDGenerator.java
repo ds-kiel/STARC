@@ -8,13 +8,10 @@ import java.util.stream.*;
 public class IDGenerator {
 
     HashSet<Integer> freed = new HashSet<>();
-    HashSet<Integer> used;
     Supplier<Stream<Integer>> idStreamSupplier;
 
 
-
-    public IDGenerator(int start, Integer end, Collection<Integer> used) {
-        this.used = new HashSet<>(used);
+    public IDGenerator(int start, Integer end) {
 
         AtomicInteger n = new AtomicInteger(start);
         idStreamSupplier = new Supplier<Stream<Integer>>() {
@@ -22,34 +19,26 @@ public class IDGenerator {
             public Stream<Integer> get() {
                 Stream<Integer> s = Stream.generate(n::getAndIncrement);
                 if (end != null) {
-                    s = s.limit(Math.max(end-n.get(),0));
+                    s = s.limit(Math.max(end-n.get()+1,0));
                 }
                 return s;
             }
         };
     }
 
-    public IDGenerator(int start, Integer endExclusive) {
-        this(start, endExclusive, new ArrayList<>());
-    }
-
     void free(int id) {
         freed.add(id);
-        used.remove(id);
     }
 
     Integer next() {
 
         Stream<Integer> stream = Stream.concat(freed.stream(), idStreamSupplier.get());
-        Integer val = stream
-                        .filter(f -> !used.contains(f))
-                        .findFirst()
-                        .orElse(null);
+        Integer val = stream.findFirst().orElse(null);
+
         if (val != null) {
             freed.remove(val);
-            used.add(val);
+            return val;
         }
-
-        return val;
+        return null;
     }
 }

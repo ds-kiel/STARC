@@ -51,7 +51,7 @@ public class World {
         this.physics = new Physics();
         this.transportNetwork = new TransportNetwork(networkWidth, networkHeight, intersectionType);
         this.vehicleManager = new VehicleManager(this, intersectionType);
-        this.idGenerator = new IDGenerator(1, 2^16);
+        this.idGenerator = new IDGenerator(1, 65535); // only allow ids between 1 and 2^16-1
 
         this.leftTurnRate = leftTurnRate;
         this.rightTurnRate = rightTurnRate;
@@ -134,10 +134,10 @@ public class World {
         int wanted = (int) ((currentMS / 1000.0f) * vehiclesPerSecond) - vehicleManager.getTotal();
 
         for (int i = 0; i < wanted; ++i) {
-            Mote m = vehicleMoteType.generateMote(simulation);
             Integer id = idGenerator.next();
             System.out.println(id);
             if (id != null) {
+                Mote m = vehicleMoteType.generateMote(simulation);
                 m.getInterfaces().getMoteID().setMoteID(id);
                 initVehicle(m);
                 simulation.addMote(m);
@@ -156,28 +156,12 @@ public class World {
      * Used to swap the motes but not the vehicles, used for an easy handover in virtual platoons
      */
     public void swapMotes(VehicleInterface a, VehicleInterface b) {
-
-        if (a == null) {
-            System.out.println("a is null");
-        }
-        if (b  == null) {
-            System.out.println("b is null");
-        }
-
-
         Mote ma = getMote(a);
         Mote mb = getMote(b);
 
         a.setMote(mb);
         b.setMote(ma);
 
-        if (ma == null) {
-            System.out.println("ma is null");
-        }
-
-        if (mb == null) {
-            System.out.println("mb is null");
-        }
 
         // change Ids to make change invisible to other components
         int tmpId = ma.getInterfaces().getMoteID().getMoteID();
