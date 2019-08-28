@@ -282,7 +282,7 @@ inline uint8_t handle_rejoin(merge_commit_t* tx_mc, merge_commit_t* rx_mc) {
     //printf("Rejoined with index %d\n", tx_mc->rejoin_index);
     chaos_node_index = tx_mc->rejoin_index;
     chaos_has_node_index = 1;
-    //joined = 1; This is not a real join ;)
+    joined = 1;
     rejoin_needed = 0;
   }
   return tx;

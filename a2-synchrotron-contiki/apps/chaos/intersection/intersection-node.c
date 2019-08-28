@@ -297,18 +297,16 @@ const uint8_t slots_per_msg = 50;
 
   if (merge_commit_has_left()) {
     send_str("left");
+  } else if (merge_commit_has_joined()) {
+    // this could also be a rejoin, that is why it is checked here and not in the completed commit
+    printf("#VANET joined");
+    uint8_t tmp = (chaos_node_index)&0xFF;
+    send_data_part((char*)&tmp, 1);
+    putchar('\n');
   }
 
   if (mc_type == TYPE_COORDINATION && completed) {
-
-    if (merge_commit_has_joined()) {
-      printf("#VANET joined");
-      uint8_t tmp = (chaos_node_index)&0xFF;
-      send_data_part((char*)&tmp, 1);
-      putchar('\n');
-    }
-
-
+    
     if(chaos_has_node_index){
       printf("Commit completed\n");
       printf("OFFSLOT: %d\n", mc_off_slot);
@@ -491,12 +489,14 @@ static void mc_round_begin(const uint16_t round_count, const uint8_t id){
   }
 
   merge_commit_wanted_election_priority = 0xFFFF-own_priority;
+  // we will add the length of our path, so that if multiple want to leave,
+  // the one with the longest path is going to be elected
+  // need to take care of overflows here ;)
   if (merge_commit_wanted_election_priority + own_reservation.size < merge_commit_wanted_election_priority) {
     merge_commit_wanted_election_priority = 0xFFFF;
   } else {
     merge_commit_wanted_election_priority += own_reservation.size;
   }
-
 
   mc_complete = merge_commit_round_begin(round_count, id, &mc_commited_value, &mc_phase, &mc_type, &mc_flags);
   mc_off_slot = merge_commit_get_off_slot();
