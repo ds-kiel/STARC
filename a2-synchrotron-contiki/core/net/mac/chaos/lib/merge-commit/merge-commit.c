@@ -73,8 +73,6 @@
 
 #define FLAGS_LEN_X(X)   (((X) >> 3) + (((X) & 7) ? 1 : 0))
 #define FLAGS_LEN   (FLAGS_LEN_X(MAX_NODE_COUNT))
-#define LAST_FLAGS  ((1 << (((MAX_NODE_COUNT - 1) & 7) + 1)) - 1)
-#define FLAG_SUM    (((FLAGS_LEN - 1) << 8) - (FLAGS_LEN - 1) + LAST_FLAGS)
 
 #if NETSTACK_CONF_WITH_CHAOS_NODE_DYNAMIC
 #define FLAGS_ESTIMATE FLAGS_LEN_X(MAX_NODE_COUNT)
