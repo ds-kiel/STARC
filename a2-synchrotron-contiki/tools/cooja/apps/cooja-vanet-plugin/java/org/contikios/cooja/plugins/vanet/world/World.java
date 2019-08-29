@@ -126,7 +126,6 @@ public class World {
 
         for (int i = 0; i < wanted; ++i) {
             Integer id = idGenerator.next();
-            System.out.println(id);
             if (id != null) {
                 Mote m = vehicleMoteType.generateMote(simulation);
                 m.getInterfaces().getMoteID().setMoteID(id);

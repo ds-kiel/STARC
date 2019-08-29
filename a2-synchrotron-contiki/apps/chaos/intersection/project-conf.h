@@ -67,8 +67,6 @@
 
 #define MERGE_COMMIT_ADVANCED_STATS 1
 
-#undef  CHAOS_INTERVAL
-
 
 #define CHAOS_DYNAMIC_INITIATOR 1
 
@@ -77,7 +75,7 @@
 
 
 #ifndef CHAOS_INTERVAL_SEC
-#def CHAOS_INTERVAL_SEC 2
+#define CHAOS_INTERVAL_SEC 2
 #endif
 
 #define CHAOS_INTERVAL (CHAOS_INTERVAL_SEC*RTIMER_SECOND)
@@ -92,8 +90,6 @@
 #define JOIN_ROUND_MAX_SLOTS   (120)
 #define JOIN_ROUNDS_AFTER_BOOTUP (5)
 #endif
-
-
 
 
 // Keep this enabled, because the nodes were starting to fail

@@ -151,6 +151,8 @@ typedef struct __attribute__((packed)) {
   uint8_t node_index;
   uint8_t type; // TODO: We could add this to the phase to save some space
   uint8_t is_initiator; // TODO: We could add this to the phase to save some space
+  uint8_t config_msb;
+  uint8_t config_lsb;
   //  num_reservations??!?
   //  num_joins ?
   //  num_leaves ?

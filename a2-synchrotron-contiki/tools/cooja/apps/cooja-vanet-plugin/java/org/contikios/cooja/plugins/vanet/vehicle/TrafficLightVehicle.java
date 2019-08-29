@@ -2,11 +2,9 @@ package org.contikios.cooja.plugins.vanet.vehicle;
 
 
 import org.contikios.cooja.Mote;
-import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TrafficLightAwareIntersection;
 import org.contikios.cooja.plugins.vanet.world.World;
-import org.contikios.cooja.plugins.vanet.world.physics.Physics;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 public class TrafficLightVehicle extends BaseOrderVehicle {
@@ -28,7 +26,7 @@ public class TrafficLightVehicle extends BaseOrderVehicle {
 
         if (currentIntersection instanceof  TrafficLightAwareIntersection) {
             trafficLightState = ((TrafficLightAwareIntersection) currentIntersection)
-                                    .getTrafficLightStates(world.getCurrentMS()).get(currentLane);
+                                    .getTrafficLightStates(World.getCurrentMS()).get(currentLane);
         }
 
         if (state == STATE_INIT) {

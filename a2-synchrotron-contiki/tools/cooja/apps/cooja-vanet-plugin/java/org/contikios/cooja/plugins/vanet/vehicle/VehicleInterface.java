@@ -42,4 +42,6 @@ public interface VehicleInterface {
     Intersection getCurrentIntersection();
 
     void setMote(Mote mote);
+
+    int getTurn();
 }

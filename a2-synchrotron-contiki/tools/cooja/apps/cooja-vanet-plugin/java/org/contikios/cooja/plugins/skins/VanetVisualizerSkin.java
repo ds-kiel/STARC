@@ -546,7 +546,7 @@ public class VanetVisualizerSkin implements VisualizerSkin {
 
             // mark the cars for 10 secs
             if (v != null && v.getBody() != null) {
-                if (v.getBody().hasCollision(world.getCurrentMS()- 10 * 1000, world.getCurrentMS())) {
+                if (v.getBody().hasCollision(World.getCurrentMS()- 10 * 1000, World.getCurrentMS())) {
                     colors = new Color[1];
                     colors[0] = Color.RED;
                 }

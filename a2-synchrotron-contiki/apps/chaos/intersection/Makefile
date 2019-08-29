@@ -16,10 +16,10 @@ CHAOS_NODE_DYNAMIC=1
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
-#$(info initiator is [$(initiators)])
+#$(info interval is [$(chaos_interval)])
 
-#CFLAGS += -D CHAOS_INITIATORS=$(initiators)
-CFLAGS += -D CHAOS_INITIATORS=0 -D CHAOS_INTERVAL_SEC $(chaos_interval)
+CFLAGS += -D CHAOS_INITIATORS=0
+CFLAGS += -D CHAOS_INTERVAL_SEC=$(chaos_interval)
 
 CONTIKI = ../../..
 include $(CONTIKI)/Makefile.include

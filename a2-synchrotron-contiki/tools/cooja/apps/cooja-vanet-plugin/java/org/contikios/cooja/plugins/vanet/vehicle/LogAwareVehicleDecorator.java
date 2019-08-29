@@ -15,6 +15,9 @@ import java.util.Map;
 public class LogAwareVehicleDecorator implements VehicleInterface {
     protected VehicleInterface impl;
 
+
+    protected boolean initialized = false;
+
     protected Map<Integer, String> stateMap = new HashMap<Integer, String>() {{
         put(STATE_INITIALIZED, "initialized");
         put(STATE_QUEUING, "queuing");
@@ -75,9 +78,18 @@ public class LogAwareVehicleDecorator implements VehicleInterface {
 
         // we do not want to capture the init state!
         if (state != STATE_INIT) {
+
+            if (!initialized) {
+                initialized = true;
+                // if the vehicle is initialized, we know the wanted direction
+                // we put this into the vehicles csv
+                Logger.event("vehicles", World.getCurrentMS(), String.format("%d, %d", getID(), getTurn()), null);
+            }
+
+
             String id = String.format("%06d", impl.getID());
-            Logger.event("state", impl.getWorld().getCurrentMS(), getStateName(state), id);
-            Logger.event("speed", impl.getWorld().getCurrentMS(), String.valueOf(impl.getBody().getVel().length()), id);
+            Logger.event("state", World.getCurrentMS(), getStateName(state), id);
+            Logger.event("speed", World.getCurrentMS(), String.valueOf(impl.getBody().getVel().length()), id);
         }
     }
 
@@ -99,5 +111,10 @@ public class LogAwareVehicleDecorator implements VehicleInterface {
     @Override
     public void setMote(Mote mote) {
         impl.setMote(mote);
+    }
+
+    @Override
+    public int getTurn() {
+        return impl.getTurn();
     }
 }

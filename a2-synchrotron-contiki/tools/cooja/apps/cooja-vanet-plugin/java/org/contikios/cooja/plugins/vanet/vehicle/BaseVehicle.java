@@ -299,4 +299,9 @@ abstract class BaseVehicle implements VehicleInterface {
     public void setMote(Mote mote) {
         //NOOP we are not saving the mote atm
     }
+
+    @Override
+    public int getTurn() {
+        return currentLane.computeTurn(targetLane);
+    }
 }

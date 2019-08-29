@@ -182,6 +182,8 @@ inline void handle_advanced_stats(merge_commit_t *tx_mc, uint16_t slot_count) {
     slot_stats.phase = tx_mc->phase;
     slot_stats.type = tx_mc->type;
     slot_stats.is_initiator = IS_INITIATOR();
+    slot_stats.config_msb = (join_get_config() >> 8)&0xFF;
+    slot_stats.config_lsb = join_get_config()&0xFF;
 
     uint8_t* tx_flags = merge_commit_get_flags(tx_mc);
     uint8_t i;

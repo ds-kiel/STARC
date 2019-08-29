@@ -83,7 +83,6 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
                 messageProxy.send(bytes);
 
                 chaosIntersection.setLastInitiatorRound(World.getCurrentMS());
-                System.out.println(id + " is initating");
             }
         }
 
