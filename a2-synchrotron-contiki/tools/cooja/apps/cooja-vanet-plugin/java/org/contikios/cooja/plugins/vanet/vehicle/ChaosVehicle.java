@@ -5,10 +5,12 @@ import org.contikios.cooja.plugins.Vanet;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.ChaosIntersection;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TiledMapHandler;
+import org.contikios.cooja.plugins.vanet.vehicle.physics.DirectionalDistanceSensor;
 import org.contikios.cooja.plugins.vanet.vehicle.platoon.ChaosPlatoon;
 import org.contikios.cooja.plugins.vanet.vehicle.platoon.Platoon;
 import org.contikios.cooja.plugins.vanet.vehicle.platoon.PlatoonAwareVehicle;
 import org.contikios.cooja.plugins.vanet.world.World;
+import org.contikios.cooja.plugins.vanet.world.physics.Computation.LineIntersection;
 import org.contikios.cooja.plugins.vanet.world.physics.Vector2D;
 
 import java.util.*;
@@ -132,18 +134,40 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
             }
 
             // only the head of a platoon may join the network
-            if (isPlatoonHead()) {
-                // TODO: Allow to join before we reach that point!
-                if (Vector2D.distance(startPos, body.getCenter()) < 0.2 * Vanet.SCALE) {
-                    // and we try to join the chaos network
-                    messageProxy.send("J".getBytes());
-                    //requestReservation();
-                    return STATE_WAITING;
-                } else {
-                    return STATE_QUEUING;
+            if (!isPlatoonHead()) {
+                return STATE_QUEUING;
+            }
+
+
+            boolean shouldJoin = false;
+            // we check if there is no other car in front of us
+            Vector2D dir = Vector2D.diff(startPos, body.getCenter());
+            dir.normalize();
+
+            LineIntersection li = DirectionalDistanceSensor.computeNearestBodyCollisions(
+                    world.getPhysics(),
+                    body.getCenter(),
+                    dir,
+                    body,
+                    Vector2D.distance(startPos, body.getCenter())+0.5*Vanet.SCALE
+            );
+
+            if (li != null) {
+                VehicleInterface sensedVehicle = world.getVehicleByPhysicsBody(li.body);
+                if (sensedVehicle instanceof ChaosVehicle) {
+                    if (sensedVehicle.getState() >= STATE_MOVING) {
+                        shouldJoin = true;
+                    }
                 }
             } else {
-                return STATE_QUEUING;
+                // no one in front of us
+                shouldJoin = true;
+            }
+
+            if (shouldJoin) {
+                // and we try to join the chaos network
+                messageProxy.send("J".getBytes());
+                return STATE_WAITING;
             }
         } else if (state == STATE_WAITING) {
 

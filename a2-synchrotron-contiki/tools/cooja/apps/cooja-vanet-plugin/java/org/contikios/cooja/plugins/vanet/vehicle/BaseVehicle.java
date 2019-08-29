@@ -100,7 +100,7 @@ abstract class BaseVehicle implements VehicleInterface {
         state = handleStates(state);
         Vector2D wantedPos = null;
 
-        if (state == STATE_QUEUING) {
+        if (state == STATE_QUEUING || state == STATE_WAITING) {
             if (Vector2D.distance(startPos, body.getCenter()) > Vanet.SCALE*0.1) {
                 wantedPos = startPos;
             }
