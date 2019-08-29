@@ -55,15 +55,17 @@ public class VanetConfig {
    */
   private ScnObservable settingsObservable = new ScnObservable();
   public enum Parameter {
-    log_dir,
-    screen_export_dir,
-    vehicles_per_hour,
-    network_width,
-    network_height,
-    intersection_type,
-    left_turn_rate,
-    right_turn_rate,
-    timeout;
+    log_dir,                  // Export dir for the csv stat files
+    screen_export_dir,        // Export dir for screen images
+    vehicles_per_hour,        // Specifies the vph that are being spawned
+    network_width,            // Width of the multi-intersection grid
+  network_height,             // Height of the multi-intersection grid
+    intersection_type,        // type of the intersection: Chaos / Traffic Lights
+    left_turn_rate,           // rate for left turns at the intersection
+    right_turn_rate,          // rate for right turns at the intersection
+    timeout,                  // timeout for the simulation
+    chaos_initiator_timeout,  // timeout for the chaos network creation as a new initiator
+    chaos_max_platoon_size;   // The maximum size for chaos platoons
 
     public static Object getDefaultValue(Parameter p) {
       switch (p) {
@@ -85,6 +87,10 @@ public class VanetConfig {
           return 0.15;
         case right_turn_rate:
           return 0.15;
+        case chaos_initiator_timeout:
+          return (Long) 5000L;
+        case chaos_max_platoon_size:
+          return 1;
       }
       throw new RuntimeException("Unknown default value: " + p);
     }
@@ -260,5 +266,48 @@ public class VanetConfig {
     }
     notifySettingsChanged();
     return true;
+  }
+
+
+  // some nice to have functions :)
+  public double getVehiclesPerHour() {
+    return getParameterDoubleValue(VanetConfig.Parameter.vehicles_per_hour);
+  }
+
+  public int getNetworkWidth() {
+    return getParameterIntegerValue(VanetConfig.Parameter.network_width);
+  }
+
+  public int getNetworkHeight() {
+    return getParameterIntegerValue(VanetConfig.Parameter.network_height);
+  }
+
+  public int getIntersectionType() {
+    return getParameterIntegerValue(VanetConfig.Parameter.intersection_type);
+  }
+
+  public double getLeftTurnRate() {
+    return getParameterDoubleValue(VanetConfig.Parameter.left_turn_rate);
+  }
+
+  public double getRightTurnRate() {
+    return getParameterDoubleValue(VanetConfig.Parameter.right_turn_rate);
+  }
+
+  // TODO: We might want to use a better name here?
+  public double getStraightRate() {
+    return Math.max(0.0, 1.0-getLeftTurnRate()+getRightTurnRate());
+  }
+
+  public long getChaosInitiatorTimeout() {
+    return getParameterLongValue(Parameter.chaos_initiator_timeout);
+  }
+
+  public long getTimeout() {
+    return getParameterLongValue(Parameter.timeout);
+  }
+
+  public int getChaosMaxPlatoonSize() {
+    return getParameterIntegerValue(Parameter.chaos_max_platoon_size);
   }
 }

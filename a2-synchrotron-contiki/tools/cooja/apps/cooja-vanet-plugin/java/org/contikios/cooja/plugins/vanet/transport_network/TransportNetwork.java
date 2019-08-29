@@ -138,6 +138,6 @@ public class TransportNetwork {
 
     public Lane getRandomStartLaneWithTurn(int turn) {
         Collection<Lane> startLanes = Arrays.stream(intersections).flatMap(i -> i.getStartLaneWithTurn(turn).stream()).filter(Lane::isInitialStart).collect(Collectors.toList());
-        return startLanes.stream().skip((int) (startLanes.size() * World.RAND.nextFloat())).findAny().get();
+        return startLanes.stream().skip((int) (startLanes.size() * World.getRand().nextFloat())).findAny().get();
     }
 }

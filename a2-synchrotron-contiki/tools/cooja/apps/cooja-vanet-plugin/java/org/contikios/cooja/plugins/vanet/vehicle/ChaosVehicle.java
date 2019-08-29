@@ -53,7 +53,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         messageProxy = new MessageProxy(m);
         chaosStatsHandler = new ChaosStatsHandler(id);
         chaosNetworkState = new ChaosNetworkState();
-        chaosPlatoon = new ChaosPlatoon(this, 1);
+        chaosPlatoon = new ChaosPlatoon(this, World.getConfig().getChaosMaxPlatoonSize());
         setPlatoon(chaosPlatoon);
     }
 
@@ -70,7 +70,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         if (state == STATE_WAITING && this.currentIntersection instanceof ChaosIntersection) {
             ChaosIntersection chaosIntersection = (ChaosIntersection) this.currentIntersection;
 
-            if (chaosIntersection.getLastInitiatorRound() + INITIATOR_TIMEOUT <= world.getCurrentMS()) {
+            if (chaosIntersection.getLastInitiatorRound() + World.getConfig().getChaosInitiatorTimeout() <= World.getCurrentMS()) {
                 // first send the wanted channel
                 byte[] bytes = new byte[2];
                 bytes[0] = 'C';
@@ -82,7 +82,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
                 bytes[0] = 'I';
                 messageProxy.send(bytes);
 
-                chaosIntersection.setLastInitiatorRound(world.getCurrentMS());
+                chaosIntersection.setLastInitiatorRound(World.getCurrentMS());
                 System.out.println(id + " is initating");
             }
         }
@@ -274,7 +274,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         if (chaosStatsHandler.supports(msg)) {
             chaosStatsHandler.handle(msg);
         } else if (new String(msg).equals("is_initiator") && currentIntersection instanceof ChaosIntersection) {
-            ((ChaosIntersection) currentIntersection).setLastInitiatorRound(world.getCurrentMS());
+            ((ChaosIntersection) currentIntersection).setLastInitiatorRound(World.getCurrentMS());
         } else if (state == STATE_INIT && new String(msg).equals("init")) {
             init();
             state = STATE_INITIALIZED;

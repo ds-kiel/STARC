@@ -3,6 +3,7 @@ package org.contikios.cooja.plugins.vanet.world;
 import org.contikios.cooja.*;
 import org.contikios.cooja.interfaces.Position;
 import org.contikios.cooja.plugins.Vanet;
+import org.contikios.cooja.plugins.vanet.config.VanetConfig;
 import org.contikios.cooja.plugins.vanet.transport_network.TransportNetwork;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.Lane;
 import org.contikios.cooja.plugins.vanet.transport_network.intersection.TiledMapHandler;
@@ -20,63 +21,54 @@ import java.util.stream.Collectors;
 
 public class World {
 
-    private Physics physics;
-    private VehicleManager vehicleManager;
-
-    private TransportNetwork transportNetwork;
-
-    private long currentMS = 0;
-
-    public static Random RAND;
+    // use singleton for easier Access to random and config
+    private static World inst = null;
 
     private Simulation simulation;
+    private long currentMS = 0;
+    private Random rand;
+    private VanetConfig config;
 
-    private Map<Integer, Mote> moteMap = new HashMap<>();
+    private Physics physics;
+    private VehicleManager vehicleManager;
+    private TransportNetwork transportNetwork;
+
 
     private MoteType vehicleMoteType;
-    private MoteType initiatorMoteType;
-
+    private Map<Integer, Mote> moteMap = new HashMap<>();
     private IDGenerator idGenerator;
 
-    private double vehiclesPerHour = 0.0f;
+    public World(Simulation simulation, Random rand, VanetConfig config) {
+        inst = this; // initialize singleton
 
-    // TODO: We might want to inject the whole config here?
-    private double leftTurnRate;
-    private double rightTurnRate;
+        this.rand = rand;
+        this.config = config; // make config static and thus accessible in all other components
 
-    public World(Simulation simulation, int networkWidth, int networkHeight, int intersectionType, double leftTurnRate, double rightTurnRate) {
         this.simulation = simulation;
-        this.vehicleMoteType = simulation.getMoteType("vehicle");
-        this.initiatorMoteType = simulation.getMoteType("vehicle");
         this.physics = new Physics();
-        this.transportNetwork = new TransportNetwork(networkWidth, networkHeight, intersectionType);
-        this.vehicleManager = new VehicleManager(this, intersectionType);
+        this.transportNetwork = new TransportNetwork(config.getNetworkWidth(), config.getNetworkHeight(), config.getIntersectionType());
+
+        this.vehicleMoteType = simulation.getMoteType("vehicle");
+        this.vehicleManager = new VehicleManager(this, config.getIntersectionType());
         this.idGenerator = new IDGenerator(1, 65535); // only allow ids between 1 and 2^16-1
 
-        this.leftTurnRate = leftTurnRate;
-        this.rightTurnRate = rightTurnRate;
-
-        // we remove all nodes
+        // we remove all nodes in the beginning
         Arrays.stream(simulation.getMotes()).forEach(simulation::removeMote);
-    }
-
-    public TiledMapHandler getMapHandler() {
-        return this.transportNetwork.getIntersection(0, 0).getMapHandler();
     }
 
     public TransportNetwork getTransportNetwork() {
         return this.transportNetwork;
     }
 
-    public long getCurrentMS() {
-        return currentMS;
+    public static long getCurrentMS() {
+        return inst.currentMS;
     }
-
+    public static Random getRand() {return inst.rand;}
+    public static VanetConfig getConfig() {return inst.config;}
 
     public Physics getPhysics() {
         return physics;
     }
-
 
     public void simulate(long ms, long deltaMS) {
 
@@ -129,8 +121,7 @@ public class World {
             return;
         }
 
-        // TODO: we might want to use the lane probability as well?
-        double vehiclesPerSecond = (vehiclesPerHour / 3600.0);
+        double vehiclesPerSecond = (config.getVehiclesPerHour() / 3600.0);
         int wanted = (int) ((currentMS / 1000.0f) * vehiclesPerSecond) - vehicleManager.getTotal();
 
         for (int i = 0; i < wanted; ++i) {
@@ -206,12 +197,12 @@ public class World {
     public AbstractMap.SimpleImmutableEntry<Lane, Vector2D> getFreePosition() {
 
         int turn;
-        double r = RAND.nextDouble();
+        double r = rand.nextDouble();
 
         /* Use strictly smaller than because nextDouble excludes the 1.0 */
-        if (r < leftTurnRate) {
+        if (r < config.getLeftTurnRate()) {
             turn = IntersectionLayout.TURN_LEFT;
-        } else if (r < leftTurnRate + rightTurnRate) {
+        } else if (r < config.getLeftTurnRate() + config.getRightTurnRate()) {
             turn = IntersectionLayout.TURN_RIGHT;
         } else {
             turn = IntersectionLayout.STRAIGHT;
@@ -240,13 +231,6 @@ public class World {
         freePos.scale(maxDist + (0.5 + ThreeLaneIntersectionLayout.LANE_LENGTH) * Vanet.SCALE);
         freePos.add(endPos);
         return new AbstractMap.SimpleImmutableEntry<>(l, freePos);
-    }
-
-    public void setVehiclesPerSecond(double vehiclesPerHour) {
-        if (vehiclesPerHour != this.vehiclesPerHour) {
-            this.vehiclesPerHour = vehiclesPerHour;
-            // TODO: if we want to manually change the value, we would need to save the last changed num and time
-        }
     }
 
     public VehicleInterface getVehicleByPhysicsBody(Body body) {

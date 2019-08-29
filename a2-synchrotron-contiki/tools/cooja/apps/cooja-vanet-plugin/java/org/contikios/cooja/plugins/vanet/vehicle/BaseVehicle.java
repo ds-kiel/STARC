@@ -285,7 +285,7 @@ abstract class BaseVehicle implements VehicleInterface {
         Collection<Lane> possibleLanes = lane.getEndIntersection().getPossibleLanes(lane);
         // use random lane for now
         // TODO: Use some planned path through multiple intersections
-        targetLane = possibleLanes.stream().skip((int) (possibleLanes.size() * World.RAND.nextFloat())).findAny().get();
+        targetLane = possibleLanes.stream().skip((int) (possibleLanes.size() * World.getRand().nextFloat())).findAny().get();
 
         this.waypoints = lane.getWayPoints(targetLane);
         this.currentIntersection = lane.getEndIntersection();

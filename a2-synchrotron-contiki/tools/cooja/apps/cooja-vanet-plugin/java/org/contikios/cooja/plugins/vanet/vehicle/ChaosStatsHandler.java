@@ -2,6 +2,7 @@ package org.contikios.cooja.plugins.vanet.vehicle;
 
 
 import org.contikios.cooja.plugins.vanet.log.Logger;
+import org.contikios.cooja.plugins.vanet.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +84,7 @@ public class ChaosStatsHandler {
         // Write everything at once so we are sure, we get the full stats everytime!
         String idStr = String.format("%06d", id);
         buffer.forEach(
-            logMsg -> Logger.event("chaos", 0, logMsg,  idStr)
+            logMsg -> Logger.event("chaos", World.getCurrentMS(), logMsg,  idStr)
         );
 
         buffer.clear();
