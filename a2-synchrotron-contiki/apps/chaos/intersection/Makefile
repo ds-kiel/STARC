@@ -20,6 +20,9 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 CFLAGS += -D CHAOS_INITIATORS=0
 CFLAGS += -D CHAOS_INTERVAL_SEC=$(chaos_interval)
+CFLAGS += -D FAILURES_RATE=$(failures)
+
+
 
 CONTIKI = ../../..
 include $(CONTIKI)/Makefile.include

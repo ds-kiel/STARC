@@ -25,7 +25,7 @@
       <source EXPORT="discard">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.c</source>
       <commands EXPORT="discard">
         make TARGET=sky clean
-      	make intersection-node.sky TARGET=sky chaos_interval=2</commands>
+      	make intersection-node.sky TARGET=sky chaos_interval=2 failures=0</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/apps/chaos/intersection/intersection-node.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>

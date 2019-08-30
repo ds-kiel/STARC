@@ -766,6 +766,15 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
   *app_flags = tx_mc->flags_and_leaves;
   int end = (slot_count >= MERGE_COMMIT_ROUND_MAX_SLOTS - 1) || (next_state == CHAOS_OFF);
 
+
+#if FAILURES_RATE
+  #warning "INJECT_FAILURES!!"
+  if(!IS_INITIATOR() && chaos_random_generator_fast() < 1*(CHAOS_RANDOM_MAX/(FAILURES_RATE))){
+    next_state = CHAOS_OFF;
+    end = 1; // we still want the cleanups and so on
+  }
+#endif
+
   if(end){
     memcpy(&mc_local.mc.value, &tx_mc->value, sizeof(merge_commit_value_t));
     mc_local.mc.phase = tx_mc->phase;
