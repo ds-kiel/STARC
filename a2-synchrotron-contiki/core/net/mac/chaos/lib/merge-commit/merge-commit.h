@@ -102,7 +102,7 @@ typedef struct __attribute__((packed)) {
         struct{
             uint8_t                 //control flags
                     type :2,        // The type of the round, coordination or election
-                    phase :7;       // The current phase of the round
+                    phase :6;       // The current phase of the round
         };
     };
 

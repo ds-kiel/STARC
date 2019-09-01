@@ -865,8 +865,6 @@ int merge_commit_round_begin(const uint16_t round_number, const uint8_t app_id, 
         mc_local.mc.type = TYPE_ELECTION_AND_HANDOVER;
         // We need to do a handover before we can leave!
         // Problem: If there is another node trying to leave, it should not need to be elected...
-        // TODO: Do not put the node id in the eleciton packet, in case they dont want to be elected
-        // TODO: If the election round failed, we schedule a coordination round next
       } else {
         // we can just leave ;)
         chaos_set_is_initiator(0);

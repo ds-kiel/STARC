@@ -305,43 +305,49 @@ const uint8_t slots_per_msg = 50;
     putchar('\n');
   }
 
-  if (mc_type == TYPE_COORDINATION && completed) {
-    
-    if(chaos_has_node_index){
-      printf("Commit completed\n");
-      printf("OFFSLOT: %d\n", mc_off_slot);
+  if (mc_type == TYPE_COORDINATION) {
+    if (completed) {
+      if(chaos_has_node_index){
+        printf("Commit completed (Coordination)\n");
+        printf("OFFSLOT: %d\n", mc_off_slot);
 
-      printf("own reserv.size %d\n", own_reservation.size);
+        printf("own reserv.size %d\n", own_reservation.size);
 
-      //print_tiles(&mc_commited_value);
+        //print_tiles(&mc_commited_value);
 
-      // Set latest known commit value
-      memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
+        // Set latest known commit value
+        memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
 
-      if (path_is_reserved(&mc_commited_value, &own_reservation, chaos_node_index+1)) {
-        own_priority = 0xFFFF; // we do not want that any other node intercepts our request...
-        set_own_priority(&mc_value); // we need to set this!
-        send_str("accepted"); // ack the new reservation
-        printf("Node id %d was accepted\n", node_id);
-      } else if (own_reservation.size > 0 && !path_is_reserved(&mc_value, &own_reservation, chaos_node_index+1)){
-        // TODO: At this point, we really just want to find ANY way ;)
-        // Add this with a parameter
-        if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1)) {
-          reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
-          set_own_priority(&mc_value);
-          printf("Try to reserve path with priority %x: \n", own_priority);
-          //print_tiles(&mc_value);
+        if (path_is_reserved(&mc_commited_value, &own_reservation, chaos_node_index+1)) {
+          own_priority = 0xFFFF; // we do not want that any other node intercepts our request...
+          set_own_priority(&mc_value); // we need to set this!
+          send_str("accepted"); // ack the new reservation
+          printf("Node id %d was accepted\n", node_id);
+        } else if (own_reservation.size > 0 && !path_is_reserved(&mc_value, &own_reservation, chaos_node_index+1)){
+          // TODO: At this point, we really just want to find ANY way ;)
+          // Add this with a parameter
+          if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1)) {
+            reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
+            set_own_priority(&mc_value);
+            printf("Try to reserve path with priority %x: \n", own_priority);
+            //print_tiles(&mc_value);
+          }
         }
+      } else {
+        // we are not part of the network
+        printf("{rd %u res} mc: waiting to join, n: %u\n", mc_round_count_local, chaos_node_count);
       }
     } else {
-      // we are not part of the network
-      printf("{rd %u res} mc: waiting to join, n: %u\n", mc_round_count_local, chaos_node_count);
+        printf("Commit NOT completed (Coordination)\n");
     }
   } else {
-      printf("Commit NOT completed\n");
+    if (completed) {
+      printf("Commit completed (Election)\n");
+      printf("OFFSLOT: %d\n", mc_off_slot);
+    } else {
+      printf("Commit NOT completed (Election)\n");
+    }
   }
-
-
     // Notify vehicle about our initiator status, to coordinate the network creation
     if (IS_INITIATOR()) {
       send_str("is_initiator");
@@ -488,14 +494,21 @@ static void mc_round_begin(const uint16_t round_count, const uint8_t id){
     chaos_multichannel_set_current_channel(wanted_channel);
   }
 
-  merge_commit_wanted_election_priority = 0xFFFF-own_priority;
-  // we will add the length of our path, so that if multiple want to leave,
-  // the one with the longest path is going to be elected
-  // need to take care of overflows here ;)
-  if (merge_commit_wanted_election_priority + own_reservation.size < merge_commit_wanted_election_priority) {
-    merge_commit_wanted_election_priority = 0xFFFF;
+  // We need to check that leaving nodes will never be elected in case of present non-leaving nodes
+  if (merge_commit_wanted_join_state == MERGE_COMMIT_WANTED_JOIN_STATE_LEAVE) {
+    merge_commit_wanted_election_priority = 0; // Zero as election priority
   } else {
-    merge_commit_wanted_election_priority += own_reservation.size;
+    merge_commit_wanted_election_priority = 0xFFFF-own_priority;
+    // we will add the length of our path, so the one with the longest path is going to be elected
+    // need to take care of overflows here ;)
+    if (merge_commit_wanted_election_priority + own_reservation.size < merge_commit_wanted_election_priority) {
+      merge_commit_wanted_election_priority = 0xFFFF;
+    } else {
+      merge_commit_wanted_election_priority += own_reservation.size;
+    }
+    if (merge_commit_wanted_election_priority == 0) {
+      merge_commit_wanted_election_priority = 1; // Make sure that non-leaving nodes will be elected
+    }
   }
 
   mc_complete = merge_commit_round_begin(round_count, id, &mc_commited_value, &mc_phase, &mc_type, &mc_flags);
