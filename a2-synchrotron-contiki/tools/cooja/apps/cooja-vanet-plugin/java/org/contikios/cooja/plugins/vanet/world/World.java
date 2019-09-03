@@ -154,9 +154,9 @@ public class World {
 
 
         // change Ids to make change invisible to other components
-        int tmpId = ma.getInterfaces().getMoteID().getMoteID();
-        ma.getInterfaces().getMoteID().setMoteID(mb.getID());
-        mb.getInterfaces().getMoteID().setMoteID(tmpId);
+        //int tmpId = ma.getInterfaces().getMoteID().getMoteID();
+        //ma.getInterfaces().getMoteID().setMoteID(mb.getID());
+        //mb.getInterfaces().getMoteID().setMoteID(tmpId);
 
         moteMap.put(a.getID(), mb);
         moteMap.put(b.getID(), ma);
