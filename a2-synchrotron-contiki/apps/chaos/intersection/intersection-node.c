@@ -227,19 +227,31 @@ static uint16_t mc_round_count_local = 0;
 
 static uint16_t arrival_round = 0;
 
-static void set_own_priority(merge_commit_value_t *val) {
+static void update_reservation() {
+  // Reset everything!
+  memset(&mc_value, 0, sizeof(merge_commit_value_t));
 
-  // we need to check if we have a chaos node id
-  if (!own_priority && chaos_has_node_index) {
-    own_priority = 0xFFFF-arrival_round; // 0 is no reservation, 0xFFFF is for the ones in the intersection
-    if (own_priority == 0xFFFF) {
-      own_priority = 0xFFFF-1;
-    }
-    if (own_priority == 0) {
-      own_priority = 1;
+  // And if we have a current reservation, lets use it!
+
+  
+  if (chaos_has_node_index && own_reservation.size > 0) {
+    if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1)) {
+      reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
+
+      // initialized default value for the priority if none is set
+      if (!own_priority) {
+        own_priority = 0xFFFF-arrival_round; // 0 is no reservation, 0xFFFF is for the ones in the intersection
+        if (own_priority == 0xFFFF) {
+          own_priority = 0xFFFF-1;
+        }
+        if (own_priority == 0) {
+          own_priority = 1;
+        }
+      }
+
+      mc_value.priorities[chaos_node_index] = own_priority;
     }
   }
- val->priorities[chaos_node_index] = own_priority;
 }
 
 PROCESS(mc_process, "Merge-Commit process");
@@ -319,19 +331,9 @@ const uint8_t slots_per_msg = 50;
         memcpy(&mc_last_commited_value, &mc_commited_value, sizeof(merge_commit_value_t));
 
         if (path_is_reserved(&mc_commited_value, &own_reservation, chaos_node_index+1)) {
-          own_priority = 0xFFFF; // we do not want that any other node intercepts our request...
-          set_own_priority(&mc_value); // we need to set this!
+          own_priority = 0xFFFF; // we do not want that any other node intercepts our request... Priority is copied later
           send_str("accepted"); // ack the new reservation
           printf("Node id %d was accepted\n", node_id);
-        } else if (own_reservation.size > 0 && !path_is_reserved(&mc_value, &own_reservation, chaos_node_index+1)){
-          // TODO: At this point, we really just want to find ANY way ;)
-          // Add this with a parameter
-          if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1)) {
-            reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
-            set_own_priority(&mc_value);
-            printf("Try to reserve path with priority %x: \n", own_priority);
-            //print_tiles(&mc_value);
-          }
         }
       } else {
         // we are not part of the network
@@ -348,11 +350,16 @@ const uint8_t slots_per_msg = 50;
       printf("Commit NOT completed (Election)\n");
     }
   }
-    // Notify vehicle about our initiator status, to coordinate the network creation
-    if (IS_INITIATOR()) {
-      send_str("is_initiator");
-    }
-    // Notify round end to simulation, to be able to remove vehicles...
+
+  // We reset the value every round
+  // To prevent misbehavior on rejoins etc.
+  update_reservation();
+
+  // Notify vehicle about our initiator status, to coordinate the network creation
+  if (IS_INITIATOR()) {
+    send_str("is_initiator");
+  }
+  // Notify round end to simulation, to be able to remove vehicles...
     send_str("round_end");
   }
 PROCESS_END();
@@ -437,25 +444,12 @@ PROCESS_THREAD(comm_process, ev, data)
       // 2. the reservation is part of the current reservation
       // 3. the reservation is completely new
 
-      // clean current commit value
-      memset(&mc_value, 0, sizeof(merge_commit_value_t));
-
-      if (msg_size == 0) {
-        own_priority = 0; // reset own priority since we have no intention for a reservation
-      } else  {
-
-        if (!part_of_current) {
-          // we need to reset our own priority time
-          own_priority = 0;
-        }
-
-        if (chaos_has_node_index && (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1))) {
-          reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
-          set_own_priority(&mc_value);
-          printf("Try to reserve new path with priority %x: \n", own_priority);
-          //print_tiles(&mc_value);
-        }
+      if (msg_size == 0 || !part_of_current) {
+        own_priority = 0; // reset own priority
+      } else {
+        // we keep the current priority
       }
+      update_reservation(); // update the reservation to use it in the next round already ;)
       send_str("ack"); // ack the new reservation
     }
   };
