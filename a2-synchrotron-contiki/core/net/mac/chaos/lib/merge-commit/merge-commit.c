@@ -580,6 +580,9 @@ inline uint8_t handle_coordination_round(uint16_t round_count, uint16_t slot_cou
             join_masks[i] |= ~tx_leaves[i];
           }
 
+          join_data_tx->node_count = chaos_node_count;
+          join_data_tx->commit = 1;
+
           tx = 1;
           leds_on(LEDS_GREEN);
         } else if (join_merge_delta) {
