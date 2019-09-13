@@ -260,6 +260,7 @@ public class ChaosVehicle extends BaseOrderVehicle implements PlatoonAwareVehicl
         TiledMapHandler.PathHelper pathHandler = currentIntersection.getMapHandler().createPathHelper();
 
         // we always request the reservation for the whole platoon as a head
+        // TODO: We should be able to determine the lowest waypoint and loop through the waypoints based on that value
         platoon.getMembers().forEach(
             v -> {
                 for(int i = Math.max(0, v.getCurWayPointIndex()-1); i < v.getWaypoints().size(); ++i) {

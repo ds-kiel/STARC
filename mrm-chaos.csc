@@ -96,13 +96,14 @@
   <plugin>
     org.contikios.cooja.plugins.Vanet
     <plugin_config>
-      <log_dir value="/Users/rathje/Desktop/tmp" />
+      <log_dir value="" />
       <intersection_type value="0" />
-      <vehicles_per_hour value="1000.0" />
+      <vehicles_per_hour value="4000.0" />
       <screen_export_dir value="" />
       <timeout value="0" />
       <left_turn_rate value="0.15" />
       <right_turn_rate value="0.15" />
+      <chaos_max_platoon_size value="-1" />
     </plugin_config>
     <width>150</width>
     <z>4</z>
