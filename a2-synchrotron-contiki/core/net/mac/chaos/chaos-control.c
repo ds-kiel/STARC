@@ -357,6 +357,8 @@ chaos_schedule_round(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_clock_t 
 }
 
 
+uint8_t chaos_start = 1;
+
 /* The main CHAOS process */
 PROCESS_THREAD(chaos_process, ev, data)
 {
@@ -376,7 +378,10 @@ PROCESS_THREAD(chaos_process, ev, data)
 
   IS_INITIATOR_INIT();
   // Pausse to give other proceses a chance to run before we initialize chaos
-  PROCESS_PAUSE();
+  do {
+    PROCESS_PAUSE();
+  } while(!chaos_start);
+
   printf("IS_INITIATOR %d\n", IS_INITIATOR());
 
     while(1) {

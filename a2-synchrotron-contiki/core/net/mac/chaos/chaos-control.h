@@ -66,6 +66,7 @@ uint8_t chaos_schedule_check_timer_miss(uint16_t ref_time, uint16_t offset, uint
 uint8_t chaos_schedule_check_vht_timer_miss(vht_clock_t ref_time, vht_clock_t offset, vht_clock_t now);
 
 extern const uint8_t chaos_app_count;
+extern uint8_t chaos_start;
 
 extern const chaos_app_t* const chaos_apps[];
 

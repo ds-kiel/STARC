@@ -396,6 +396,7 @@ PROCESS_THREAD(comm_process, ev, data)
 
     if (msg_id == 'I') {
       // set as initiator -> create a new network
+      chaos_start = 1;
       chaos_set_is_initiator(1);
       // and init the network ;)
       join_init();
@@ -404,6 +405,7 @@ PROCESS_THREAD(comm_process, ev, data)
       send_data_part((char*)&tmp, 1);
       putchar('\n');
     } else if (msg_id == 'J') {
+      chaos_start = 1;
       merge_commit_wanted_join_state = MERGE_COMMIT_WANTED_JOIN_STATE_JOIN;
       printf("Trying to join network\n");
     } else if(msg_id == 'L') {
@@ -470,6 +472,11 @@ PROCESS_THREAD(main_process, ev, data)
   }
   random_init(rseed);
   printf("Starting main process with seed: %d\n", rseed);
+
+#if CHAOS_AUTOMATIC_START
+#else
+  chaos_start = 0;
+#endif
 
   // we initialize the chaos channel here!
 
