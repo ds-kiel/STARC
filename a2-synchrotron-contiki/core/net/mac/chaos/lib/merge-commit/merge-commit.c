@@ -695,12 +695,12 @@ inline uint8_t handle_received_packet(uint16_t round_count, uint16_t slot_count,
   } else {
     // configuration is correct
     if (tx_mc->type == TYPE_ELECTION_AND_HANDOVER && rx_mc->type == TYPE_COORDINATION) {
-      // the newly elected initiator ignores all coordination packets, while in its election round
+      // the newly elected initiator ignores all coordination packets, while in its election round, the configuration number is updated at the end of the round
       if (!was_initiator && IS_INITIATOR()) {
         tx = 1;
       } else {
         tx = 1;
-        // all other nodes will switch from election to handover, but they don't participate directly (since they have overriden their value)
+        // all other nodes will switch from election to coordination, but they don't participate directly (since they have overriden their value)
         memcpy(tx_mc, rx_mc, sizeof(merge_commit_t) + merge_commit_get_flags_and_leaves_overall_length());
       }
     } else if (tx_mc->type == TYPE_COORDINATION && rx_mc->type == TYPE_ELECTION_AND_HANDOVER) {
@@ -797,7 +797,10 @@ process(uint16_t round_count, uint16_t slot_count, chaos_state_t current_state, 
       join_init_free_slots();
     }
 
-    // increase the join config
+    // increase the join config at the end to unify config number handling
+    // => if the sequence number matches, the packet is relevant for the specific type
+    // The direct incrementation could improve the handling of the concurrent election / coordination rounds
+    // but this would need further checks, as the commit would hold a different value.
     if (mc_local.mc.phase == PHASE_COMMIT) {
       join_increase_config();
     }
