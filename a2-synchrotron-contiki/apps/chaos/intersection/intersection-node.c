@@ -31,7 +31,7 @@
  *******************************************************************************/
 /**
  * \file
- *         A2-Synchrotron two-phase commit application for intersections
+ *         A2-Synchrotron two-phase merge-commit application for intersections
  * \author
  *         Beshr Al Nahas <beshr@chalmers.se>
  *         Olaf Landsiedel <olafl@chalmers.se>
@@ -232,8 +232,6 @@ static void update_reservation() {
   memset(&mc_value, 0, sizeof(merge_commit_value_t));
 
   // And if we have a current reservation, lets use it!
-
-  
   if (chaos_has_node_index && own_reservation.size > 0) {
     if (!WAIT_FOR_FREE_PATH || path_available(&mc_last_commited_value, &own_reservation, chaos_node_index+1)) {
       reserve_path(&mc_value, &own_reservation, chaos_node_index+1);
@@ -257,7 +255,6 @@ static void update_reservation() {
 PROCESS(mc_process, "Merge-Commit process");
 PROCESS_THREAD(mc_process, ev, data)
 {
-  // TODO: init commit value
 PROCESS_BEGIN();
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
