@@ -1,6 +1,6 @@
 # STARC
 
-This repository is based on [A2-Synchroton](https://github.com/iot-chalmers/a2-synchrotron) and contains an implementation of STARC (Synchronous Transmissions for Autonomous Reservation Coordination).
+This repository is based on [A2-Synchroton](https://github.com/iot-chalmers/a2-synchrotron) and contains an implementation of STARC (Synchronous Transmissions for Autonomous Resource Coordination).
 STARC is a decentralized protocol for intersection management of autonomous vehicles. The movement is coordinated using reservations to guarantee safe crossings. Chaos constitutes the foundation of the protocol. STARC extends Chaos with
 dynamic network support as well as an election and handover mechanism to
 cooperatively manage the intersection in a distributed manner.
